@@ -5,8 +5,8 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ Auth::user()->isOwner() ? route('dashboard') : route('pos.index') }}" class="font-bold text-lg text-gray-800">
-                        Sajian Baginda
+                    <a href="{{ Auth::user()->isOwner() ? route('dashboard') : route('pos.index') }}">
+                        <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="h-10 w-auto">
                     </a>
                 </div>
 
