@@ -1,0 +1,58 @@
+<?php
+
+use App\Http\Controllers\DailySessionController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrderReceiptController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\StaffController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return auth()->check()
+        ? redirect(auth()->user()->isOwner() ? route('dashboard') : route('pos.index'))
+        : redirect()->route('login');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Profile (all roles)
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Daily session (both roles can open/close the shop)
+    Route::post('/daily-session/open', [DailySessionController::class, 'open'])->name('daily-session.open');
+    Route::post('/daily-session/{dailySession}/close', [DailySessionController::class, 'close'])->name('daily-session.close');
+
+    // POS (owner + cashier)
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
+    Route::get('/orders/{order}/receipt', [OrderReceiptController::class, 'show'])->name('orders.receipt');
+
+    Route::middleware('owner')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Purchases / beli barang basah
+        Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
+        Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
+        Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+        Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
+
+        // Menu / products
+        Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+        Route::post('/products/categories', [ProductController::class, 'storeCategory'])->name('products.categories.store');
+        Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+        Route::patch('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+        Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+        // Staff accounts
+        Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
+        Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
+        Route::patch('/staff/{staffMember}/toggle', [StaffController::class, 'toggle'])->name('staff.toggle');
+        Route::delete('/staff/{staffMember}', [StaffController::class, 'destroy'])->name('staff.destroy');
+    });
+});
+
+require __DIR__.'/auth.php';
