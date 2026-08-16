@@ -131,3 +131,66 @@ akan reflect.
 
 Staff/cashier accounts kena dicipta oleh owner sendiri kat halaman **Staff**
 lepas login — takde public registration untuk elak orang luar daftar akaun.
+
+---
+
+## Realiti deployment di Exabytes (cPanel AI Pro, tiada Terminal/SSH)
+
+Plan hosting ni **takde Terminal/SSH access**. Semua command CLI (composer,
+artisan) kena jalan melalui **Cron Jobs** (run sekali, dengan jadual masa
+akan datang, lepas tu padam job tu). Berikut nota penting hasil deployment
+sebenar:
+
+### Setup yang confirmed berfungsi
+
+- **Repo location**: `/home/kretivco/repositories/terra_lestari` (di luar
+  `public_html`, guna Git Version Control cPanel, branch `main`)
+- **Document root subdomain**: `sajianbaginda.kretiv.co` →
+  `/home/kretivco/repositories/terra_lestari/public`
+- **PHP binary untuk cron**: `/usr/local/bin/ea-php84` (bukan `php` biasa —
+  cron punya `PATH` default terhad)
+- **Composer binary**: wujud di `/usr/local/bin/composer`, tapi **tak boleh
+  dipanggil dari cron** — network outbound dari proses cron nampak disekat
+  (composer install hang tanpa habis, tanpa error). Jangan cuba run
+  `composer install` via cron.
+- **DNS**: domain `kretiv.co` guna Cloudflare (bukan DNS Exabytes) — rekod
+  DNS baru kena ditambah di **Cloudflare dashboard** (proxy status: **DNS
+  only**), BUKAN cPanel Zone Editor.
+- **`config:cache`**: jangan guna. OPcache PHP-FPM server ni nampak simpan
+  bytecode lama fail `bootstrap/cache/config.php` walaupun fail tu berubah
+  (`opcache.validate_timestamps` kemungkinan `0`). Biarkan config uncached
+  (`.env` dibaca terus setiap request) — cukup untuk trafik kedai, elak
+  masalah cache basi yang sangat mengelirukan nak debug.
+
+### Cara update kod (bila ada perubahan)
+
+1. **Aku (Claude) push kod baru ke branch `main`** di GitHub.
+2. Buka cPanel → **Git Version Control** → **Manage** repo "Terra Lestari
+   System" → tab **Pull or Deploy** → **Update from Remote** (git pull).
+3. **Kalau composer.json berubah** (dependency PHP baru) — vendor/ kena
+   dibina semula secara **local** (bukan di server) sebab composer tak boleh
+   run di server ni:
+   - Aku run `composer install --no-dev --optimize-autoloader` di local,
+     zip folder `vendor/`, hantar fail zip.
+   - Upload ke `repositories/terra_lestari/` (root, bukan dalam `public/`)
+     via File Manager, extract, replace folder `vendor/` lama.
+4. **Kalau ada migration database baru** — run sekali via Cron Jobs:
+   ```
+   cd /home/kretivco/repositories/terra_lestari && /usr/local/bin/ea-php84 artisan migrate --force > /home/kretivco/repositories/terra_lestari/deploy-update.log 2>&1
+   ```
+   (Set jadual 2-3 minit akan datang, check log, **padam cron job lepas
+   siap** — jangan biar cron ni kekal berulang.)
+5. **Kalau CSS/JS (Tailwind/Blade) berubah** — fail compiled
+   (`public/build/`) kena dibina semula secara local (`npm run build`) dan
+   upload/extract macam vendor/ di atas (bukan sekadar edit Blade — kelas
+   Tailwind baru takkan muncul kalau tak rebuild).
+6. **Blade view (.blade.php) yang berubah tanpa kelas Tailwind baru** —
+   biasanya auto-refresh sendiri (Laravel compile semula bila fail source
+   berubah), tak perlu apa-apa command tambahan.
+
+### Nota keselamatan
+
+- Padam semua fail `deploy*.log` / `diag.log` di root repo lepas setiap
+  sesi update — fail ni boleh dedah struktur server.
+- Jangan biarkan cron job "one-off" kekal aktif lepas siap digunakan —
+  selalu padam di **Cron Jobs** lepas confirm hasil.
