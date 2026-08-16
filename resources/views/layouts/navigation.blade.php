@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ Auth::user()->isOwner() ? route('dashboard') : route('pos.index') }}">
-                        <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="h-10 w-auto">
+                        <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" style="height: 40px; width: auto; mix-blend-mode: multiply;">
                     </a>
                 </div>
 

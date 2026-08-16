@@ -18,7 +18,7 @@
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
             <div>
                 <a href="/">
-                    <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="w-64 max-w-full">
+                    <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" style="width: 220px; max-width: 80vw; height: auto; mix-blend-mode: multiply;">
                 </a>
             </div>
 
