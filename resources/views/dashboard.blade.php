@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard &mdash; {{ $project->name }}
+                Dashboard <span class="text-gray-400 font-normal">{{ $project->name }}</span>
             </h2>
             <span class="text-sm text-gray-500">{{ now()->translatedFormat('l, d M Y') }}</span>
         </div>

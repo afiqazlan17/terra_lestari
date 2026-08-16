@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            POS &mdash; {{ $project->name }}
+            POS <span class="text-gray-400 font-normal">{{ $project->name }}</span>
         </h2>
     </x-slot>
 
