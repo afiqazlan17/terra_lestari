@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mail\DailySalesReportMail;
 use App\Models\DailySession;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Project;
 use App\Models\Purchase;
 use App\Models\User;
@@ -29,11 +30,36 @@ class DailySalesReportService
             ->whereDate('purchase_date', $date)
             ->sum('amount');
 
+        $topItemRow = OrderItem::whereHas('order', function ($query) use ($project, $date) {
+            $query->where('project_id', $project->id)
+                ->where('status', 'completed')
+                ->whereDate('created_at', $date);
+        })
+            ->selectRaw('product_name, SUM(qty) as qty_sold')
+            ->groupBy('product_name')
+            ->orderByDesc('qty_sold')
+            ->first();
+
+        // Grouped in PHP rather than via a DB HOUR() function, since that
+        // function's name differs between MySQL (production) and SQLite
+        // (local/test) - the row volume for one outlet's single day is
+        // small enough that this is not a performance concern.
+        $peakHour = Order::where('project_id', $project->id)
+            ->where('status', 'completed')
+            ->whereDate('created_at', $date)
+            ->get(['created_at'])
+            ->groupBy(fn ($order) => $order->created_at->format('H'))
+            ->sortByDesc(fn ($group) => $group->count())
+            ->keys()
+            ->first();
+
         return [
             'sales' => (float) $sales,
             'orderCount' => $orderCount,
             'purchases' => (float) $purchases,
             'profit' => (float) $sales - (float) $purchases,
+            'topItem' => $topItemRow ? "{$topItemRow->product_name} ({$topItemRow->qty_sold} unit)" : null,
+            'peakHour' => $peakHour !== null ? sprintf('%02d:00 - %02d:00', (int) $peakHour, ((int) $peakHour + 1) % 24) : null,
         ];
     }
 

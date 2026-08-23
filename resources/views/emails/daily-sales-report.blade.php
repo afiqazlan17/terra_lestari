@@ -30,6 +30,23 @@
             </tr>
         </table>
 
+        @if ($summary['topItem'] || $summary['peakHour'])
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 8px;">
+                @if ($summary['topItem'])
+                    <tr>
+                        <td style="padding: 6px 0; color: #6b7280;">Item paling laku</td>
+                        <td style="padding: 6px 0; text-align: right; font-weight: bold;">{{ $summary['topItem'] }}</td>
+                    </tr>
+                @endif
+                @if ($summary['peakHour'])
+                    <tr>
+                        <td style="padding: 6px 0; color: #6b7280;">Jam paling sibuk</td>
+                        <td style="padding: 6px 0; text-align: right; font-weight: bold;">{{ $summary['peakHour'] }}</td>
+                    </tr>
+                @endif
+            </table>
+        @endif
+
         <p style="margin: 24px 0 0; color: #9ca3af; font-size: 12px;">
             Emel automatik dari sistem Sajian Baginda.
         </p>
