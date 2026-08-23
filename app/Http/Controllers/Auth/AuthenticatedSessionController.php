@@ -28,7 +28,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $home = $request->user()->isOwner()
+        $home = $request->user()->canManageOperations()
             ? route('dashboard', absolute: false)
             : route('pos.index', absolute: false);
 

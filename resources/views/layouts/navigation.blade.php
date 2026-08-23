@@ -5,14 +5,14 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ Auth::user()->isOwner() ? route('dashboard') : route('pos.index') }}">
+                    <a href="{{ Auth::user()->canManageOperations() ? route('dashboard') : route('pos.index') }}">
                         <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" style="height: 40px; width: auto; mix-blend-mode: multiply;">
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    @if (Auth::user()->isOwner())
+                    @if (Auth::user()->canManageOperations())
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
@@ -22,6 +22,8 @@
                         <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                             {{ __('Menu') }}
                         </x-nav-link>
+                    @endif
+                    @if (Auth::user()->isOwner())
                         <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                             {{ __('Staff') }}
                         </x-nav-link>
@@ -81,7 +83,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            @if (Auth::user()->isOwner())
+            @if (Auth::user()->canManageOperations())
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
@@ -91,6 +93,8 @@
                 <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                     {{ __('Menu') }}
                 </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->isOwner())
                 <x-responsive-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                     {{ __('Staff') }}
                 </x-responsive-nav-link>

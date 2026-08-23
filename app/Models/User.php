@@ -19,6 +19,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     public const ROLE_OWNER = 'owner';
+    public const ROLE_MANAGER = 'manager';
     public const ROLE_CASHIER = 'cashier';
 
     /**
@@ -45,9 +46,23 @@ class User extends Authenticatable
         return $this->role === self::ROLE_OWNER;
     }
 
+    public function isManager(): bool
+    {
+        return $this->role === self::ROLE_MANAGER;
+    }
+
     public function isCashier(): bool
     {
         return $this->role === self::ROLE_CASHIER;
+    }
+
+    /**
+     * Can see the dashboard, purchases and menu management, but (unlike
+     * owner) cannot manage staff accounts.
+     */
+    public function canManageOperations(): bool
+    {
+        return $this->isOwner() || $this->isManager();
     }
 
     /**

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'owner' => \App\Http\Middleware\EnsureUserIsOwner::class,
+            'operations' => \App\Http\Middleware\EnsureUserCanManageOperations::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

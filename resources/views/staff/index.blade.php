@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Staff (Cashier)</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Staff</h2>
     </x-slot>
 
     <div class="py-8">
@@ -8,7 +8,7 @@
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Tambah Akaun Staff</h3>
-                <form method="POST" action="{{ route('staff.store') }}" class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <form method="POST" action="{{ route('staff.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                     @csrf
                     <div>
                         <x-input-label for="name" value="Nama" />
@@ -22,7 +22,14 @@
                         <x-input-label for="password" value="Password" />
                         <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" required />
                     </div>
-                    <div class="sm:col-span-3">
+                    <div>
+                        <x-input-label for="role" value="Peranan" />
+                        <select id="role" name="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm">
+                            <option value="cashier">Cashier (POS sahaja)</option>
+                            <option value="manager">Manager (Dashboard, Belian, Menu)</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-4">
                         <x-input-error :messages="$errors->all()" class="mt-1" />
                         <x-primary-button type="submit">Tambah Staff</x-primary-button>
                     </div>
@@ -38,6 +45,7 @@
                             <tr class="text-left text-xs text-gray-500 uppercase">
                                 <th class="px-4 py-3">Nama</th>
                                 <th class="px-4 py-3">Email</th>
+                                <th class="px-4 py-3">Peranan</th>
                                 <th class="px-4 py-3">Status</th>
                                 <th class="px-4 py-3"></th>
                             </tr>
@@ -47,6 +55,11 @@
                                 <tr>
                                     <td class="px-4 py-3 text-gray-800">{{ $member->name }}</td>
                                     <td class="px-4 py-3 text-gray-600">{{ $member->email }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $member->isManager() ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
+                                            {{ $member->isManager() ? 'Manager' : 'Cashier' }}
+                                        </span>
+                                    </td>
                                     <td class="px-4 py-3">
                                         <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $member->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
                                             {{ $member->is_active ? 'Aktif' : 'Tidak Aktif' }}

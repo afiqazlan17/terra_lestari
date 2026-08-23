@@ -15,7 +15,7 @@ class StaffController extends Controller
         $project = $request->user()->currentProject();
 
         $staff = User::where('project_id', $project->id)
-            ->where('role', User::ROLE_CASHIER)
+            ->whereIn('role', [User::ROLE_MANAGER, User::ROLE_CASHIER])
             ->orderBy('name')
             ->get();
 
@@ -33,13 +33,14 @@ class StaffController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
+            'role' => ['required', 'in:'.User::ROLE_MANAGER.','.User::ROLE_CASHIER],
         ]);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => User::ROLE_CASHIER,
+            'role' => $validated['role'],
             'project_id' => $project->id,
             'email_verified_at' => now(),
         ]);
