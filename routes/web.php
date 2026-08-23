@@ -52,7 +52,9 @@ Route::middleware(['auth'])->group(function () {
         // Finance
         Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
         Route::get('/finance/sales', [FinanceController::class, 'sales'])->name('finance.sales');
+        Route::get('/finance/sales/export', [FinanceController::class, 'exportSales'])->name('finance.sales.export');
         Route::get('/finance/cashbook', [FinanceController::class, 'cashbook'])->name('finance.cashbook');
+        Route::get('/finance/cashbook/export', [FinanceController::class, 'exportCashbook'])->name('finance.cashbook.export');
 
         // Menu / products
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');

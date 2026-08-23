@@ -3,14 +3,34 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Finance</h2>
     </x-slot>
 
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+
     <div class="py-8">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-            @include('finance.partials.subnav')
-            @include('finance.partials.filter')
+            <div class="no-print">
+                @include('finance.partials.subnav')
+                @include('finance.partials.filter')
+            </div>
 
-            <p class="text-sm text-gray-500 mb-4">
-                Laporan jualan bagi {{ $from->format('d M Y') }} hingga {{ $to->format('d M Y') }}
-            </p>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4 no-print">
+                <p class="text-sm text-gray-500">
+                    Laporan jualan bagi {{ $from->format('d M Y') }} hingga {{ $to->format('d M Y') }}
+                </p>
+                <div class="flex gap-2">
+                    <a href="{{ route('finance.sales.export', request()->query()) }}"
+                        class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                        Export CSV
+                    </a>
+                    <button type="button" onclick="window.print()"
+                        class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                        Print
+                    </button>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
@@ -60,6 +80,27 @@
                                     <tr>
                                         <td class="px-6 py-3 text-gray-700">
                                             {{ strtoupper($row->payment_method) }}
+                                            <span class="text-gray-400">({{ $row->order_count }} order)</span>
+                                        </td>
+                                        <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($row->total, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+
+                <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
+                    <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Ikut Jenis Order</div>
+                    @if ($salesByOrderType->isEmpty())
+                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ni.</p>
+                    @else
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($salesByOrderType as $row)
+                                    <tr>
+                                        <td class="px-6 py-3 text-gray-700">
+                                            {{ \App\Models\Order::TYPES[$row->order_type] ?? $row->order_type }}
                                             <span class="text-gray-400">({{ $row->order_count }} order)</span>
                                         </td>
                                         <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($row->total, 2) }}</td>

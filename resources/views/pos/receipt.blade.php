@@ -41,7 +41,8 @@
     <p class="muted">
         No. Resit: {{ $order->order_number }}<br>
         Tarikh: {{ $order->created_at->format('d/m/Y H:i') }}<br>
-        Kasir: {{ $order->cashier->name }}
+        Kasir: {{ $order->cashier->name }}<br>
+        Jenis: {{ $order->typeLabel() }}
     </p>
     <div class="divider"></div>
     <table>

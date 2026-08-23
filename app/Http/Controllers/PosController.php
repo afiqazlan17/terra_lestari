@@ -9,6 +9,7 @@ use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PosController extends Controller
@@ -53,6 +54,7 @@ class PosController extends Controller
             'items.*.qty' => ['required', 'integer', 'min:1'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:cash,qr,card'],
+            'order_type' => ['required', Rule::in(array_keys(Order::TYPES))],
         ]);
 
         $order = DB::transaction(function () use ($validated, $project, $session, $request) {
@@ -85,6 +87,7 @@ class PosController extends Controller
                 'discount' => $discount,
                 'total' => $total,
                 'payment_method' => $validated['payment_method'],
+                'order_type' => $validated['order_type'],
                 'status' => 'completed',
             ]);
 

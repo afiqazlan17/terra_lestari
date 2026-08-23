@@ -9,6 +9,7 @@ use App\Models\Purchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FinanceController extends Controller
 {
@@ -97,6 +98,11 @@ class FinanceController extends Controller
             ->groupBy('payment_method')
             ->get();
 
+        $salesByOrderType = (clone $orders)
+            ->selectRaw('order_type, COUNT(*) as order_count, SUM(total) as total')
+            ->groupBy('order_type')
+            ->get();
+
         $topProducts = OrderItem::whereHas('order', function ($query) use ($project, $from, $to) {
             $query->where('project_id', $project->id)
                 ->where('status', 'completed')
@@ -122,16 +128,14 @@ class FinanceController extends Controller
             'orderCount' => $orderCount,
             'averageOrderValue' => $averageOrderValue,
             'salesByPaymentMethod' => $salesByPaymentMethod,
+            'salesByOrderType' => $salesByOrderType,
             'topProducts' => $topProducts,
             'dailyBreakdown' => $dailyBreakdown,
         ]);
     }
 
-    public function cashbook(Request $request): View
+    private function buildCashbookEntries($project, Carbon $from, Carbon $to): array
     {
-        $project = $request->user()->currentProject();
-        [$from, $to] = $this->resolveRange($request);
-
         $sales = Order::where('project_id', $project->id)
             ->where('status', 'completed')
             ->whereBetween('created_at', [$from, $to])
@@ -167,8 +171,19 @@ class FinanceController extends Controller
             ->sortByDesc('date')
             ->values();
 
-        $totalMasuk = $sales->sum('amount') + $capital->sum('amount');
-        $totalKeluar = $expenses->sum('amount');
+        return [
+            'entries' => $entries,
+            'totalMasuk' => $sales->sum('amount') + $capital->sum('amount'),
+            'totalKeluar' => $expenses->sum('amount'),
+        ];
+    }
+
+    public function cashbook(Request $request): View
+    {
+        $project = $request->user()->currentProject();
+        [$from, $to] = $this->resolveRange($request);
+
+        ['entries' => $entries, 'totalMasuk' => $totalMasuk, 'totalKeluar' => $totalKeluar] = $this->buildCashbookEntries($project, $from, $to);
 
         return view('finance.cashbook', [
             'project' => $project,
@@ -179,5 +194,68 @@ class FinanceController extends Controller
             'totalKeluar' => $totalKeluar,
             'netCash' => $totalMasuk - $totalKeluar,
         ]);
+    }
+
+    public function exportCashbook(Request $request): StreamedResponse
+    {
+        $project = $request->user()->currentProject();
+        [$from, $to] = $this->resolveRange($request);
+
+        ['entries' => $entries] = $this->buildCashbookEntries($project, $from, $to);
+
+        $filename = 'cashbook-'.$from->toDateString().'-hingga-'.$to->toDateString().'.csv';
+
+        return response()->streamDownload(function () use ($entries) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Tarikh', 'Jenis', 'Keterangan', 'Jumlah (RM)']);
+
+            foreach ($entries as $entry) {
+                fputcsv($out, [
+                    Carbon::parse($entry['date'])->format('d/m/Y'),
+                    $entry['type'] === 'masuk' ? 'Masuk' : 'Keluar',
+                    $entry['description'],
+                    number_format($entry['amount'], 2, '.', ''),
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
+    }
+
+    public function exportSales(Request $request): StreamedResponse
+    {
+        $project = $request->user()->currentProject();
+        [$from, $to] = $this->resolveRange($request);
+
+        $orders = Order::where('project_id', $project->id)
+            ->where('status', 'completed')
+            ->whereBetween('created_at', [$from, $to])
+            ->with('items')
+            ->orderBy('created_at')
+            ->get();
+
+        $filename = 'jualan-'.$from->toDateString().'-hingga-'.$to->toDateString().'.csv';
+
+        return response()->streamDownload(function () use ($orders) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['No. Resit', 'Tarikh/Masa', 'Item', 'Jenis Order', 'Kaedah Bayaran', 'Subtotal (RM)', 'Diskaun (RM)', 'Jumlah (RM)']);
+
+            foreach ($orders as $order) {
+                $itemsSummary = $order->items->map(fn ($item) => $item->product_name.' x'.$item->qty)->implode('; ');
+
+                fputcsv($out, [
+                    $order->order_number,
+                    $order->created_at->format('d/m/Y H:i'),
+                    $itemsSummary,
+                    $order->typeLabel(),
+                    strtoupper($order->payment_method),
+                    number_format($order->subtotal, 2, '.', ''),
+                    number_format($order->discount, 2, '.', ''),
+                    number_format($order->total, 2, '.', ''),
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 }

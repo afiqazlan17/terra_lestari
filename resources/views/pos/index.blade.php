@@ -90,6 +90,22 @@
                         </div>
 
                         <div class="mt-4">
+                            <label class="block text-xs text-gray-500 mb-1">Jenis Order</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" @click="orderType = 'dine_in'"
+                                    :class="orderType === 'dine_in' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                    class="rounded-md py-2 text-sm font-medium transition">
+                                    Makan Sini
+                                </button>
+                                <button type="button" @click="orderType = 'takeaway'"
+                                    :class="orderType === 'takeaway' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                    class="rounded-md py-2 text-sm font-medium transition">
+                                    Bungkus
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
                             <label class="block text-xs text-gray-500 mb-1">Cara Bayar</label>
                             <select x-model="paymentMethod" class="w-full rounded-md border-gray-300 shadow-sm text-sm">
                                 <option value="cash">Tunai</option>
@@ -108,6 +124,7 @@
                             </template>
                             <input type="hidden" name="discount" :value="discount">
                             <input type="hidden" name="payment_method" :value="paymentMethod">
+                            <input type="hidden" name="order_type" :value="orderType">
 
                             <button type="submit" :disabled="items.length === 0"
                                 class="mt-4 w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-3 rounded-lg transition">
@@ -130,6 +147,7 @@
                 items: [],
                 discount: 0,
                 paymentMethod: 'cash',
+                orderType: 'dine_in',
                 addItem(id, name, price) {
                     const existing = this.items.find(i => i.product_id === id);
                     if (existing) {

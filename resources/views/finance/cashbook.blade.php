@@ -3,10 +3,29 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Finance</h2>
     </x-slot>
 
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+
     <div class="py-8">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-            @include('finance.partials.subnav')
-            @include('finance.partials.filter')
+            <div class="no-print">
+                @include('finance.partials.subnav')
+                @include('finance.partials.filter')
+            </div>
+
+            <div class="flex justify-end gap-2 mb-4 no-print">
+                <a href="{{ route('finance.cashbook.export', request()->query()) }}"
+                    class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                    Export CSV
+                </a>
+                <button type="button" onclick="window.print()"
+                    class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                    Print
+                </button>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">

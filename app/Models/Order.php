@@ -8,9 +8,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    public const TYPE_DINE_IN = 'dine_in';
+    public const TYPE_TAKEAWAY = 'takeaway';
+
+    public const TYPES = [
+        self::TYPE_DINE_IN => 'Makan Sini',
+        self::TYPE_TAKEAWAY => 'Bungkus',
+    ];
+
     protected $fillable = [
         'project_id', 'daily_session_id', 'cashier_id', 'order_number',
-        'subtotal', 'discount', 'total', 'payment_method', 'status',
+        'subtotal', 'discount', 'total', 'payment_method', 'order_type', 'status',
     ];
 
     protected $casts = [
@@ -37,5 +45,10 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function typeLabel(): string
+    {
+        return self::TYPES[$this->order_type] ?? $this->order_type;
     }
 }
