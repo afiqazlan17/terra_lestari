@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -34,41 +35,33 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::firstOrCreate(
-            ['email' => 'ben@sajianbaginda.com'],
-            [
-                'name' => 'Ben',
-                'password' => Hash::make('password'),
-                'role' => User::ROLE_OWNER,
-                'project_id' => null,
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
+        $seedAccounts = [
+            ['email' => 'benn_mdshah@outlook.com', 'name' => 'Ben', 'role' => User::ROLE_OWNER],
+            ['email' => 'afiq@kretiv.co', 'name' => 'Afiq', 'role' => User::ROLE_SUPERUSER],
+            ['email' => 'amirul@kretiv.co', 'name' => 'Amirul', 'role' => User::ROLE_SUPERUSER],
+        ];
 
-        User::firstOrCreate(
-            ['email' => 'afiq@kretiv.co'],
-            [
-                'name' => 'Afiq',
-                'password' => Hash::make('TerraLestari-Afiq-2026'),
-                'role' => User::ROLE_SUPERUSER,
-                'project_id' => null,
-                'is_active' => true,
-                'email_verified_at' => now(),
-            ]
-        );
+        foreach ($seedAccounts as $account) {
+            $existing = User::where('email', $account['email'])->first();
 
-        User::firstOrCreate(
-            ['email' => 'amirul@kretiv.co'],
-            [
-                'name' => 'Amirul',
-                'password' => Hash::make('TerraLestari-Amirul-2026'),
-                'role' => User::ROLE_SUPERUSER,
+            if ($existing) {
+                continue;
+            }
+
+            $password = Str::password(14, symbols: false);
+
+            User::create([
+                'email' => $account['email'],
+                'name' => $account['name'],
+                'password' => Hash::make($password),
+                'role' => $account['role'],
                 'project_id' => null,
                 'is_active' => true,
                 'email_verified_at' => now(),
-            ]
-        );
+            ]);
+
+            $this->command?->warn("Akaun dicipta: {$account['email']} / password sementara: {$password} (tukar serta-merta guna Profile)");
+        }
 
         $nasi = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Nasi'], ['sort_order' => 0]);
 

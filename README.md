@@ -35,7 +35,7 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-Login default lepas seed: `ben@sajianbaginda.com` / `password`.
+Login default lepas seed: lihat jadual kredential dalam [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Deploy production
 

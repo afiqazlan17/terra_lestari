@@ -83,8 +83,8 @@ php artisan db:seed --force
 
 Ni akan cipta:
 - Company **Terra Lestari** + Project **Sajian Baginda**
-- Akaun owner: `ben@sajianbaginda.com` / password `password`
-  (**tukar password ni serta-merta lepas first login**, guna halaman Profile)
+- Akaun owner (Ben) dan dua akaun superuser (Afiq, Amirul) — lihat jadual
+  kredential kat bawah
 - Contoh menu asas (boleh edit/padam kat halaman Menu)
 
 ## 7. Storage link (untuk gambar resit)
@@ -125,9 +125,21 @@ akan reflect.
 
 ## Akaun default lepas seed
 
-| Role | Email | Password |
-|---|---|---|
-| Owner (Ben) | ben@sajianbaginda.com | password |
+| Role | Email |
+|---|---|
+| Owner (Ben) | benn_mdshah@outlook.com |
+| Superuser (Afiq) | afiq@kretiv.co |
+| Superuser (Amirul) | amirul@kretiv.co |
+
+Password sementara **tidak disimpan dalam repo ni** (sebab tu jangan commit
+password sebenar ke git). `php artisan db:seed` generate password rawak
+sekali sahaja untuk akaun baru dan paparkan terus dalam output/log —
+salin dari situ untuk dihantar kepada masing-masing, atau tukar terus
+melalui halaman **Profile** lepas first login.
+
+`afiq@kretiv.co` dan `amirul@kretiv.co` di-forward ke `kretivco@gmail.com`
+melalui Cloudflare Email Routing (Email → Email Routing pada domain
+`kretiv.co`) — bukan mailbox berasingan.
 
 Staff/cashier accounts kena dicipta oleh owner sendiri kat halaman **Staff**
 lepas login — takde public registration untuk elak orang luar daftar akaun.
