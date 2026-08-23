@@ -18,6 +18,7 @@
                         <thead class="bg-gray-50">
                             <tr class="text-left text-xs text-gray-500 uppercase">
                                 <th class="px-4 py-3">Tarikh</th>
+                                <th class="px-4 py-3">Kategori</th>
                                 <th class="px-4 py-3">Keterangan</th>
                                 <th class="px-4 py-3">Pembekal</th>
                                 <th class="px-4 py-3">Resit</th>
@@ -29,6 +30,11 @@
                             @foreach ($purchases as $purchase)
                                 <tr>
                                     <td class="px-4 py-3 text-gray-600">{{ $purchase->purchase_date->format('d M Y') }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex rounded-full px-2 py-1 text-xs bg-gray-100 text-gray-600">
+                                            {{ $purchase->categoryLabel() }}
+                                        </span>
+                                    </td>
                                     <td class="px-4 py-3 text-gray-800">
                                         {{ $purchase->description }}
                                         @if ($purchase->notes)

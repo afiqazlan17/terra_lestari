@@ -22,6 +22,9 @@
                         <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                             {{ __('Menu') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+                            {{ __('Finance') }}
+                        </x-nav-link>
                     @endif
                     @if (Auth::user()->hasFullAccess())
                         <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
@@ -92,6 +95,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                     {{ __('Menu') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+                    {{ __('Finance') }}
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasFullAccess())

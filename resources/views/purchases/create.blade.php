@@ -17,6 +17,16 @@
                     </div>
 
                     <div>
+                        <x-input-label for="category" value="Kategori" />
+                        <select id="category" name="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm" required>
+                            @foreach (\App\Models\Purchase::CATEGORIES as $value => $label)
+                                <option value="{{ $value }}" @selected(old('category', 'bahan_mentah') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('category')" class="mt-1" />
+                    </div>
+
+                    <div>
                         <x-input-label for="description" value="Keterangan (contoh: Ikan, Sayur, Beras)" />
                         <x-text-input id="description" name="description" type="text" class="mt-1 block w-full"
                             :value="old('description')" required autofocus />

@@ -6,6 +6,7 @@ use App\Models\Purchase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PurchaseController extends Controller
@@ -39,6 +40,7 @@ class PurchaseController extends Controller
 
         $validated = $request->validate([
             'purchase_date' => ['required', 'date'],
+            'category' => ['required', Rule::in(array_keys(Purchase::CATEGORIES))],
             'supplier_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],
@@ -54,6 +56,7 @@ class PurchaseController extends Controller
 
         $project->purchases()->create([
             'recorded_by' => $request->user()->id,
+            'category' => $validated['category'],
             'purchase_date' => $validated['purchase_date'],
             'supplier_name' => $validated['supplier_name'] ?? null,
             'description' => $validated['description'],

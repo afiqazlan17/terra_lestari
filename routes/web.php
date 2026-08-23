@@ -3,6 +3,7 @@
 use App\Http\Controllers\CapitalInjectionController;
 use App\Http\Controllers\DailySessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
@@ -41,6 +42,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
         Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
+
+        // Finance
+        Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
+        Route::get('/finance/sales', [FinanceController::class, 'sales'])->name('finance.sales');
+        Route::get('/finance/cashbook', [FinanceController::class, 'cashbook'])->name('finance.cashbook');
 
         // Menu / products
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');
