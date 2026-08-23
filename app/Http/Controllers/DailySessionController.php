@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailySession;
+use App\Services\DailySalesReportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -37,7 +38,7 @@ class DailySessionController extends Controller
         return back()->with('success', 'Hari ni dah dibuka. Selamat berniaga!');
     }
 
-    public function close(Request $request, DailySession $dailySession): RedirectResponse
+    public function close(Request $request, DailySession $dailySession, DailySalesReportService $reportService): RedirectResponse
     {
         abort_unless($dailySession->project_id === $request->user()->currentProject()?->id, 403);
         abort_unless($dailySession->isOpen(), 400, 'Sesi ni dah ditutup.');
@@ -55,6 +56,8 @@ class DailySessionController extends Controller
             'status' => 'closed',
         ]);
 
-        return back()->with('success', 'Hari ni dah ditutup.');
+        $reportService->sendFor($dailySession);
+
+        return back()->with('success', 'Hari ni dah ditutup. Ringkasan jualan dah dihantar ke emel.');
     }
 }

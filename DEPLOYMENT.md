@@ -194,3 +194,51 @@ sebenar:
   sesi update — fail ni boleh dedah struktur server.
 - Jangan biarkan cron job "one-off" kekal aktif lepas siap digunakan —
   selalu padam di **Cron Jobs** lepas confirm hasil.
+
+## Setup emel automatik (ringkasan jualan harian)
+
+Sistem hantar emel ringkasan jualan (Jualan, Belian, Untung Kasar, Bilangan
+Order) ke semua akaun full access (owner + superuser) secara automatik bila
+hari ditutup ("Tutup Hari"), dengan fallback cron jam 11:55 malam kalau
+staff terlupa tutup hari.
+
+### 1. Cipta akaun emel penghantar di cPanel
+
+- cPanel → **Email Accounts** → cipta contoh `noreply@sajianbaginda.kretiv.co`
+- Simpan password akaun emel ni (perlukan untuk `.env`)
+
+### 2. Tambah setting SMTP dalam `.env`
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=mail.sajianbaginda.kretiv.co
+MAIL_PORT=465
+MAIL_USERNAME=noreply@sajianbaginda.kretiv.co
+MAIL_PASSWORD=<password akaun emel tadi>
+MAIL_SCHEME=smtps
+MAIL_FROM_ADDRESS=noreply@sajianbaginda.kretiv.co
+MAIL_FROM_NAME="Sajian Baginda"
+```
+
+(Nilai `MAIL_HOST`/`MAIL_PORT` tepat boleh disemak di cPanel → **Email
+Accounts** → **Connect Devices** untuk akaun tu, biasanya sama dengan
+domain hosting.)
+
+### 3. Cron job berulang untuk fallback (BEZA dengan cron "one-off" di atas)
+
+Laravel scheduler perlukan satu cron yang jalan **setiap minit, kekal
+selama-lamanya** (bukan dipadam lepas siap macam cron migration/update
+kod). Dalam cPanel → **Cron Jobs**, tambah:
+
+```
+* * * * * cd /home/kretivco/repositories/terra_lestari && /usr/local/bin/ea-php84 artisan schedule:run >> /dev/null 2>&1
+```
+
+Cron ni akan check setiap minit sama ada dah sampai masa 11:55 malam untuk
+hantar laporan fallback (untuk sesi yang tak ditutup manual). Ia tak buat
+apa-apa pada minit-minit lain, jadi selamat untuk kekal berjalan.
+
+### 4. Test
+
+Buka Dashboard → "Tutup Hari" → emel patut sampai ke ben@sajianbaginda.com,
+afiq@kretiv.co, dan amirul@kretiv.co dalam beberapa saat.

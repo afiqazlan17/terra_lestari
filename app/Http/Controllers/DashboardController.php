@@ -25,11 +25,6 @@ class DashboardController extends Controller
             ->whereDate('created_at', $today)
             ->sum('total');
 
-        $todayOrderCount = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
-            ->whereDate('created_at', $today)
-            ->count();
-
         $todayPurchases = Purchase::where('project_id', $project->id)
             ->whereDate('purchase_date', $today)
             ->sum('amount');
@@ -66,20 +61,9 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $whatsappSummary = implode("\n", [
-            "Ringkasan Jualan {$project->name}",
-            'Tarikh: '.now()->translatedFormat('d M Y'),
-            '',
-            'Jualan: RM '.number_format($todaySales, 2),
-            'Belian: RM '.number_format($todayPurchases, 2),
-            'Untung Kasar: RM '.number_format($todaySales - $todayPurchases, 2),
-            "Bilangan Order: {$todayOrderCount}",
-        ]);
-
         return view('dashboard', [
             'project' => $project,
             'todaySales' => $todaySales,
-            'todayOrderCount' => $todayOrderCount,
             'todayPurchases' => $todayPurchases,
             'todayProfit' => $todaySales - $todayPurchases,
             'weekSales' => $weekSales,
@@ -88,7 +72,6 @@ class DashboardController extends Controller
             'dailyTrend' => $dailyTrend,
             'currentSession' => $currentSession,
             'recentPurchases' => $recentPurchases,
-            'whatsappSummary' => $whatsappSummary,
         ]);
     }
 }
