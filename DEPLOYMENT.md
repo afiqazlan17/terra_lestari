@@ -199,7 +199,7 @@ sebenar:
 
 Sistem hantar emel ringkasan jualan (Jualan, Belian, Untung Kasar, Bilangan
 Order) ke semua akaun full access (owner + superuser) secara automatik bila
-hari ditutup ("Tutup Hari"), dengan fallback cron jam 11:55 malam kalau
+hari ditutup ("Tutup Hari"), dengan fallback cron jam 6:00 petang kalau
 staff terlupa tutup hari.
 
 ### 1. Cipta akaun emel penghantar di cPanel
@@ -234,7 +234,7 @@ kod). Dalam cPanel → **Cron Jobs**, tambah:
 * * * * * cd /home/kretivco/repositories/terra_lestari && /usr/local/bin/ea-php84 artisan schedule:run >> /dev/null 2>&1
 ```
 
-Cron ni akan check setiap minit sama ada dah sampai masa 11:55 malam untuk
+Cron ni akan check setiap minit sama ada dah sampai masa 6:00 petang untuk
 hantar laporan fallback (untuk sesi yang tak ditutup manual). Ia tak buat
 apa-apa pada minit-minit lain, jadi selamat untuk kekal berjalan.
 
