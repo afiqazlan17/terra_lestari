@@ -9,6 +9,7 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Settings (all roles; reset-data is superuser-only, enforced in controller)
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/locale', [SettingsController::class, 'updateLocale'])->name('settings.locale');
+    Route::post('/settings/reset-data', [SettingsController::class, 'resetData'])->name('settings.reset-data');
 
     // Daily session (all roles can open/close the shop)
     Route::post('/daily-session/open', [DailySessionController::class, 'open'])->name('daily-session.open');

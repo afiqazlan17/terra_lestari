@@ -16,12 +16,6 @@
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
-                            {{ __('Belian') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
-                            {{ __('Menu') }}
-                        </x-nav-link>
                         <x-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
                             {{ __('Finance') }}
                         </x-nav-link>
@@ -29,6 +23,14 @@
                     @if (Auth::user()->hasFullAccess())
                         <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                             {{ __('Staff') }}
+                        </x-nav-link>
+                    @endif
+                    @if (Auth::user()->canManageOperations())
+                        <x-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
+                            {{ __('Belian') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                            {{ __('Menu') }}
                         </x-nav-link>
                     @endif
                     <x-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*') || request()->routeIs('orders.*')">
@@ -55,6 +57,9 @@
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
+                        </x-dropdown-link>
+                        <x-dropdown-link :href="route('settings.index')">
+                            {{ __('Settings') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->
@@ -90,12 +95,6 @@
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
-                    {{ __('Belian') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
-                    {{ __('Menu') }}
-                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
                     {{ __('Finance') }}
                 </x-responsive-nav-link>
@@ -103,6 +102,14 @@
             @if (Auth::user()->hasFullAccess())
                 <x-responsive-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                     {{ __('Staff') }}
+                </x-responsive-nav-link>
+            @endif
+            @if (Auth::user()->canManageOperations())
+                <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
+                    {{ __('Belian') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                    {{ __('Menu') }}
                 </x-responsive-nav-link>
             @endif
             <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*') || request()->routeIs('orders.*')">
@@ -120,6 +127,9 @@
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('settings.index')">
+                    {{ __('Settings') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->

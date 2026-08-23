@@ -1,0 +1,20 @@
+{
+    "Dashboard": "Dashboard",
+    "Finance": "Finance",
+    "Staff": "Staff",
+    "Belian": "Purchases",
+    "Menu": "Menu",
+    "POS": "POS",
+    "Profile": "Profile",
+    "Settings": "Settings",
+    "Log Out": "Log Out",
+    "Language": "Language",
+    "Save": "Save",
+    "Danger Zone": "Danger Zone",
+    "Reset all transaction data (sales, purchases, capital injections, daily sessions). Menu and staff accounts are kept.": "Reset all transaction data (sales, purchases, capital injections, daily sessions). Menu and staff accounts are kept.",
+    "Reset All Data": "Reset All Data",
+    "Type RESET to confirm": "Type RESET to confirm",
+    "Are you absolutely sure? This cannot be undone.": "Are you absolutely sure? This cannot be undone.",
+    "Confirm Reset": "Confirm Reset",
+    "Cancel": "Cancel"
+}

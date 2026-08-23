@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard <span class="text-gray-400 font-normal">{{ $project->name }}</span>
+                {{ __('Dashboard') }}
             </h2>
             <span class="text-sm text-gray-500">{{ now()->translatedFormat('l, d M Y') }}</span>
         </div>
@@ -131,71 +131,6 @@
                     </div>
                 @endif
             </div>
-            @if (Auth::user()->hasFullAccess())
-                {{-- Capital injection --}}
-                <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{ showForm: false }">
-                    <div class="flex items-center justify-between mb-1">
-                        <p class="text-sm font-medium text-gray-700">Modal Awal (Terra Lestari OCBC)</p>
-                        <button type="button" @click="showForm = ! showForm" class="text-sm text-amber-600 hover:underline">
-                            <span x-show="! showForm">+ Rekod Modal</span>
-                            <span x-show="showForm" x-cloak>Batal</span>
-                        </button>
-                    </div>
-                    <p class="text-2xl font-semibold text-gray-900 mb-4">RM {{ number_format($totalCapitalInjected, 2) }}</p>
-
-                    <form x-show="showForm" x-cloak method="POST" action="{{ route('capital-injections.store') }}"
-                        class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end mb-4 pb-4 border-b border-gray-100">
-                        @csrf
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Jumlah (RM)</label>
-                            <input type="number" step="0.01" min="0.01" name="amount" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Tarikh</label>
-                            <input type="date" name="injected_at" value="{{ now()->toDateString() }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Akaun Sumber</label>
-                            <input type="text" name="source_account" value="Terra Lestari OCBC" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-gray-500 mb-1">Nota (opsyenal)</label>
-                            <input type="text" name="notes" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
-                        </div>
-                        <div class="sm:col-span-4">
-                            <x-primary-button type="submit">Simpan</x-primary-button>
-                        </div>
-                    </form>
-
-                    @if ($recentCapitalInjections->isEmpty())
-                        <p class="text-sm text-gray-400">Tiada rekod modal lagi.</p>
-                    @else
-                        <div class="divide-y divide-gray-100">
-                            @foreach ($recentCapitalInjections as $injection)
-                                <div class="py-2 flex items-center justify-between text-sm">
-                                    <div>
-                                        <p class="text-gray-800">{{ $injection->source_account }}</p>
-                                        <p class="text-gray-400">
-                                            {{ $injection->injected_at->format('d M Y') }} &middot; {{ $injection->recordedBy->name }}
-                                            @if ($injection->notes)
-                                                &middot; {{ $injection->notes }}
-                                            @endif
-                                        </p>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <p class="font-medium text-gray-900">RM {{ number_format($injection->amount, 2) }}</p>
-                                        <form method="POST" action="{{ route('capital-injections.destroy', $injection) }}" onsubmit="return confirm('Padam rekod ni?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            @endif
         </div>
     </div>
 </x-app-layout>

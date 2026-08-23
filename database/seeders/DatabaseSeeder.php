@@ -71,16 +71,13 @@ class DatabaseSeeder extends Seeder
         );
 
         $nasi = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Nasi'], ['sort_order' => 0]);
-        $lauk = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Lauk'], ['sort_order' => 1]);
-        $minuman = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Minuman'], ['sort_order' => 2]);
 
         $menu = [
-            [$nasi->id, 'Nasi Kerabu', 8.00],
-            [$nasi->id, 'Nasi Dagang', 7.00],
-            [$lauk->id, 'Ayam Percik', 6.00],
-            [$lauk->id, 'Solok Lada', 3.00],
-            [$minuman->id, 'Air Sirap Bandung', 2.50],
-            [$minuman->id, 'Teh Tarik', 2.50],
+            [$nasi->id, 'Nasi Gulai Ikan Tongkol', 9.00],
+            [$nasi->id, 'Nasi Daging Berlengas', 9.00],
+            [$nasi->id, 'Nasi Ayam Cincang', 8.00],
+            [$nasi->id, 'Nasi Gulai Ayam', 7.00],
+            [$nasi->id, 'Nasi Keli Goreng', 7.00],
         ];
 
         foreach ($menu as $i => [$categoryId, $name, $price]) {

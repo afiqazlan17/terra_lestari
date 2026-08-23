@@ -53,6 +53,14 @@ class FinanceController extends Controller
             ->whereBetween('injected_at', [$from, $to])
             ->sum('amount');
 
+        $allTimeCapitalInjected = CapitalInjection::where('project_id', $project->id)->sum('amount');
+
+        $recentCapitalInjections = CapitalInjection::where('project_id', $project->id)
+            ->with('recordedBy')
+            ->latest('injected_at')
+            ->limit(5)
+            ->get();
+
         return view('finance.index', [
             'project' => $project,
             'from' => $from,
@@ -66,6 +74,8 @@ class FinanceController extends Controller
             'netProfit' => $netProfit,
             'purchasesByCategory' => $purchasesByCategory,
             'totalCapitalInjected' => $totalCapitalInjected,
+            'allTimeCapitalInjected' => $allTimeCapitalInjected,
+            'recentCapitalInjections' => $recentCapitalInjections,
         ]);
     }
 
