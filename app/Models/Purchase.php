@@ -11,6 +11,7 @@ class Purchase extends Model
     public const CATEGORY_SEWA = 'sewa';
     public const CATEGORY_UTILITI = 'utiliti';
     public const CATEGORY_GAJI = 'gaji';
+    public const CATEGORY_RENOVASI = 'renovasi';
     public const CATEGORY_LAIN = 'lain_lain';
 
     public const CATEGORIES = [
@@ -18,6 +19,16 @@ class Purchase extends Model
         self::CATEGORY_SEWA => 'Sewa',
         self::CATEGORY_UTILITI => 'Utiliti',
         self::CATEGORY_GAJI => 'Gaji',
+        self::CATEGORY_RENOVASI => 'Renovasi',
+        self::CATEGORY_LAIN => 'Lain-lain',
+    ];
+
+    /** Categories shown on the Perbelanjaan (non food cost) page. */
+    public const EXPENSE_CATEGORIES = [
+        self::CATEGORY_SEWA => 'Sewa',
+        self::CATEGORY_UTILITI => 'Utiliti',
+        self::CATEGORY_GAJI => 'Gaji',
+        self::CATEGORY_RENOVASI => 'Renovasi',
         self::CATEGORY_LAIN => 'Lain-lain',
     ];
 

@@ -107,11 +107,23 @@
 
                         <div class="mt-4">
                             <label class="block text-xs text-gray-500 mb-1">Cara Bayar</label>
-                            <select x-model="paymentMethod" class="w-full rounded-md border-gray-300 shadow-sm text-sm">
-                                <option value="cash">Tunai</option>
-                                <option value="qr">QR / DuitNow</option>
-                                <option value="card">Kad</option>
-                            </select>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" @click="paymentMethod = 'cash'"
+                                    :class="paymentMethod === 'cash' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                    class="rounded-md py-2 text-sm font-medium transition">
+                                    Tunai
+                                </button>
+                                <button type="button" @click="paymentMethod = 'qr'"
+                                    :class="paymentMethod === 'qr' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                    class="rounded-md py-2 text-sm font-medium transition">
+                                    QR / DuitNow
+                                </button>
+                                <button type="button" @click="paymentMethod = 'card'"
+                                    :class="paymentMethod === 'card' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
+                                    class="rounded-md py-2 text-sm font-medium transition">
+                                    Kad Debit/Kad Kredit
+                                </button>
+                            </div>
                         </div>
 
                         <form method="POST" :action="'{{ route('pos.store') }}'" @submit="return items.length > 0">

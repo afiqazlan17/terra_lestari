@@ -6,30 +6,31 @@ use App\Models\Purchase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-class PurchaseController extends Controller
+class ExpenseController extends Controller
 {
     public function index(Request $request): View
     {
         $project = $request->user()->currentProject();
 
-        $purchases = $project->purchases()
-            ->where('category', Purchase::CATEGORY_BAHAN_MENTAH)
+        $expenses = $project->purchases()
+            ->where('category', '!=', Purchase::CATEGORY_BAHAN_MENTAH)
             ->with('recordedBy')
             ->latest('purchase_date')
             ->latest('id')
             ->paginate(20);
 
-        return view('purchases.index', [
+        return view('expenses.index', [
             'project' => $project,
-            'purchases' => $purchases,
+            'expenses' => $expenses,
         ]);
     }
 
     public function create(Request $request): View
     {
-        return view('purchases.create', [
+        return view('expenses.create', [
             'project' => $request->user()->currentProject(),
         ]);
     }
@@ -40,6 +41,7 @@ class PurchaseController extends Controller
 
         $validated = $request->validate([
             'purchase_date' => ['required', 'date'],
+            'category' => ['required', Rule::in(array_keys(Purchase::EXPENSE_CATEGORIES))],
             'supplier_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],
@@ -55,7 +57,7 @@ class PurchaseController extends Controller
 
         $project->purchases()->create([
             'recorded_by' => $request->user()->id,
-            'category' => Purchase::CATEGORY_BAHAN_MENTAH,
+            'category' => $validated['category'],
             'purchase_date' => $validated['purchase_date'],
             'supplier_name' => $validated['supplier_name'] ?? null,
             'description' => $validated['description'],
@@ -64,19 +66,19 @@ class PurchaseController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        return redirect()->route('purchases.index')->with('success', 'Belian berjaya direkodkan.');
+        return redirect()->route('expenses.index')->with('success', 'Perbelanjaan berjaya direkodkan.');
     }
 
-    public function destroy(Request $request, Purchase $purchase): RedirectResponse
+    public function destroy(Request $request, Purchase $expense): RedirectResponse
     {
-        abort_unless($purchase->project_id === $request->user()->currentProject()?->id, 403);
+        abort_unless($expense->project_id === $request->user()->currentProject()?->id, 403);
 
-        if ($purchase->receipt_path) {
-            Storage::disk('public')->delete($purchase->receipt_path);
+        if ($expense->receipt_path) {
+            Storage::disk('public')->delete($expense->receipt_path);
         }
 
-        $purchase->delete();
+        $expense->delete();
 
-        return back()->with('success', 'Belian dipadam.');
+        return back()->with('success', 'Perbelanjaan dipadam.');
     }
 }

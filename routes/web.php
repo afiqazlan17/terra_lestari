@@ -3,6 +3,7 @@
 use App\Http\Controllers\CapitalInjectionController;
 use App\Http\Controllers\DailySessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PosController;
@@ -43,11 +44,17 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('operations')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Purchases / beli barang basah
+        // Purchases / beli barang basah (bahan mentah sahaja)
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
         Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
         Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
+
+        // Expenses / perbelanjaan (sewa, utiliti, gaji, renovasi, lain-lain)
+        Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+        Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+        Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
         // Finance
         Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');

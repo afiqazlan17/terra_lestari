@@ -8,7 +8,7 @@
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Tambah Akaun Staff</h3>
-                <form method="POST" action="{{ route('staff.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                <form method="POST" action="{{ route('staff.store') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                     @csrf
                     <div>
                         <x-input-label for="name" value="Nama" />
@@ -29,7 +29,7 @@
                             <option value="manager">Manager (Dashboard, Belian, Menu)</option>
                         </select>
                     </div>
-                    <div class="sm:col-span-4">
+                    <div class="sm:col-span-2">
                         <x-input-error :messages="$errors->all()" class="mt-1" />
                         <x-primary-button type="submit">Tambah Staff</x-primary-button>
                     </div>

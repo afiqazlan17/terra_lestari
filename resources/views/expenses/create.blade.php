@@ -1,30 +1,40 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Rekod Belian Barang</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Rekod Perbelanjaan</h2>
     </x-slot>
 
     <div class="py-8">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <form method="POST" action="{{ route('purchases.store') }}" enctype="multipart/form-data" class="space-y-4">
+                <form method="POST" action="{{ route('expenses.store') }}" enctype="multipart/form-data" class="space-y-4">
                     @csrf
 
                     <div>
-                        <x-input-label for="purchase_date" value="Tarikh Belian" />
+                        <x-input-label for="purchase_date" value="Tarikh" />
                         <x-text-input id="purchase_date" name="purchase_date" type="date" class="mt-1 block w-full"
                             :value="old('purchase_date', now()->toDateString())" required />
                         <x-input-error :messages="$errors->get('purchase_date')" class="mt-1" />
                     </div>
 
                     <div>
-                        <x-input-label for="description" value="Keterangan (contoh: Ikan, Sayur, Beras)" />
+                        <x-input-label for="category" value="Kategori" />
+                        <select id="category" name="category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm" required>
+                            @foreach (\App\Models\Purchase::EXPENSE_CATEGORIES as $value => $label)
+                                <option value="{{ $value }}" @selected(old('category') === $value)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <x-input-error :messages="$errors->get('category')" class="mt-1" />
+                    </div>
+
+                    <div>
+                        <x-input-label for="description" value="Keterangan (contoh: Gaji Bulan Ogos, Bil Elektrik, Renovasi Dapur)" />
                         <x-text-input id="description" name="description" type="text" class="mt-1 block w-full"
                             :value="old('description')" required autofocus />
                         <x-input-error :messages="$errors->get('description')" class="mt-1" />
                     </div>
 
                     <div>
-                        <x-input-label for="supplier_name" value="Pembekal (jika ada)" />
+                        <x-input-label for="supplier_name" value="Pembekal/Penerima (Jika ada)" />
                         <x-text-input id="supplier_name" name="supplier_name" type="text" class="mt-1 block w-full"
                             :value="old('supplier_name')" />
                         <x-input-error :messages="$errors->get('supplier_name')" class="mt-1" />
@@ -38,7 +48,7 @@
                     </div>
 
                     <div>
-                        <x-input-label for="receipt" value="Gambar Resit" />
+                        <x-input-label for="receipt" value="Gambar Resit (Jika ada)" />
                         <input id="receipt" name="receipt" type="file" accept="image/*" capture="environment"
                             class="mt-1 block w-full text-sm text-gray-600" />
                         <x-input-error :messages="$errors->get('receipt')" class="mt-1" />
@@ -52,8 +62,8 @@
                     </div>
 
                     <div class="flex items-center gap-3 pt-2">
-                        <x-primary-button type="submit">Simpan Belian</x-primary-button>
-                        <a href="{{ route('purchases.index') }}" class="text-sm text-gray-500 hover:underline">Batal</a>
+                        <x-primary-button type="submit">Simpan Perbelanjaan</x-primary-button>
+                        <a href="{{ route('expenses.index') }}" class="text-sm text-gray-500 hover:underline">Batal</a>
                     </div>
                 </form>
             </div>
