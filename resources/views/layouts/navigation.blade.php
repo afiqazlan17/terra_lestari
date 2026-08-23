@@ -23,7 +23,7 @@
                             {{ __('Menu') }}
                         </x-nav-link>
                     @endif
-                    @if (Auth::user()->isOwner())
+                    @if (Auth::user()->hasFullAccess())
                         <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                             {{ __('Staff') }}
                         </x-nav-link>
@@ -94,7 +94,7 @@
                     {{ __('Menu') }}
                 </x-responsive-nav-link>
             @endif
-            @if (Auth::user()->isOwner())
+            @if (Auth::user()->hasFullAccess())
                 <x-responsive-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
                     {{ __('Staff') }}
                 </x-responsive-nav-link>

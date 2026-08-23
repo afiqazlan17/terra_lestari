@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CapitalInjectionController;
 use App\Http\Controllers\DailySessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderReceiptController;
@@ -49,12 +50,15 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     });
 
-    // Staff accounts (owner only)
+    // Staff accounts + capital injections (owner/superuser only)
     Route::middleware('owner')->group(function () {
         Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
         Route::patch('/staff/{staffMember}/toggle', [StaffController::class, 'toggle'])->name('staff.toggle');
         Route::delete('/staff/{staffMember}', [StaffController::class, 'destroy'])->name('staff.destroy');
+
+        Route::post('/capital-injections', [CapitalInjectionController::class, 'store'])->name('capital-injections.store');
+        Route::delete('/capital-injections/{capitalInjection}', [CapitalInjectionController::class, 'destroy'])->name('capital-injections.destroy');
     });
 });
 

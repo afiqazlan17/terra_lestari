@@ -18,6 +18,7 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLE_SUPERUSER = 'superuser';
     public const ROLE_OWNER = 'owner';
     public const ROLE_MANAGER = 'manager';
     public const ROLE_CASHIER = 'cashier';
@@ -41,6 +42,11 @@ class User extends Authenticatable
         return $this->belongsTo(Project::class);
     }
 
+    public function isSuperuser(): bool
+    {
+        return $this->role === self::ROLE_SUPERUSER;
+    }
+
     public function isOwner(): bool
     {
         return $this->role === self::ROLE_OWNER;
@@ -57,12 +63,23 @@ class User extends Authenticatable
     }
 
     /**
+     * Superuser (system admin, e.g. the developer/technical team) has every
+     * permission owner has, plus can manage staff. Kept as a distinct role
+     * from owner so Ben's business-owner account stays conceptually
+     * separate from technical admin accounts.
+     */
+    public function hasFullAccess(): bool
+    {
+        return $this->isOwner() || $this->isSuperuser();
+    }
+
+    /**
      * Can see the dashboard, purchases and menu management, but (unlike
-     * owner) cannot manage staff accounts.
+     * owner/superuser) cannot manage staff accounts.
      */
     public function canManageOperations(): bool
     {
-        return $this->isOwner() || $this->isManager();
+        return $this->hasFullAccess() || $this->isManager();
     }
 
     /**

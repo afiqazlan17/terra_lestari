@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CapitalInjection;
 use App\Models\DailySession;
 use App\Models\Order;
 use App\Models\Purchase;
@@ -61,6 +62,14 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $totalCapitalInjected = CapitalInjection::where('project_id', $project->id)->sum('amount');
+
+        $recentCapitalInjections = CapitalInjection::where('project_id', $project->id)
+            ->with('recordedBy')
+            ->latest('injected_at')
+            ->limit(5)
+            ->get();
+
         return view('dashboard', [
             'project' => $project,
             'todaySales' => $todaySales,
@@ -72,6 +81,8 @@ class DashboardController extends Controller
             'dailyTrend' => $dailyTrend,
             'currentSession' => $currentSession,
             'recentPurchases' => $recentPurchases,
+            'totalCapitalInjected' => $totalCapitalInjected,
+            'recentCapitalInjections' => $recentCapitalInjections,
         ]);
     }
 }

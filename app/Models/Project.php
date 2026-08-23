@@ -48,4 +48,9 @@ class Project extends Model
     {
         return $this->hasMany(Purchase::class);
     }
+
+    public function capitalInjections(): HasMany
+    {
+        return $this->hasMany(CapitalInjection::class);
+    }
 }

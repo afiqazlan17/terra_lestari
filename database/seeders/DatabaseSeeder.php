@@ -46,6 +46,30 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        User::firstOrCreate(
+            ['email' => 'afiq@kretiv.co'],
+            [
+                'name' => 'Afiq',
+                'password' => Hash::make('TerraLestari-Afiq-2026'),
+                'role' => User::ROLE_SUPERUSER,
+                'project_id' => null,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'amirul@kretiv.co'],
+            [
+                'name' => 'Amirul',
+                'password' => Hash::make('TerraLestari-Amirul-2026'),
+                'role' => User::ROLE_SUPERUSER,
+                'project_id' => null,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+
         $nasi = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Nasi'], ['sort_order' => 0]);
         $lauk = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Lauk'], ['sort_order' => 1]);
         $minuman = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Minuman'], ['sort_order' => 2]);

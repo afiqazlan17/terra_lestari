@@ -11,7 +11,7 @@ class EnsureUserIsOwner
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->user() || ! $request->user()->isOwner()) {
+        if (! $request->user() || ! $request->user()->hasFullAccess()) {
             abort(403, 'Hanya CEO/owner boleh akses halaman ini.');
         }
 
