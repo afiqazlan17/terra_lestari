@@ -41,7 +41,7 @@
     <p class="muted">
         No. Resit: {{ $order->order_number }}<br>
         Tarikh: {{ $order->created_at->format('d/m/Y H:i') }}<br>
-        Kasir: {{ $order->cashier->name }}<br>
+        Staff: {{ $order->cashier->name }}<br>
         Jenis: {{ $order->typeLabel() }}
     </p>
     <div class="divider"></div>
@@ -56,9 +56,11 @@
     <div class="divider"></div>
     <table class="totals">
         <tr><td>Subtotal</td><td class="right">RM {{ number_format($order->subtotal, 2) }}</td></tr>
-        <tr><td>Diskaun</td><td class="right">RM {{ number_format($order->discount, 2) }}</td></tr>
+        @if ($order->discount > 0)
+            <tr><td>Diskaun</td><td class="right">RM {{ number_format($order->discount, 2) }}</td></tr>
+        @endif
         <tr class="grand"><td>Jumlah</td><td class="right">RM {{ number_format($order->total, 2) }}</td></tr>
-        <tr><td class="muted">Bayaran</td><td class="right muted">{{ strtoupper($order->payment_method) }}</td></tr>
+        <tr><td class="muted">Bayaran</td><td class="right muted">{{ $order->paymentMethodLabel() }}</td></tr>
     </table>
     <div class="divider"></div>
     <p class="center muted">Terima kasih!</p>

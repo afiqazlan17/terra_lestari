@@ -248,7 +248,7 @@ class FinanceController extends Controller
                     $order->created_at->format('d/m/Y H:i'),
                     $itemsSummary,
                     $order->typeLabel(),
-                    strtoupper($order->payment_method),
+                    $order->paymentMethodLabel(),
                     number_format($order->subtotal, 2, '.', ''),
                     number_format($order->discount, 2, '.', ''),
                     number_format($order->total, 2, '.', ''),

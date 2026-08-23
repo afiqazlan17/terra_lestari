@@ -16,6 +16,16 @@ class Order extends Model
         self::TYPE_TAKEAWAY => 'Bungkus',
     ];
 
+    public const PAYMENT_METHOD_CASH = 'cash';
+    public const PAYMENT_METHOD_QR = 'qr';
+    public const PAYMENT_METHOD_CARD = 'card';
+
+    public const PAYMENT_METHODS = [
+        self::PAYMENT_METHOD_CASH => 'Tunai',
+        self::PAYMENT_METHOD_QR => 'QR / DuitNow',
+        self::PAYMENT_METHOD_CARD => 'Kad Debit/Kad Kredit',
+    ];
+
     protected $fillable = [
         'project_id', 'daily_session_id', 'cashier_id', 'order_number',
         'subtotal', 'discount', 'total', 'payment_method', 'order_type', 'status',
@@ -50,5 +60,10 @@ class Order extends Model
     public function typeLabel(): string
     {
         return self::TYPES[$this->order_type] ?? $this->order_type;
+    }
+
+    public function paymentMethodLabel(): string
+    {
+        return self::PAYMENT_METHODS[$this->payment_method] ?? $this->payment_method;
     }
 }

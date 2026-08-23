@@ -79,7 +79,7 @@
                                 @foreach ($salesByPaymentMethod as $row)
                                     <tr>
                                         <td class="px-6 py-3 text-gray-700">
-                                            {{ strtoupper($row->payment_method) }}
+                                            {{ \App\Models\Order::PAYMENT_METHODS[$row->payment_method] ?? $row->payment_method }}
                                             <span class="text-gray-400">({{ $row->order_count }} order)</span>
                                         </td>
                                         <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($row->total, 2) }}</td>
