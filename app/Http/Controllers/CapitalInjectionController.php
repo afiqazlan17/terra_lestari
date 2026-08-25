@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\StoresReceipts;
 use App\Models\CapitalInjection;
+use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class CapitalInjectionController extends Controller
 {
+    use StoresReceipts;
+
     public function store(Request $request): RedirectResponse
     {
         abort_unless($request->user()->hasFullAccess(), 403);
@@ -19,13 +23,13 @@ class CapitalInjectionController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'injected_at' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'receipt' => ['nullable', 'mimes:jpg,jpeg,png,pdf', 'max:8192'],
+            'receipt' => ['nullable', 'file', 'max:8192', new ValidReceiptFile],
         ]);
 
         $receiptPath = null;
 
         if ($request->hasFile('receipt')) {
-            $receiptPath = $request->file('receipt')->store('capital-injections/'.$project->id, 'public');
+            $receiptPath = $this->storeReceipt($request->file('receipt'), 'capital-injections/'.$project->id);
         }
 
         $project->capitalInjections()->create([
@@ -46,7 +50,7 @@ class CapitalInjectionController extends Controller
         abort_unless($capitalInjection->project_id === $request->user()->currentProject()?->id, 403);
 
         $validated = $request->validate([
-            'receipt' => ['nullable', 'mimes:jpg,jpeg,png,pdf', 'max:8192'],
+            'receipt' => ['nullable', 'file', 'max:8192', new ValidReceiptFile],
             'remove_receipt' => ['nullable', 'boolean'],
         ]);
 
@@ -56,7 +60,7 @@ class CapitalInjectionController extends Controller
 
         if ($request->hasFile('receipt')) {
             $capitalInjection->update([
-                'receipt_path' => $request->file('receipt')->store('capital-injections/'.$capitalInjection->project_id, 'public'),
+                'receipt_path' => $this->storeReceipt($request->file('receipt'), 'capital-injections/'.$capitalInjection->project_id),
             ]);
         } elseif ($request->boolean('remove_receipt')) {
             $capitalInjection->update(['receipt_path' => null]);
