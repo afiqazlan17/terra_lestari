@@ -63,18 +63,45 @@ class DatabaseSeeder extends Seeder
             $this->command?->warn("Akaun dicipta: {$account['email']} / password sementara: {$password} (tukar serta-merta guna Profile)");
         }
 
-        $nasi = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Nasi'], ['sort_order' => 0]);
+        $setNasi = Category::where('project_id', $project->id)->where('name', 'Nasi')->first();
 
-        $menu = [
-            [$nasi->id, 'Nasi Gulai Ikan Tongkol', 9.00],
-            [$nasi->id, 'Nasi Daging Berlengas', 9.00],
-            [$nasi->id, 'Nasi Ayam Cincang', 8.00],
-            [$nasi->id, 'Nasi Gulai Ayam', 7.00],
-            [$nasi->id, 'Nasi Keli Goreng', 7.00],
+        if ($setNasi) {
+            $setNasi->update(['name' => 'Set Nasi']);
+        } else {
+            $setNasi = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Set Nasi'], ['sort_order' => 0]);
+        }
+
+        $alaCarte = Category::firstOrCreate(['project_id' => $project->id, 'name' => 'Ala Carte'], ['sort_order' => 1]);
+
+        $setNasiMenu = [
+            [$setNasi->id, 'Nasi Sotong Goreng Tepung', 12.00],
+            [$setNasi->id, 'Nasi Gulai Ikan Tongkol', 9.00],
+            [$setNasi->id, 'Nasi Daging Berlengas', 9.00],
+            [$setNasi->id, 'Nasi Ayam Cincang', 8.00],
+            [$setNasi->id, 'Nasi Gulai Ayam', 7.00],
+            [$setNasi->id, 'Nasi Keli Goreng', 7.00],
+            [$setNasi->id, 'Nasi Berlauk Ayam Budget (Bungkus)', 6.00],
         ];
 
-        foreach ($menu as $i => [$categoryId, $name, $price]) {
-            Product::firstOrCreate(
+        $alaCarteMenu = [
+            [$alaCarte->id, 'Sotong Goreng Tepung', 10.00],
+            [$alaCarte->id, 'Daging Berlengas', 7.00],
+            [$alaCarte->id, 'Ikan Tongkol', 7.00],
+            [$alaCarte->id, 'Ayam Cincang', 6.00],
+            [$alaCarte->id, 'Keli Goreng', 5.00],
+            [$alaCarte->id, 'Ayam Gulai', 4.50],
+            [$alaCarte->id, 'Nasi Putih', 2.00],
+        ];
+
+        foreach ($setNasiMenu as $i => [$categoryId, $name, $price]) {
+            Product::updateOrCreate(
+                ['project_id' => $project->id, 'name' => $name],
+                ['category_id' => $categoryId, 'price' => $price, 'is_active' => true, 'sort_order' => $i]
+            );
+        }
+
+        foreach ($alaCarteMenu as $i => [$categoryId, $name, $price]) {
+            Product::updateOrCreate(
                 ['project_id' => $project->id, 'name' => $name],
                 ['category_id' => $categoryId, 'price' => $price, 'is_active' => true, 'sort_order' => $i]
             );
