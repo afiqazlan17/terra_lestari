@@ -32,7 +32,7 @@
 
                     <div>
                         <x-input-label for="amount" value="Jumlah (RM)" />
-                        <x-text-input id="amount" name="amount" type="number" step="0.01" min="0" class="mt-1 block w-full"
+                        <x-text-input id="amount" name="amount" type="text" inputmode="decimal" data-money-input class="mt-1 block w-full"
                             :value="old('amount')" required />
                         <x-input-error :messages="$errors->get('amount')" class="mt-1" />
                     </div>

@@ -90,7 +90,7 @@
                             @csrf
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Jumlah (RM)</label>
-                                <input type="number" step="0.01" min="0.01" name="amount" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                <input type="text" inputmode="decimal" data-money-input name="amount" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                             </div>
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Tarikh</label>
@@ -112,7 +112,7 @@
                         @if ($recentCapitalInjections->isNotEmpty())
                             <div class="divide-y divide-gray-100 text-sm">
                                 @foreach ($recentCapitalInjections as $injection)
-                                    <div class="py-2" x-data="{ editReceipt: false }">
+                                    <div class="py-3" x-data="{ editReceipt: false }">
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <p class="text-gray-700">
@@ -120,13 +120,13 @@
                                                     @if ($injection->receipt_path)
                                                         &middot; <a href="{{ Storage::url($injection->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat lampiran</a>
                                                     @endif
-                                                    &middot; <button type="button" @click="editReceipt = ! editReceipt" class="text-gray-400 hover:underline">
-                                                        {{ $injection->receipt_path ? 'Tukar/padam lampiran' : 'Tambah lampiran' }}
-                                                    </button>
                                                 </p>
                                                 @if ($injection->notes)
                                                     <p class="text-xs text-gray-400">{{ $injection->notes }}</p>
                                                 @endif
+                                                <p class="text-xs text-gray-400 mt-0.5">
+                                                    Ditambah oleh {{ $injection->recordedBy->name }}, {{ $injection->created_at->format('d M Y, H:i') }}
+                                                </p>
                                             </div>
                                             <div class="flex items-center gap-3">
                                                 <p class="font-medium text-gray-900">RM {{ number_format($injection->amount, 2) }}</p>
@@ -138,7 +138,14 @@
                                             </div>
                                         </div>
 
-                                        <div x-show="editReceipt" x-cloak class="mt-2 flex flex-wrap items-center gap-2">
+                                        <div class="mt-2 flex justify-center">
+                                            <button type="button" @click="editReceipt = ! editReceipt"
+                                                class="text-xs text-gray-600 border border-gray-300 rounded-full px-3 py-1 hover:bg-gray-50">
+                                                {{ $injection->receipt_path ? 'Tukar/Padam Lampiran' : '+ Tambah Lampiran' }}
+                                            </button>
+                                        </div>
+
+                                        <div x-show="editReceipt" x-cloak class="mt-2 flex flex-wrap items-center justify-center gap-2">
                                             <form method="POST" action="{{ route('capital-injections.receipt.update', $injection) }}" enctype="multipart/form-data" class="flex items-center gap-2">
                                                 @csrf
                                                 @method('PATCH')

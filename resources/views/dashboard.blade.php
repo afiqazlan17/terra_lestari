@@ -28,7 +28,7 @@
                             @csrf
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Cash akhir (RM)</label>
-                                <input type="number" step="0.01" min="0" name="closing_cash" required
+                                <input type="text" inputmode="decimal" data-money-input name="closing_cash" required
                                     class="rounded-md border-gray-300 shadow-sm text-sm w-32">
                             </div>
                             <x-danger-button type="submit">Tutup Hari</x-danger-button>
@@ -46,7 +46,7 @@
                             @csrf
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Modal awal (RM)</label>
-                                <input type="number" step="0.01" min="0" name="opening_cash" required
+                                <input type="text" inputmode="decimal" data-money-input name="opening_cash" required
                                     class="rounded-md border-gray-300 shadow-sm text-sm w-32">
                             </div>
                             <x-primary-button type="submit">Buka Hari</x-primary-button>
