@@ -17,7 +17,7 @@
                             {{ __('Dashboard') }}
                         </x-nav-link>
                         <x-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
-                            {{ __('Finance') }}
+                            {{ __('Akaun') }}
                         </x-nav-link>
                     @endif
                     @if (Auth::user()->hasFullAccess())
@@ -99,7 +99,7 @@
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
-                    {{ __('Finance') }}
+                    {{ __('Akaun') }}
                 </x-responsive-nav-link>
             @endif
             @if (Auth::user()->hasFullAccess())
