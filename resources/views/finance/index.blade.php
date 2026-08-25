@@ -85,7 +85,7 @@
                     </div>
 
                     <div x-show="open" x-cloak class="mt-4 pt-4 border-t border-gray-100">
-                        <form method="POST" action="{{ route('capital-injections.store') }}"
+                        <form method="POST" action="{{ route('capital-injections.store') }}" enctype="multipart/form-data"
                             class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end mb-4">
                             @csrf
                             <div>
@@ -101,8 +101,12 @@
                                 <input type="text" name="source_account" value="Terra Lestari OCBC" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Nota (opsyenal)</label>
+                                <label class="block text-xs text-gray-500 mb-1">Nota (Jika ada)</label>
                                 <input type="text" name="notes" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs text-gray-500 mb-1">Lampiran Statement/Resit (Jika ada)</label>
+                                <input type="file" name="receipt" accept="image/*,.pdf,application/pdf" class="block w-full text-sm text-gray-600">
                             </div>
                             <div class="sm:col-span-4">
                                 <x-primary-button type="submit">Simpan</x-primary-button>
@@ -114,7 +118,12 @@
                                 @foreach ($recentCapitalInjections as $injection)
                                     <div class="py-2 flex items-center justify-between">
                                         <div>
-                                            <p class="text-gray-700">{{ $injection->injected_at->format('d M Y') }} &middot; {{ $injection->source_account }}</p>
+                                            <p class="text-gray-700">
+                                                {{ $injection->injected_at->format('d M Y') }} &middot; {{ $injection->source_account }}
+                                                @if ($injection->receipt_path)
+                                                    &middot; <a href="{{ Storage::url($injection->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat lampiran</a>
+                                                @endif
+                                            </p>
                                             @if ($injection->notes)
                                                 <p class="text-xs text-gray-400">{{ $injection->notes }}</p>
                                             @endif

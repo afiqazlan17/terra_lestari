@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CapitalInjection extends Model
 {
     protected $fillable = [
-        'project_id', 'recorded_by', 'amount', 'source_account', 'injected_at', 'notes',
+        'project_id', 'recorded_by', 'amount', 'source_account', 'injected_at', 'notes', 'receipt_path',
     ];
 
     protected $casts = [

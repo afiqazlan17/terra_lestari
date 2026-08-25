@@ -44,7 +44,7 @@ class PurchaseController extends Controller
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
-            'receipt' => ['nullable', 'image', 'max:8192'],
+            'receipt' => ['nullable', 'mimes:jpg,jpeg,png,pdf', 'max:8192'],
         ]);
 
         $receiptPath = null;

@@ -48,8 +48,8 @@
                     </div>
 
                     <div>
-                        <x-input-label for="receipt" value="Gambar Resit (Jika ada)" />
-                        <input id="receipt" name="receipt" type="file" accept="image/*" capture="environment"
+                        <x-input-label for="receipt" value="Gambar/PDF Resit (Jika ada)" />
+                        <input id="receipt" name="receipt" type="file" accept="image/*,.pdf,application/pdf"
                             class="mt-1 block w-full text-sm text-gray-600" />
                         <x-input-error :messages="$errors->get('receipt')" class="mt-1" />
                     </div>
