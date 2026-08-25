@@ -53,18 +53,18 @@
                         <p class="p-6 text-sm text-gray-400">Belum ada item.</p>
                     @else
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <table class="min-w-full table-fixed divide-y divide-gray-100 text-sm">
                                 <tbody class="divide-y divide-gray-100">
                                     @foreach ($category->products as $product)
                                         <tr>
-                                            <td class="px-6 py-3 text-gray-800">{{ $product->name }}</td>
+                                            <td class="px-6 py-3 text-gray-800 truncate">{{ $product->name }}</td>
                                             <td class="px-6 py-3 text-gray-600 text-right tabular-nums whitespace-nowrap w-24">RM {{ number_format($product->price, 2) }}</td>
-                                            <td class="px-6 py-3 whitespace-nowrap">
+                                            <td class="px-6 py-3 whitespace-nowrap w-28">
                                                 <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
                                                     {{ $product->is_active ? 'Aktif' : 'Tidak Aktif' }}
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-3 text-right whitespace-nowrap space-x-3">
+                                            <td class="px-6 py-3 text-right whitespace-nowrap space-x-3 w-44">
                                                 <form method="POST" action="{{ route('products.update', $product) }}" class="inline">
                                                     @csrf
                                                     @method('PATCH')
