@@ -112,7 +112,7 @@
                         @if ($recentCapitalInjections->isNotEmpty())
                             <div class="divide-y divide-gray-100 text-sm">
                                 @foreach ($recentCapitalInjections as $injection)
-                                    <div class="py-3" x-data="{ editReceipt: false }">
+                                    <div class="py-3" x-data="{ editReceipt: false, editFields: false, showHistory: false }">
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <p class="text-gray-700">
@@ -127,6 +127,19 @@
                                                 <p class="text-xs text-gray-400 mt-0.5">
                                                     Ditambah oleh {{ $injection->recordedBy->name }}, {{ $injection->created_at->format('d M Y, H:i') }}
                                                 </p>
+                                                @if ($injection->edits->isNotEmpty())
+                                                    <button type="button" @click="showHistory = ! showHistory" class="text-xs text-gray-400 hover:underline mt-0.5">
+                                                        Diedit {{ $injection->edits->count() }} kali &middot; <span x-text="showHistory ? 'sorok sejarah' : 'lihat sejarah'"></span>
+                                                    </button>
+                                                    <div x-show="showHistory" x-cloak class="mt-1 space-y-1 border-s-2 border-gray-100 ps-2">
+                                                        @foreach ($injection->edits as $edit)
+                                                            <p class="text-xs text-gray-400">
+                                                                {{ $edit->editedBy->name }}, {{ $edit->created_at->format('d M Y, H:i') }}<br>
+                                                                <span class="whitespace-pre-line">{{ $edit->changes }}</span>
+                                                            </p>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             </div>
                                             <div class="flex items-center gap-3">
                                                 <p class="font-medium text-gray-900">RM {{ number_format($injection->amount, 2) }}</p>
@@ -138,11 +151,43 @@
                                             </div>
                                         </div>
 
-                                        <div class="mt-2 flex justify-center">
+                                        <div class="mt-2 flex justify-center gap-2">
+                                            <button type="button" @click="editFields = ! editFields"
+                                                class="text-xs text-gray-600 border border-gray-300 rounded-full px-3 py-1 hover:bg-gray-50">
+                                                Edit
+                                            </button>
                                             <button type="button" @click="editReceipt = ! editReceipt"
                                                 class="text-xs text-gray-600 border border-gray-300 rounded-full px-3 py-1 hover:bg-gray-50">
                                                 {{ $injection->receipt_path ? 'Tukar/Padam Lampiran' : '+ Tambah Lampiran' }}
                                             </button>
+                                        </div>
+
+                                        <div x-show="editFields" x-cloak class="mt-3 pt-3 border-t border-gray-100">
+                                            <form method="POST" action="{{ route('capital-injections.update', $injection) }}"
+                                                class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                                                @csrf
+                                                @method('PATCH')
+                                                <div>
+                                                    <label class="block text-xs text-gray-500 mb-1">Jumlah (RM)</label>
+                                                    <input type="text" inputmode="decimal" data-money-input name="amount" required
+                                                        value="{{ number_format($injection->amount, 2, '.', '') }}"
+                                                        class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs text-gray-500 mb-1">Tarikh</label>
+                                                    <input type="date" name="injected_at" required
+                                                        value="{{ $injection->injected_at->toDateString() }}"
+                                                        class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs text-gray-500 mb-1">Nota (Jika ada)</label>
+                                                    <input type="text" name="notes" value="{{ $injection->notes }}"
+                                                        class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                </div>
+                                                <div class="sm:col-span-3 flex justify-center">
+                                                    <x-primary-button type="submit">Simpan Perubahan</x-primary-button>
+                                                </div>
+                                            </form>
                                         </div>
 
                                         <div x-show="editReceipt" x-cloak class="mt-2 flex flex-wrap items-center justify-center gap-2">

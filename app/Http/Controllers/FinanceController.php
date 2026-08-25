@@ -57,7 +57,7 @@ class FinanceController extends Controller
         $allTimeCapitalInjected = CapitalInjection::where('project_id', $project->id)->sum('amount');
 
         $recentCapitalInjections = CapitalInjection::where('project_id', $project->id)
-            ->with('recordedBy')
+            ->with(['recordedBy', 'edits.editedBy'])
             ->latest('injected_at')
             ->limit(5)
             ->get();

@@ -7,6 +7,7 @@ use App\Models\CapitalInjection;
 use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class CapitalInjectionController extends Controller
@@ -42,6 +43,64 @@ class CapitalInjectionController extends Controller
         ]);
 
         return back()->with('success', 'Modal awal berjaya direkodkan.');
+    }
+
+    public function update(Request $request, CapitalInjection $capitalInjection): RedirectResponse
+    {
+        abort_unless($request->user()->hasFullAccess(), 403);
+        abort_unless($capitalInjection->project_id === $request->user()->currentProject()?->id, 403);
+
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'injected_at' => ['required', 'date'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $changes = [];
+
+        if ((float) $capitalInjection->amount !== (float) $validated['amount']) {
+            $changes[] = sprintf(
+                'Jumlah: RM %s → RM %s',
+                number_format($capitalInjection->amount, 2),
+                number_format($validated['amount'], 2)
+            );
+        }
+
+        $newDate = Carbon::parse($validated['injected_at']);
+
+        if (! $capitalInjection->injected_at->isSameDay($newDate)) {
+            $changes[] = sprintf(
+                'Tarikh: %s → %s',
+                $capitalInjection->injected_at->format('d M Y'),
+                $newDate->format('d M Y')
+            );
+        }
+
+        $oldNotes = $capitalInjection->notes ?? '';
+        $newNotes = $validated['notes'] ?? '';
+
+        if ($oldNotes !== $newNotes) {
+            $changes[] = sprintf(
+                'Nota: "%s" → "%s"',
+                $oldNotes !== '' ? $oldNotes : '(kosong)',
+                $newNotes !== '' ? $newNotes : '(kosong)'
+            );
+        }
+
+        if (! empty($changes)) {
+            $capitalInjection->edits()->create([
+                'edited_by' => $request->user()->id,
+                'changes' => implode("\n", $changes),
+            ]);
+
+            $capitalInjection->update([
+                'amount' => $validated['amount'],
+                'injected_at' => $validated['injected_at'],
+                'notes' => $validated['notes'] ?? null,
+            ]);
+        }
+
+        return back()->with('success', 'Rekod modal dikemaskini.');
     }
 
     public function updateReceipt(Request $request, CapitalInjection $capitalInjection): RedirectResponse

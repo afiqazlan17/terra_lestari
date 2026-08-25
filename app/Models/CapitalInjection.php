@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CapitalInjection extends Model
 {
@@ -24,5 +25,10 @@ class CapitalInjection extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function edits(): HasMany
+    {
+        return $this->hasMany(CapitalInjectionEdit::class)->latest();
     }
 }
