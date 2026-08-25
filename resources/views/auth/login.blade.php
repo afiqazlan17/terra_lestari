@@ -44,4 +44,8 @@
             </x-primary-button>
         </div>
     </form>
+
+    <div class="text-center mt-6">
+        <a href="{{ route('cashier-login') }}" class="text-sm text-gray-500 hover:underline">Log masuk sebagai Cashier</a>
+    </div>
 </x-guest-layout>

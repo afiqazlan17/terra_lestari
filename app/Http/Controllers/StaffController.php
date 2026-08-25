@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class StaffController extends Controller
@@ -32,14 +33,16 @@ class StaffController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'in:'.User::ROLE_MANAGER.','.User::ROLE_CASHIER],
+            'password' => ['required_if:role,'.User::ROLE_MANAGER, 'nullable', 'string', 'min:8'],
+            'pin' => ['required_if:role,'.User::ROLE_CASHIER, 'nullable', 'digits:4'],
         ]);
 
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($validated['password'] ?? Str::password(20)),
+            'pin' => $validated['pin'] ?? null,
             'role' => $validated['role'],
             'project_id' => $project->id,
             'email_verified_at' => now(),

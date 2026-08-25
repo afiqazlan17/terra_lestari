@@ -63,6 +63,25 @@ class DatabaseSeeder extends Seeder
             $this->command?->warn("Akaun dicipta: {$account['email']} / password sementara: {$password} (tukar serta-merta guna Profile)");
         }
 
+        $existingCashier = User::where('email', 'cashier@sajianbaginda.com')->first();
+
+        if (! $existingCashier) {
+            $pin = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+
+            User::create([
+                'email' => 'cashier@sajianbaginda.com',
+                'name' => 'Cashier',
+                'password' => Hash::make(Str::password(20)),
+                'pin' => $pin,
+                'role' => User::ROLE_CASHIER,
+                'project_id' => $project->id,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]);
+
+            $this->command?->warn("Akaun Cashier dicipta: PIN sementara {$pin} (tukar di halaman Staff jika perlu)");
+        }
+
         $setNasi = Category::where('project_id', $project->id)->where('name', 'Nasi')->first();
 
         if ($setNasi) {

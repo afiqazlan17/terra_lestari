@@ -8,7 +8,7 @@
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Tambah Akaun Staff</h3>
-                <form method="POST" action="{{ route('staff.store') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                <form method="POST" action="{{ route('staff.store') }}" x-data="{ role: '{{ old('role', 'cashier') }}' }" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                     @csrf
                     <div>
                         <x-input-label for="name" value="Nama" />
@@ -19,15 +19,20 @@
                         <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email')" required />
                     </div>
                     <div>
-                        <x-input-label for="password" value="Password" />
-                        <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" required />
-                    </div>
-                    <div>
                         <x-input-label for="role" value="Peranan" />
-                        <select id="role" name="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm">
+                        <select id="role" name="role" x-model="role" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm">
                             <option value="cashier">Cashier (POS sahaja)</option>
                             <option value="manager">Manager (Dashboard, Belian, Menu)</option>
                         </select>
+                    </div>
+                    <div x-show="role === 'cashier'">
+                        <x-input-label for="pin" value="PIN (4 digit)" />
+                        <x-text-input id="pin" name="pin" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" class="mt-1 block w-full" />
+                        <p class="text-xs text-gray-400 mt-1">Untuk log masuk di halaman "Log Masuk Cashier".</p>
+                    </div>
+                    <div x-show="role === 'manager'" x-cloak>
+                        <x-input-label for="password" value="Password" />
+                        <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" />
                     </div>
                     <div class="sm:col-span-2">
                         <x-input-error :messages="$errors->all()" class="mt-1" />
