@@ -21,7 +21,7 @@ class Order extends Model
     public const PAYMENT_METHOD_CARD = 'card';
 
     public const PAYMENT_METHODS = [
-        self::PAYMENT_METHOD_CASH => 'Tunai',
+        self::PAYMENT_METHOD_CASH => 'Cash',
         self::PAYMENT_METHOD_QR => 'QR / DuitNow',
         self::PAYMENT_METHOD_CARD => 'Kad Debit/Kad Kredit',
     ];

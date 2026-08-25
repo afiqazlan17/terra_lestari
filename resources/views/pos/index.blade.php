@@ -116,19 +116,18 @@
                     <div class="mt-4">
                         <label class="block text-xs text-gray-500 mb-1">Cara Bayar</label>
                         <div class="grid grid-cols-3 gap-2">
-                            <button type="button" @click="paymentMethod = 'cash'" :disabled="! hasSession"
-                                :class="paymentMethod === 'cash' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
-                                Tunai
-                            </button>
                             <button type="button" @click="paymentMethod = 'qr'" :disabled="! hasSession"
                                 :class="paymentMethod === 'qr' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
                                 class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
                                 QR / DuitNow
                             </button>
-                            <button type="button" @click="paymentMethod = 'card'" :disabled="! hasSession"
-                                :class="paymentMethod === 'card' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
+                            <button type="button" @click="paymentMethod = 'cash'" :disabled="! hasSession"
+                                :class="paymentMethod === 'cash' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
                                 class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
+                                Cash
+                            </button>
+                            <button type="button" disabled
+                                class="rounded-md py-2 text-sm font-medium transition bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed">
                                 Kad Debit/Kad Kredit
                             </button>
                         </div>
