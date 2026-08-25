@@ -19,7 +19,7 @@
         .divider { border-top: 1px dashed #999; margin: 8px 0; }
         table { width: 100%; border-collapse: collapse; }
         td { padding: 2px 0; vertical-align: top; }
-        .right { text-align: right; }
+        .right { text-align: right; white-space: nowrap; }
         .totals td { padding: 2px 0; }
         .grand { font-weight: bold; font-size: 14px; }
         .actions { margin-top: 16px; text-align: center; }
