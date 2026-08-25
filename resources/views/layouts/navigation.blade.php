@@ -16,16 +16,12 @@
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+                        <x-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.index') || request()->routeIs('finance.cashbook')">
                             {{ __('Akaun') }}
                         </x-nav-link>
-                    @endif
-                    @if (Auth::user()->hasFullAccess())
-                        <x-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
-                            {{ __('Staff') }}
+                        <x-nav-link :href="route('finance.sales')" :active="request()->routeIs('finance.sales')">
+                            {{ __('Jualan') }}
                         </x-nav-link>
-                    @endif
-                    @if (Auth::user()->canManageOperations())
                         <x-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
                             {{ __('Belian') }}
                         </x-nav-link>
@@ -61,6 +57,11 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link>
+                        @if (Auth::user()->hasFullAccess())
+                            <x-dropdown-link :href="route('staff.index')">
+                                {{ __('Staff') }}
+                            </x-dropdown-link>
+                        @endif
                         <x-dropdown-link :href="route('settings.index')">
                             {{ __('Settings') }}
                         </x-dropdown-link>
@@ -98,16 +99,12 @@
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+                <x-responsive-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.index') || request()->routeIs('finance.cashbook')">
                     {{ __('Akaun') }}
                 </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->hasFullAccess())
-                <x-responsive-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
-                    {{ __('Staff') }}
+                <x-responsive-nav-link :href="route('finance.sales')" :active="request()->routeIs('finance.sales')">
+                    {{ __('Jualan') }}
                 </x-responsive-nav-link>
-            @endif
-            @if (Auth::user()->canManageOperations())
                 <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
                     {{ __('Belian') }}
                 </x-responsive-nav-link>
@@ -134,6 +131,11 @@
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
+                @if (Auth::user()->hasFullAccess())
+                    <x-responsive-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">
+                        {{ __('Staff') }}
+                    </x-responsive-nav-link>
+                @endif
                 <x-responsive-nav-link :href="route('settings.index')">
                     {{ __('Settings') }}
                 </x-responsive-nav-link>

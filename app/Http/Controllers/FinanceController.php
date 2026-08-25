@@ -120,6 +120,12 @@ class FinanceController extends Controller
             ->orderByDesc('day')
             ->get();
 
+        $recentOrders = (clone $orders)
+            ->with('items')
+            ->latest('created_at')
+            ->limit(100)
+            ->get();
+
         return view('finance.sales', [
             'project' => $project,
             'from' => $from,
@@ -131,6 +137,7 @@ class FinanceController extends Controller
             'salesByOrderType' => $salesByOrderType,
             'topProducts' => $topProducts,
             'dailyBreakdown' => $dailyBreakdown,
+            'recentOrders' => $recentOrders,
         ]);
     }
 

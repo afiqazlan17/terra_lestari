@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Akaun') }}</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Jualan') }}</h2>
     </x-slot>
 
     <style>
@@ -135,6 +135,49 @@
                             @endforeach
                         </tbody>
                     </table>
+                @endif
+            </div>
+
+            <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden mt-6">
+                <div class="px-6 py-3 bg-gray-50 flex items-center justify-between">
+                    <span class="text-sm font-semibold text-gray-600">Senarai Order</span>
+                    @if ($recentOrders->count() >= 100)
+                        <span class="text-xs text-gray-400">Menunjukkan 100 order terkini dalam tempoh ini</span>
+                    @endif
+                </div>
+                @if ($recentOrders->isEmpty())
+                    <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr class="text-left text-xs text-gray-500 uppercase">
+                                    <th class="px-6 py-2">No. Resit</th>
+                                    <th class="px-6 py-2">Tarikh/Masa</th>
+                                    <th class="px-6 py-2">Item</th>
+                                    <th class="px-6 py-2">Jenis</th>
+                                    <th class="px-6 py-2">Bayaran</th>
+                                    <th class="px-6 py-2 text-right">Jumlah</th>
+                                    <th class="px-6 py-2 text-right no-print">Resit</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($recentOrders as $order)
+                                    <tr>
+                                        <td class="px-6 py-3 text-gray-700">{{ $order->order_number }}</td>
+                                        <td class="px-6 py-3 text-gray-600">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                                        <td class="px-6 py-3 text-gray-600">{{ $order->items->map(fn ($item) => $item->product_name.' x'.$item->qty)->implode(', ') }}</td>
+                                        <td class="px-6 py-3 text-gray-600">{{ $order->typeLabel() }}</td>
+                                        <td class="px-6 py-3 text-gray-600">{{ $order->paymentMethodLabel() }}</td>
+                                        <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($order->total, 2) }}</td>
+                                        <td class="px-6 py-3 text-right no-print">
+                                            <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="text-amber-600 hover:underline">Cetak semula</a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </div>
         </div>

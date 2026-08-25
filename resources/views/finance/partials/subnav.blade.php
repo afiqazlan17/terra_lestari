@@ -3,10 +3,6 @@
         class="pb-3 border-b-2 {{ request()->routeIs('finance.index') ? 'border-amber-500 text-amber-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
         Untung Rugi
     </a>
-    <a href="{{ route('finance.sales', request()->query()) }}"
-        class="pb-3 border-b-2 {{ request()->routeIs('finance.sales') ? 'border-amber-500 text-amber-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
-        Laporan Jualan
-    </a>
     <a href="{{ route('finance.cashbook', request()->query()) }}"
         class="pb-3 border-b-2 {{ request()->routeIs('finance.cashbook') ? 'border-amber-500 text-amber-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
         Cash Book
