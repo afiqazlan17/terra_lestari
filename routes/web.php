@@ -76,6 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
         Route::patch('/staff/{staffMember}/toggle', [StaffController::class, 'toggle'])->name('staff.toggle');
+        Route::patch('/staff/{staffMember}/pin', [StaffController::class, 'updatePin'])->name('staff.pin.update');
         Route::delete('/staff/{staffMember}', [StaffController::class, 'destroy'])->name('staff.destroy');
 
         Route::post('/capital-injections', [CapitalInjectionController::class, 'store'])->name('capital-injections.store');

@@ -51,6 +51,20 @@ class StaffController extends Controller
         return back()->with('success', 'Akaun staff berjaya dibuat.');
     }
 
+    public function updatePin(Request $request, User $staffMember): RedirectResponse
+    {
+        abort_unless($staffMember->project_id === $request->user()->currentProject()?->id, 403);
+        abort_unless($staffMember->isCashier(), 400, 'Hanya akaun Cashier ada PIN.');
+
+        $validated = $request->validate([
+            'pin' => ['required', 'digits:4'],
+        ]);
+
+        $staffMember->update(['pin' => $validated['pin']]);
+
+        return back()->with('success', 'PIN dikemaskini.');
+    }
+
     public function toggle(Request $request, User $staffMember): RedirectResponse
     {
         abort_unless($staffMember->project_id === $request->user()->currentProject()?->id, 403);

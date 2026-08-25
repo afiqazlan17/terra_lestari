@@ -51,22 +51,24 @@
                 @if ($purchasesByCategory->isEmpty())
                     <p class="p-6 text-sm text-gray-400">Tiada perbelanjaan direkodkan dalam tempoh ini.</p>
                 @else
-                    <table class="min-w-full divide-y divide-gray-100 text-sm">
-                        <tbody class="divide-y divide-gray-100">
-                            @foreach (\App\Models\Purchase::CATEGORIES as $key => $label)
-                                @if (isset($purchasesByCategory[$key]))
-                                    <tr>
-                                        <td class="px-6 py-3 text-gray-700">{{ $label }}</td>
-                                        <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($purchasesByCategory[$key], 2) }}</td>
-                                    </tr>
-                                @endif
-                            @endforeach
-                            <tr class="bg-gray-50">
-                                <td class="px-6 py-3 font-semibold text-gray-800">Jumlah Perbelanjaan</td>
-                                <td class="px-6 py-3 text-right font-semibold text-gray-900">RM {{ number_format($totalExpenses, 2) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach (\App\Models\Purchase::CATEGORIES as $key => $label)
+                                    @if (isset($purchasesByCategory[$key]))
+                                        <tr>
+                                            <td class="px-6 py-3 text-gray-700 whitespace-nowrap">{{ $label }}</td>
+                                            <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($purchasesByCategory[$key], 2) }}</td>
+                                        </tr>
+                                    @endif
+                                @endforeach
+                                <tr class="bg-gray-50">
+                                    <td class="px-6 py-3 font-semibold text-gray-800 whitespace-nowrap">Jumlah Perbelanjaan</td>
+                                    <td class="px-6 py-3 text-right font-semibold text-gray-900 whitespace-nowrap">RM {{ number_format($totalExpenses, 2) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </div>
 

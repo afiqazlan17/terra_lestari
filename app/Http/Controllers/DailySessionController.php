@@ -35,7 +35,7 @@ class DailySessionController extends Controller
             'status' => 'open',
         ]);
 
-        return back()->with('success', 'Hari ini telah dibuka. Selamat berniaga!');
+        return back()->with('success', 'POS sudah beroperasi. Sila jalankan tanggungjawab dengan amanah.');
     }
 
     public function close(Request $request, DailySession $dailySession, DailySalesReportService $reportService): RedirectResponse

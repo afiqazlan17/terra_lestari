@@ -48,26 +48,28 @@
                 @if ($entries->isEmpty())
                     <p class="p-8 text-center text-gray-400">Tiada transaksi dalam tempoh ini.</p>
                 @else
-                    <table class="min-w-full divide-y divide-gray-100 text-sm">
-                        <thead class="bg-gray-50">
-                            <tr class="text-left text-xs text-gray-500 uppercase">
-                                <th class="px-6 py-3">Tarikh</th>
-                                <th class="px-6 py-3">Keterangan</th>
-                                <th class="px-6 py-3 text-right">Jumlah</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @foreach ($entries as $entry)
-                                <tr>
-                                    <td class="px-6 py-3 text-gray-600">{{ \Illuminate\Support\Carbon::parse($entry['date'])->format('d M Y') }}</td>
-                                    <td class="px-6 py-3 text-gray-800">{{ $entry['description'] }}</td>
-                                    <td class="px-6 py-3 text-right font-medium {{ $entry['type'] === 'masuk' ? 'text-green-600' : 'text-red-600' }}">
-                                        {{ $entry['type'] === 'masuk' ? '+' : '-' }} RM {{ number_format($entry['amount'], 2) }}
-                                    </td>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr class="text-left text-xs text-gray-500 uppercase">
+                                    <th class="px-6 py-3 whitespace-nowrap">Tarikh</th>
+                                    <th class="px-6 py-3">Keterangan</th>
+                                    <th class="px-6 py-3 text-right whitespace-nowrap">Jumlah</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($entries as $entry)
+                                    <tr>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($entry['date'])->format('d M Y') }}</td>
+                                        <td class="px-6 py-3 text-gray-800">{{ $entry['description'] }}</td>
+                                        <td class="px-6 py-3 text-right font-medium whitespace-nowrap {{ $entry['type'] === 'masuk' ? 'text-green-600' : 'text-red-600' }}">
+                                            {{ $entry['type'] === 'masuk' ? '+' : '-' }} RM {{ number_format($entry['amount'], 2) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </div>
         </div>

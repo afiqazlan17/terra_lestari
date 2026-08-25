@@ -53,19 +53,21 @@
                     @if ($topProducts->isEmpty())
                         <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                     @else
-                        <table class="min-w-full divide-y divide-gray-100 text-sm">
-                            <tbody class="divide-y divide-gray-100">
-                                @foreach ($topProducts as $product)
-                                    <tr>
-                                        <td class="px-6 py-3 text-gray-700">
-                                            {{ $product->product_name }}
-                                            <span class="text-gray-400">({{ $product->qty_sold }} unit)</span>
-                                        </td>
-                                        <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($product->revenue, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($topProducts as $product)
+                                        <tr>
+                                            <td class="px-6 py-3 text-gray-700">
+                                                {{ $product->product_name }}
+                                                <span class="text-gray-400 whitespace-nowrap">({{ $product->qty_sold }} unit)</span>
+                                            </td>
+                                            <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($product->revenue, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @endif
                 </div>
 
@@ -74,19 +76,21 @@
                     @if ($salesByPaymentMethod->isEmpty())
                         <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                     @else
-                        <table class="min-w-full divide-y divide-gray-100 text-sm">
-                            <tbody class="divide-y divide-gray-100">
-                                @foreach ($salesByPaymentMethod as $row)
-                                    <tr>
-                                        <td class="px-6 py-3 text-gray-700">
-                                            {{ \App\Models\Order::PAYMENT_METHODS[$row->payment_method] ?? $row->payment_method }}
-                                            <span class="text-gray-400">({{ $row->order_count }} order)</span>
-                                        </td>
-                                        <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($row->total, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($salesByPaymentMethod as $row)
+                                        <tr>
+                                            <td class="px-6 py-3 text-gray-700 whitespace-nowrap">
+                                                {{ \App\Models\Order::PAYMENT_METHODS[$row->payment_method] ?? $row->payment_method }}
+                                                <span class="text-gray-400">({{ $row->order_count }} order)</span>
+                                            </td>
+                                            <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($row->total, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @endif
                 </div>
 
@@ -95,19 +99,21 @@
                     @if ($salesByOrderType->isEmpty())
                         <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                     @else
-                        <table class="min-w-full divide-y divide-gray-100 text-sm">
-                            <tbody class="divide-y divide-gray-100">
-                                @foreach ($salesByOrderType as $row)
-                                    <tr>
-                                        <td class="px-6 py-3 text-gray-700">
-                                            {{ \App\Models\Order::TYPES[$row->order_type] ?? $row->order_type }}
-                                            <span class="text-gray-400">({{ $row->order_count }} order)</span>
-                                        </td>
-                                        <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($row->total, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($salesByOrderType as $row)
+                                        <tr>
+                                            <td class="px-6 py-3 text-gray-700 whitespace-nowrap">
+                                                {{ \App\Models\Order::TYPES[$row->order_type] ?? $row->order_type }}
+                                                <span class="text-gray-400">({{ $row->order_count }} order)</span>
+                                            </td>
+                                            <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($row->total, 2) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -117,24 +123,26 @@
                 @if ($dailyBreakdown->isEmpty())
                     <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                 @else
-                    <table class="min-w-full divide-y divide-gray-100 text-sm">
-                        <thead class="bg-gray-50">
-                            <tr class="text-left text-xs text-gray-500 uppercase">
-                                <th class="px-6 py-2">Tarikh</th>
-                                <th class="px-6 py-2">Bilangan Order</th>
-                                <th class="px-6 py-2 text-right">Jualan</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @foreach ($dailyBreakdown as $day)
-                                <tr>
-                                    <td class="px-6 py-3 text-gray-700">{{ \Illuminate\Support\Carbon::parse($day->day)->translatedFormat('D, d M Y') }}</td>
-                                    <td class="px-6 py-3 text-gray-600">{{ $day->order_count }}</td>
-                                    <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($day->total, 2) }}</td>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr class="text-left text-xs text-gray-500 uppercase">
+                                    <th class="px-6 py-2 whitespace-nowrap">Tarikh</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">Bilangan Order</th>
+                                    <th class="px-6 py-2 text-right whitespace-nowrap">Jualan</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($dailyBreakdown as $day)
+                                    <tr>
+                                        <td class="px-6 py-3 text-gray-700 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($day->day)->translatedFormat('l, d M Y') }}</td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $day->order_count }}</td>
+                                        <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($day->total, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 @endif
             </div>
 
@@ -152,25 +160,31 @@
                         <table class="min-w-full divide-y divide-gray-100 text-sm">
                             <thead class="bg-gray-50">
                                 <tr class="text-left text-xs text-gray-500 uppercase">
-                                    <th class="px-6 py-2">No. Resit</th>
-                                    <th class="px-6 py-2">Tarikh/Masa</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">No. Resit</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">Tarikh/Masa</th>
                                     <th class="px-6 py-2">Item</th>
-                                    <th class="px-6 py-2">Jenis</th>
-                                    <th class="px-6 py-2">Bayaran</th>
-                                    <th class="px-6 py-2 text-right">Jumlah</th>
-                                    <th class="px-6 py-2 text-right no-print">Resit</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">Jenis</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">Bayaran</th>
+                                    <th class="px-6 py-2 text-right whitespace-nowrap">Jumlah</th>
+                                    <th class="px-6 py-2 text-right whitespace-nowrap no-print">Resit</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($recentOrders as $order)
                                     <tr>
-                                        <td class="px-6 py-3 text-gray-700">{{ $order->order_number }}</td>
-                                        <td class="px-6 py-3 text-gray-600">{{ $order->created_at->format('d/m/Y H:i') }}</td>
-                                        <td class="px-6 py-3 text-gray-600">{{ $order->items->map(fn ($item) => $item->product_name.' x'.$item->qty)->implode(', ') }}</td>
-                                        <td class="px-6 py-3 text-gray-600">{{ $order->typeLabel() }}</td>
-                                        <td class="px-6 py-3 text-gray-600">{{ $order->paymentMethodLabel() }}</td>
-                                        <td class="px-6 py-3 text-right font-medium text-gray-900">RM {{ number_format($order->total, 2) }}</td>
-                                        <td class="px-6 py-3 text-right no-print">
+                                        <td class="px-6 py-3 text-gray-700 whitespace-nowrap">{{ $order->order_number }}</td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                                        <td class="px-6 py-3 text-gray-600">
+                                            <ul class="list-disc list-inside space-y-0.5">
+                                                @foreach ($order->items as $item)
+                                                    <li class="whitespace-nowrap">{{ $item->product_name }} x{{ $item->qty }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->typeLabel() }}</td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->paymentMethodLabel() }}</td>
+                                        <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($order->total, 2) }}</td>
+                                        <td class="px-6 py-3 text-right whitespace-nowrap no-print">
                                             <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="text-amber-600 hover:underline">Cetak semula</a>
                                         </td>
                                     </tr>

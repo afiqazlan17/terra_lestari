@@ -52,38 +52,40 @@
                     @if ($category->products->isEmpty())
                         <p class="p-6 text-sm text-gray-400">Belum ada item.</p>
                     @else
-                        <table class="min-w-full divide-y divide-gray-100 text-sm">
-                            <tbody class="divide-y divide-gray-100">
-                                @foreach ($category->products as $product)
-                                    <tr>
-                                        <td class="px-6 py-3 text-gray-800">{{ $product->name }}</td>
-                                        <td class="px-6 py-3 text-gray-600">RM {{ number_format($product->price, 2) }}</td>
-                                        <td class="px-6 py-3">
-                                            <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
-                                                {{ $product->is_active ? 'Aktif' : 'Tidak Aktif' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-3 text-right space-x-3">
-                                            <form method="POST" action="{{ route('products.update', $product) }}" class="inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="name" value="{{ $product->name }}">
-                                                <input type="hidden" name="price" value="{{ $product->price }}">
-                                                <input type="hidden" name="is_active" value="{{ $product->is_active ? '0' : '1' }}">
-                                                <button type="submit" class="text-amber-600 hover:underline text-xs">
-                                                    {{ $product->is_active ? 'Nyahaktifkan' : 'Aktifkan' }}
-                                                </button>
-                                            </form>
-                                            <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline" onsubmit="return confirm('Padam menu ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($category->products as $product)
+                                        <tr>
+                                            <td class="px-6 py-3 text-gray-800">{{ $product->name }}</td>
+                                            <td class="px-6 py-3 text-gray-600 text-right tabular-nums whitespace-nowrap w-24">RM {{ number_format($product->price, 2) }}</td>
+                                            <td class="px-6 py-3 whitespace-nowrap">
+                                                <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
+                                                    {{ $product->is_active ? 'Aktif' : 'Tidak Aktif' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-3 text-right whitespace-nowrap space-x-3">
+                                                <form method="POST" action="{{ route('products.update', $product) }}" class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="name" value="{{ $product->name }}">
+                                                    <input type="hidden" name="price" value="{{ $product->price }}">
+                                                    <input type="hidden" name="is_active" value="{{ $product->is_active ? '0' : '1' }}">
+                                                    <button type="submit" class="text-amber-600 hover:underline text-xs">
+                                                        {{ $product->is_active ? 'Nyahaktifkan' : 'Aktifkan' }}
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline" onsubmit="return confirm('Padam menu ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     @endif
                 </div>
             @endforeach

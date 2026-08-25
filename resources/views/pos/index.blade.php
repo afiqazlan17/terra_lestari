@@ -11,13 +11,12 @@
             @unless ($session)
                 <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <p class="font-medium text-amber-800">Hari ini belum dibuka</p>
-                        <p class="text-sm text-amber-700">Buka hari dahulu sebelum boleh berjualan. Menu di bawah untuk pratonton sahaja.</p>
+                        <p class="font-medium text-amber-800">Sila masukkan wang tunai pembukaan untuk hari ini</p>
                     </div>
                     <form method="POST" action="{{ route('daily-session.open') }}" class="flex flex-wrap items-end gap-2">
                         @csrf
                         <div>
-                            <label class="block text-xs text-amber-700 mb-1">Modal awal (RM)</label>
+                            <label class="block text-xs text-amber-700 mb-1">Tunai Pembukaan (RM)</label>
                             <input type="text" inputmode="decimal" data-money-input name="opening_cash" required
                                 class="rounded-md border-amber-300 shadow-sm text-sm w-32">
                         </div>

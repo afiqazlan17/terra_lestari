@@ -21,13 +21,13 @@
                             </span>
                             <p class="mt-2 text-sm text-gray-600">
                                 Dibuka jam {{ $currentSession->opened_at->format('H:i') }} oleh {{ $currentSession->openedBy->name }}
-                                &middot; Modal awal RM {{ number_format($currentSession->opening_cash, 2) }}
+                                &middot; Tunai pembukaan RM {{ number_format($currentSession->opening_cash, 2) }}
                             </p>
                         </div>
                         <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-wrap items-end gap-2">
                             @csrf
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Cash akhir (RM)</label>
+                                <label class="block text-xs text-gray-500 mb-1">Tunai Akhir (RM)</label>
                                 <input type="text" inputmode="decimal" data-money-input name="closing_cash" required
                                     class="rounded-md border-gray-300 shadow-sm text-sm w-32">
                             </div>
@@ -45,7 +45,7 @@
                         <form method="POST" action="{{ route('daily-session.open') }}" class="flex flex-wrap items-end gap-2">
                             @csrf
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Modal awal (RM)</label>
+                                <label class="block text-xs text-gray-500 mb-1">Tunai Pembukaan (RM)</label>
                                 <input type="text" inputmode="decimal" data-money-input name="opening_cash" required
                                     class="rounded-md border-gray-300 shadow-sm text-sm w-32">
                             </div>
