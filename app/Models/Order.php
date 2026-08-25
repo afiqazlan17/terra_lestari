@@ -12,8 +12,8 @@ class Order extends Model
     public const TYPE_TAKEAWAY = 'takeaway';
 
     public const TYPES = [
-        self::TYPE_DINE_IN => 'Makan Sini',
-        self::TYPE_TAKEAWAY => 'Bungkus',
+        self::TYPE_DINE_IN => 'Dine In',
+        self::TYPE_TAKEAWAY => 'Take Away',
     ];
 
     public const PAYMENT_METHOD_CASH = 'cash';

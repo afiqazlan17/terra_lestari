@@ -103,12 +103,12 @@
                             <button type="button" @click="orderType = 'dine_in'" :disabled="! hasSession"
                                 :class="orderType === 'dine_in' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
                                 class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
-                                Makan Sini
+                                Dine In
                             </button>
                             <button type="button" @click="orderType = 'takeaway'" :disabled="! hasSession"
                                 :class="orderType === 'takeaway' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
                                 class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
-                                Bungkus
+                                Take Away
                             </button>
                         </div>
                     </div>
@@ -152,8 +152,8 @@
                         </button>
                     </form>
                     <button type="button" @click="items = []; discount = 0" x-show="items.length > 0"
-                        class="mt-2 w-full text-sm text-gray-500 hover:text-red-600">
-                        Kosongkan order
+                        class="mt-2 w-full border border-gray-300 text-gray-600 font-medium text-sm py-2 rounded-lg hover:bg-gray-50 transition">
+                        Reset
                     </button>
                 </div>
             </div>

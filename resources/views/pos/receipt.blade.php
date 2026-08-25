@@ -36,12 +36,11 @@
 </head>
 <body>
     <h1>SAJIAN BAGINDA</h1>
-    <p class="center muted">Masakan Kelantan</p>
+    <p class="center muted">Warisan Rasa Pantai Timur</p>
     <div class="divider"></div>
     <p class="muted">
         No. Resit: {{ $order->order_number }}<br>
         Tarikh: {{ $order->created_at->format('d/m/Y H:i') }}<br>
-        Staff: {{ $order->cashier->name }}<br>
         Jenis: {{ $order->typeLabel() }}
     </p>
     <div class="divider"></div>
