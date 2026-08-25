@@ -60,7 +60,7 @@
                                         <td class="px-6 py-3 text-gray-600">RM {{ number_format($product->price, 2) }}</td>
                                         <td class="px-6 py-3">
                                             <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
-                                                {{ $product->is_active ? 'Aktif' : 'Disorok' }}
+                                                {{ $product->is_active ? 'Aktif' : 'Tidak Aktif' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-3 text-right space-x-3">
@@ -71,10 +71,10 @@
                                                 <input type="hidden" name="price" value="{{ $product->price }}">
                                                 <input type="hidden" name="is_active" value="{{ $product->is_active ? '0' : '1' }}">
                                                 <button type="submit" class="text-amber-600 hover:underline text-xs">
-                                                    {{ $product->is_active ? 'Sorok' : 'Tunjuk' }}
+                                                    {{ $product->is_active ? 'Nyahaktifkan' : 'Aktifkan' }}
                                                 </button>
                                             </form>
-                                            <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline" onsubmit="return confirm('Padam menu ni?')">
+                                            <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline" onsubmit="return confirm('Padam menu ini?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
@@ -89,7 +89,7 @@
             @endforeach
 
             @if ($categories->isEmpty())
-                <p class="text-center text-gray-400">Tambah kategori dulu untuk mula tambah menu.</p>
+                <p class="text-center text-gray-400">Tambah kategori dahulu untuk mula tambah menu.</p>
             @endif
         </div>
     </div>

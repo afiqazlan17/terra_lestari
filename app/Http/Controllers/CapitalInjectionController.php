@@ -18,7 +18,6 @@ class CapitalInjectionController extends Controller
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'min:0.01'],
             'injected_at' => ['required', 'date'],
-            'source_account' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
             'receipt' => ['nullable', 'mimes:jpg,jpeg,png,pdf', 'max:8192'],
         ]);
@@ -33,12 +32,37 @@ class CapitalInjectionController extends Controller
             'recorded_by' => $request->user()->id,
             'amount' => $validated['amount'],
             'injected_at' => $validated['injected_at'],
-            'source_account' => $validated['source_account'] ?? 'Terra Lestari OCBC',
+            'source_account' => 'Terra Lestari OCBC',
             'notes' => $validated['notes'] ?? null,
             'receipt_path' => $receiptPath,
         ]);
 
         return back()->with('success', 'Modal awal berjaya direkodkan.');
+    }
+
+    public function updateReceipt(Request $request, CapitalInjection $capitalInjection): RedirectResponse
+    {
+        abort_unless($request->user()->hasFullAccess(), 403);
+        abort_unless($capitalInjection->project_id === $request->user()->currentProject()?->id, 403);
+
+        $validated = $request->validate([
+            'receipt' => ['nullable', 'mimes:jpg,jpeg,png,pdf', 'max:8192'],
+            'remove_receipt' => ['nullable', 'boolean'],
+        ]);
+
+        if ($capitalInjection->receipt_path && ($request->hasFile('receipt') || $request->boolean('remove_receipt'))) {
+            Storage::disk('public')->delete($capitalInjection->receipt_path);
+        }
+
+        if ($request->hasFile('receipt')) {
+            $capitalInjection->update([
+                'receipt_path' => $request->file('receipt')->store('capital-injections/'.$capitalInjection->project_id, 'public'),
+            ]);
+        } elseif ($request->boolean('remove_receipt')) {
+            $capitalInjection->update(['receipt_path' => null]);
+        }
+
+        return back()->with('success', 'Lampiran dikemaskini.');
     }
 
     public function destroy(Request $request, CapitalInjection $capitalInjection): RedirectResponse

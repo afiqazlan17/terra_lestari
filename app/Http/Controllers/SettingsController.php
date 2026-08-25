@@ -51,6 +51,6 @@ class SettingsController extends Controller
             DailySession::where('project_id', $project->id)->delete();
         });
 
-        return back()->with('success', 'Semua data transaksi (jualan, belian, modal, sesi harian) dah direset. Menu dan akaun staff dikekalkan.');
+        return back()->with('success', 'Semua data transaksi (jualan, belian, modal, sesi harian) telah direset. Menu dan akaun staff dikekalkan.');
     }
 }

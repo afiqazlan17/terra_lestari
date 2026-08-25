@@ -10,8 +10,8 @@
 
             @if (! $session)
                 <div class="bg-white shadow-sm sm:rounded-lg p-8 text-center">
-                    <p class="text-lg font-medium text-gray-800">Hari ni belum dibuka</p>
-                    <p class="mt-1 text-sm text-gray-500 mb-4">Buka hari dulu sebelum boleh mula jual.</p>
+                    <p class="text-lg font-medium text-gray-800">Hari ini belum dibuka</p>
+                    <p class="mt-1 text-sm text-gray-500 mb-4">Buka hari dahulu sebelum boleh mula berjualan.</p>
                     <form method="POST" action="{{ route('daily-session.open') }}" class="inline-flex items-end gap-2">
                         @csrf
                         <div>
@@ -45,7 +45,7 @@
                             @endif
                         @empty
                             <div class="bg-white shadow-sm rounded-lg p-8 text-center text-gray-500">
-                                Belum ada menu. Owner boleh tambah menu kat halaman <a href="{{ route('products.index') }}" class="text-amber-600 hover:underline">Menu</a>.
+                                Belum ada menu. Owner boleh tambah menu di halaman <a href="{{ route('products.index') }}" class="text-amber-600 hover:underline">Menu</a>.
                             </div>
                         @endforelse
                     </div>

@@ -29,7 +29,7 @@
                     <p class="mt-1 text-2xl font-semibold {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">
                         RM {{ number_format($netProfit, 2) }}
                     </p>
-                    <p class="text-xs text-gray-400 mt-1">Jualan tolak semua expense</p>
+                    <p class="text-xs text-gray-400 mt-1">Jualan tolak semua perbelanjaan</p>
                 </div>
             </div>
 
@@ -47,9 +47,9 @@
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden mb-6">
-                <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Expense Ikut Kategori</div>
+                <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Perbelanjaan Ikut Kategori</div>
                 @if ($purchasesByCategory->isEmpty())
-                    <p class="p-6 text-sm text-gray-400">Tiada expense direkodkan dalam tempoh ni.</p>
+                    <p class="p-6 text-sm text-gray-400">Tiada perbelanjaan direkodkan dalam tempoh ini.</p>
                 @else
                     <table class="min-w-full divide-y divide-gray-100 text-sm">
                         <tbody class="divide-y divide-gray-100">
@@ -62,7 +62,7 @@
                                 @endif
                             @endforeach
                             <tr class="bg-gray-50">
-                                <td class="px-6 py-3 font-semibold text-gray-800">Jumlah Expense</td>
+                                <td class="px-6 py-3 font-semibold text-gray-800">Jumlah Perbelanjaan</td>
                                 <td class="px-6 py-3 text-right font-semibold text-gray-900">RM {{ number_format($totalExpenses, 2) }}</td>
                             </tr>
                         </tbody>
@@ -86,7 +86,7 @@
 
                     <div x-show="open" x-cloak class="mt-4 pt-4 border-t border-gray-100">
                         <form method="POST" action="{{ route('capital-injections.store') }}" enctype="multipart/form-data"
-                            class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end mb-4">
+                            class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end mb-4">
                             @csrf
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Jumlah (RM)</label>
@@ -97,10 +97,6 @@
                                 <input type="date" name="injected_at" value="{{ now()->toDateString() }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                             </div>
                             <div>
-                                <label class="block text-xs text-gray-500 mb-1">Akaun Sumber</label>
-                                <input type="text" name="source_account" value="Terra Lestari OCBC" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
-                            </div>
-                            <div>
                                 <label class="block text-xs text-gray-500 mb-1">Nota (Jika ada)</label>
                                 <input type="text" name="notes" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                             </div>
@@ -108,7 +104,7 @@
                                 <label class="block text-xs text-gray-500 mb-1">Lampiran Statement/Resit (Jika ada)</label>
                                 <input type="file" name="receipt" accept="image/*,.pdf,application/pdf" class="block w-full text-sm text-gray-600">
                             </div>
-                            <div class="sm:col-span-4">
+                            <div class="sm:col-span-3">
                                 <x-primary-button type="submit">Simpan</x-primary-button>
                             </div>
                         </form>
@@ -116,25 +112,47 @@
                         @if ($recentCapitalInjections->isNotEmpty())
                             <div class="divide-y divide-gray-100 text-sm">
                                 @foreach ($recentCapitalInjections as $injection)
-                                    <div class="py-2 flex items-center justify-between">
-                                        <div>
-                                            <p class="text-gray-700">
-                                                {{ $injection->injected_at->format('d M Y') }} &middot; {{ $injection->source_account }}
-                                                @if ($injection->receipt_path)
-                                                    &middot; <a href="{{ Storage::url($injection->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat lampiran</a>
+                                    <div class="py-2" x-data="{ editReceipt: false }">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <p class="text-gray-700">
+                                                    {{ $injection->injected_at->format('d M Y') }} &middot; {{ $injection->source_account }}
+                                                    @if ($injection->receipt_path)
+                                                        &middot; <a href="{{ Storage::url($injection->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat lampiran</a>
+                                                    @endif
+                                                    &middot; <button type="button" @click="editReceipt = ! editReceipt" class="text-gray-400 hover:underline">
+                                                        {{ $injection->receipt_path ? 'Tukar/padam lampiran' : 'Tambah lampiran' }}
+                                                    </button>
+                                                </p>
+                                                @if ($injection->notes)
+                                                    <p class="text-xs text-gray-400">{{ $injection->notes }}</p>
                                                 @endif
-                                            </p>
-                                            @if ($injection->notes)
-                                                <p class="text-xs text-gray-400">{{ $injection->notes }}</p>
-                                            @endif
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <p class="font-medium text-gray-900">RM {{ number_format($injection->amount, 2) }}</p>
+                                                <form method="POST" action="{{ route('capital-injections.destroy', $injection) }}" onsubmit="return confirm('Padam rekod ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
+                                                </form>
+                                            </div>
                                         </div>
-                                        <div class="flex items-center gap-3">
-                                            <p class="font-medium text-gray-900">RM {{ number_format($injection->amount, 2) }}</p>
-                                            <form method="POST" action="{{ route('capital-injections.destroy', $injection) }}" onsubmit="return confirm('Padam rekod ni?')">
+
+                                        <div x-show="editReceipt" x-cloak class="mt-2 flex flex-wrap items-center gap-2">
+                                            <form method="POST" action="{{ route('capital-injections.receipt.update', $injection) }}" enctype="multipart/form-data" class="flex items-center gap-2">
                                                 @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
+                                                @method('PATCH')
+                                                <input type="file" name="receipt" accept="image/*,.pdf,application/pdf" class="text-xs text-gray-600">
+                                                <button type="submit" class="text-xs text-amber-600 hover:underline">Muat naik</button>
                                             </form>
+                                            @if ($injection->receipt_path)
+                                                <form method="POST" action="{{ route('capital-injections.receipt.update', $injection) }}" onsubmit="return confirm('Padam lampiran ini?')">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="remove_receipt" value="1">
+                                                    <button type="submit" class="text-xs text-red-500 hover:underline">Padam lampiran</button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </div>
                                 @endforeach

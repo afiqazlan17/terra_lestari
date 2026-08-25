@@ -45,7 +45,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-right font-medium text-gray-900">RM {{ number_format($purchase->amount, 2) }}</td>
                                     <td class="px-4 py-3 text-right">
-                                        <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirm('Padam belian ni?')">
+                                        <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirm('Padam belian ini?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>

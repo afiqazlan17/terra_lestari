@@ -70,10 +70,10 @@
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="text-amber-600 hover:underline text-xs">
-                                                {{ $member->is_active ? 'Nyahaktif' : 'Aktifkan' }}
+                                                {{ $member->is_active ? 'Nyahaktifkan' : 'Aktifkan' }}
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ route('staff.destroy', $member) }}" class="inline" onsubmit="return confirm('Padam staff ni?')">
+                                        <form method="POST" action="{{ route('staff.destroy', $member) }}" class="inline" onsubmit="return confirm('Padam staff ini?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>

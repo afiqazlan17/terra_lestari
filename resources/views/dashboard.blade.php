@@ -17,7 +17,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
                             <span class="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-800 px-3 py-1 text-xs font-medium">
-                                &#9679; Hari ni dibuka
+                                &#9679; Hari ini dibuka
                             </span>
                             <p class="mt-2 text-sm text-gray-600">
                                 Dibuka jam {{ $currentSession->opened_at->format('H:i') }} oleh {{ $currentSession->openedBy->name }}
@@ -40,7 +40,7 @@
                             <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-600 px-3 py-1 text-xs font-medium">
                                 &#9679; Belum dibuka
                             </span>
-                            <p class="mt-2 text-sm text-gray-600">Buka hari dulu sebelum staff boleh mula jual kat POS.</p>
+                            <p class="mt-2 text-sm text-gray-600">Buka hari dahulu sebelum staff boleh mula berjualan di POS.</p>
                         </div>
                         <form method="POST" action="{{ route('daily-session.open') }}" class="flex flex-wrap items-end gap-2">
                             @csrf
@@ -58,15 +58,15 @@
             {{-- Stat tiles --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Jualan Hari Ni</p>
+                    <p class="text-sm text-gray-500">Jualan Hari Ini</p>
                     <p class="mt-1 text-2xl font-semibold text-gray-900">RM {{ number_format($todaySales, 2) }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Belian Hari Ni</p>
+                    <p class="text-sm text-gray-500">Belian Hari Ini</p>
                     <p class="mt-1 text-2xl font-semibold text-gray-900">RM {{ number_format($todayPurchases, 2) }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Untung Kasar Hari Ni</p>
+                    <p class="text-sm text-gray-500">Untung Kasar Hari Ini</p>
                     <p class="mt-1 text-2xl font-semibold {{ $todayProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">
                         RM {{ number_format($todayProfit, 2) }}
                     </p>
@@ -75,15 +75,15 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Jualan Minggu Ni</p>
+                    <p class="text-sm text-gray-500">Jualan Minggu Ini</p>
                     <p class="mt-1 text-xl font-semibold text-gray-900">RM {{ number_format($weekSales, 2) }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Belian Minggu Ni</p>
+                    <p class="text-sm text-gray-500">Belian Minggu Ini</p>
                     <p class="mt-1 text-xl font-semibold text-gray-900">RM {{ number_format($weekPurchases, 2) }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Untung Kasar Minggu Ni</p>
+                    <p class="text-sm text-gray-500">Untung Kasar Minggu Ini</p>
                     <p class="mt-1 text-xl font-semibold {{ $weekProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">
                         RM {{ number_format($weekProfit, 2) }}
                     </p>

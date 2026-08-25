@@ -51,7 +51,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-right font-medium text-gray-900">RM {{ number_format($expense->amount, 2) }}</td>
                                     <td class="px-4 py-3 text-right">
-                                        <form method="POST" action="{{ route('expenses.destroy', $expense) }}" onsubmit="return confirm('Padam perbelanjaan ni?')">
+                                        <form method="POST" action="{{ route('expenses.destroy', $expense) }}" onsubmit="return confirm('Padam perbelanjaan ini?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>

@@ -24,7 +24,7 @@
                     </div>
 
                     <div>
-                        <x-input-label for="supplier_name" value="Pembekal (jika ada)" />
+                        <x-input-label for="supplier_name" value="Pembekal (Jika ada)" />
                         <x-text-input id="supplier_name" name="supplier_name" type="text" class="mt-1 block w-full"
                             :value="old('supplier_name')" />
                         <x-input-error :messages="$errors->get('supplier_name')" class="mt-1" />

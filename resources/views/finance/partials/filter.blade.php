@@ -9,10 +9,10 @@
     </div>
     <x-secondary-button type="submit">Tapis</x-secondary-button>
     <div class="flex gap-2 text-xs text-gray-500 ms-auto">
-        <a href="?from={{ now()->startOfMonth()->toDateString() }}&to={{ now()->endOfDay()->toDateString() }}" class="hover:underline hover:text-amber-600">Bulan Ni</a>
+        <a href="?from={{ now()->startOfMonth()->toDateString() }}&to={{ now()->endOfDay()->toDateString() }}" class="hover:underline hover:text-amber-600">Bulan Ini</a>
         <span>&middot;</span>
-        <a href="?from={{ now()->startOfWeek()->toDateString() }}&to={{ now()->endOfDay()->toDateString() }}" class="hover:underline hover:text-amber-600">Minggu Ni</a>
+        <a href="?from={{ now()->startOfWeek()->toDateString() }}&to={{ now()->endOfDay()->toDateString() }}" class="hover:underline hover:text-amber-600">Minggu Ini</a>
         <span>&middot;</span>
-        <a href="?from={{ now()->subMonthsNoOverflow(1)->startOfMonth()->toDateString() }}&to={{ now()->subMonthsNoOverflow(1)->endOfMonth()->toDateString() }}" class="hover:underline hover:text-amber-600">Bulan Lepas</a>
+        <a href="?from={{ now()->subMonthsNoOverflow(1)->startOfMonth()->toDateString() }}&to={{ now()->subMonthsNoOverflow(1)->endOfMonth()->toDateString() }}" class="hover:underline hover:text-amber-600">Bulan Lalu</a>
     </div>
 </form>

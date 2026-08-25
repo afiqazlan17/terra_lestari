@@ -46,7 +46,7 @@ class PosController extends Controller
             ->latest('opened_at')
             ->first();
 
-        abort_unless($session, 400, 'Kena buka hari dulu sebelum jual.');
+        abort_unless($session, 400, 'Buka hari dahulu sebelum boleh berjualan.');
 
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],

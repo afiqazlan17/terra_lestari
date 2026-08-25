@@ -79,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/staff/{staffMember}', [StaffController::class, 'destroy'])->name('staff.destroy');
 
         Route::post('/capital-injections', [CapitalInjectionController::class, 'store'])->name('capital-injections.store');
+        Route::patch('/capital-injections/{capitalInjection}/receipt', [CapitalInjectionController::class, 'updateReceipt'])->name('capital-injections.receipt.update');
         Route::delete('/capital-injections/{capitalInjection}', [CapitalInjectionController::class, 'destroy'])->name('capital-injections.destroy');
     });
 });

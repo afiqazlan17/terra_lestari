@@ -51,7 +51,7 @@
                 <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                     <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Menu Paling Laku</div>
                     @if ($topProducts->isEmpty())
-                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ni.</p>
+                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                     @else
                         <table class="min-w-full divide-y divide-gray-100 text-sm">
                             <tbody class="divide-y divide-gray-100">
@@ -72,7 +72,7 @@
                 <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                     <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Ikut Kaedah Bayaran</div>
                     @if ($salesByPaymentMethod->isEmpty())
-                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ni.</p>
+                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                     @else
                         <table class="min-w-full divide-y divide-gray-100 text-sm">
                             <tbody class="divide-y divide-gray-100">
@@ -93,7 +93,7 @@
                 <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                     <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Ikut Jenis Order</div>
                     @if ($salesByOrderType->isEmpty())
-                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ni.</p>
+                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                     @else
                         <table class="min-w-full divide-y divide-gray-100 text-sm">
                             <tbody class="divide-y divide-gray-100">
@@ -115,7 +115,7 @@
             <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                 <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Jualan Harian</div>
                 @if ($dailyBreakdown->isEmpty())
-                    <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ni.</p>
+                    <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
                 @else
                     <table class="min-w-full divide-y divide-gray-100 text-sm">
                         <thead class="bg-gray-50">

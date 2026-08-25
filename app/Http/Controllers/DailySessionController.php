@@ -20,7 +20,7 @@ class DailySessionController extends Controller
             ->first();
 
         if ($existing) {
-            return back()->with('error', 'Hari ni dah dibuka.');
+            return back()->with('error', 'Hari ini sudah dibuka.');
         }
 
         $validated = $request->validate([
@@ -35,13 +35,13 @@ class DailySessionController extends Controller
             'status' => 'open',
         ]);
 
-        return back()->with('success', 'Hari ni dah dibuka. Selamat berniaga!');
+        return back()->with('success', 'Hari ini telah dibuka. Selamat berniaga!');
     }
 
     public function close(Request $request, DailySession $dailySession, DailySalesReportService $reportService): RedirectResponse
     {
         abort_unless($dailySession->project_id === $request->user()->currentProject()?->id, 403);
-        abort_unless($dailySession->isOpen(), 400, 'Sesi ni dah ditutup.');
+        abort_unless($dailySession->isOpen(), 400, 'Sesi ini sudah ditutup.');
 
         $validated = $request->validate([
             'closing_cash' => ['required', 'numeric', 'min:0'],
@@ -58,6 +58,6 @@ class DailySessionController extends Controller
 
         $reportService->sendFor($dailySession);
 
-        return back()->with('success', 'Hari ni dah ditutup. Ringkasan jualan dah dihantar ke emel.');
+        return back()->with('success', 'Hari ini telah ditutup. Ringkasan jualan telah dihantar ke emel.');
     }
 }

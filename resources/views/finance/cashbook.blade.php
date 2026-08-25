@@ -29,11 +29,11 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Cash Masuk</p>
+                    <p class="text-sm text-gray-500">Cash In</p>
                     <p class="mt-1 text-xl font-semibold text-green-600">RM {{ number_format($totalMasuk, 2) }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Cash Keluar</p>
+                    <p class="text-sm text-gray-500">Cash Out</p>
                     <p class="mt-1 text-xl font-semibold text-red-600">RM {{ number_format($totalKeluar, 2) }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
@@ -46,7 +46,7 @@
 
             <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                 @if ($entries->isEmpty())
-                    <p class="p-8 text-center text-gray-400">Tiada transaksi dalam tempoh ni.</p>
+                    <p class="p-8 text-center text-gray-400">Tiada transaksi dalam tempoh ini.</p>
                 @else
                     <table class="min-w-full divide-y divide-gray-100 text-sm">
                         <thead class="bg-gray-50">
