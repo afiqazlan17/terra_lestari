@@ -36,8 +36,10 @@
 
                 {{-- Offline / pending sync banner --}}
                 <template x-if="! $store.connectivity.online">
-                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800">
-                        Tiada Internet — order akan disimpan sementara di peranti ini dan dihantar automatik bila internet kembali.
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-800 space-y-0.5">
+                        <p>Tiada sambungan internet. Anda masih boleh key in dan ambil order seperti biasa.</p>
+                        <p>Data order akan disimpan sementara di peranti ini.</p>
+                        <p>Sebaik sahaja internet kembali, data order akan dihantar secara automatik.</p>
                     </div>
                 </template>
                 <template x-if="$store.connectivity.online && pendingOrders.length > 0">
