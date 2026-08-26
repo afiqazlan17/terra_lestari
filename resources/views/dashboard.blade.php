@@ -24,7 +24,7 @@
                                 &middot; Tunai pembukaan RM {{ number_format($currentSession->opening_cash, 2) }}
                             </p>
                         </div>
-                        <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-wrap items-end gap-2">
+                        <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-wrap items-end gap-2" onsubmit="return sbConfirmCloseWithPendingCheck()">
                             @csrf
                             <div>
                                 <label class="block text-xs text-gray-500 mb-1">Tunai Akhir (RM)</label>
@@ -133,4 +133,20 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function sbConfirmCloseWithPendingCheck() {
+            try {
+                const pending = JSON.parse(localStorage.getItem('sb_pending_orders') || '[]');
+                if (pending.length > 0) {
+                    return confirm(
+                        'Amaran: ada ' + pending.length + ' order belum disync pada peranti ini. ' +
+                        'Jualan tersebut TIDAK akan dikira dalam tutup hari sekarang.\n\n' +
+                        'Disarankan pastikan online dan tunggu sync selesai dahulu.\n\nTeruskan tutup hari juga?'
+                    );
+                }
+            } catch (e) {}
+            return true;
+        }
+    </script>
 </x-app-layout>

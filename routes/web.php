@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
     // POS (owner + manager + cashier)
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
+    Route::get('/pos/ping', [PosController::class, 'ping'])->name('pos.ping');
     Route::get('/orders/{order}/receipt', [OrderReceiptController::class, 'show'])->name('orders.receipt');
 
     // Dashboard, purchases, menu (owner + manager)

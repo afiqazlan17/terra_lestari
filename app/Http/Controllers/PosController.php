@@ -6,7 +6,7 @@ use App\Models\DailySession;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -37,7 +37,7 @@ class PosController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse
     {
         $project = $request->user()->currentProject();
 
@@ -46,7 +46,9 @@ class PosController extends Controller
             ->latest('opened_at')
             ->first();
 
-        abort_unless($session, 400, 'Buka hari dahulu sebelum boleh berjualan.');
+        if (! $session) {
+            return response()->json(['message' => 'Buka hari dahulu sebelum boleh berjualan.'], 400);
+        }
 
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
@@ -98,7 +100,17 @@ class PosController extends Controller
             return $order;
         });
 
-        return redirect()->route('orders.receipt', $order)->with('success', 'Order berjaya!');
+        return response()->json([
+            'message' => 'Order berjaya!',
+            'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'receipt_url' => route('orders.receipt', $order),
+        ]);
+    }
+
+    public function ping(): JsonResponse
+    {
+        return response()->json(['ok' => true]);
     }
 
     private function generateOrderNumber(int $projectId): string

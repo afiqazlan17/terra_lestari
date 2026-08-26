@@ -4,6 +4,15 @@ import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
 
+document.addEventListener('alpine:init', () => {
+    Alpine.store('connectivity', {
+        online: navigator.onLine,
+    });
+
+    window.addEventListener('online', () => { Alpine.store('connectivity').online = true; });
+    window.addEventListener('offline', () => { Alpine.store('connectivity').online = false; });
+});
+
 Alpine.start();
 
 function formatMoney(value) {
