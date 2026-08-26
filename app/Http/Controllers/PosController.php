@@ -103,11 +103,10 @@ class PosController extends Controller
 
     private function generateOrderNumber(int $projectId): string
     {
-        $today = now()->format('Ymd');
         $countToday = Order::where('project_id', $projectId)
             ->whereDate('created_at', now()->toDateString())
             ->count();
 
-        return sprintf('SB-%s-%04d', $today, $countToday + 1);
+        return sprintf('SB%03d', $countToday + 1);
     }
 }
