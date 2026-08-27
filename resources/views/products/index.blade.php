@@ -84,35 +84,17 @@
                                                     {{ $product->is_active ? 'Aktif' : 'Tidak Aktif' }}
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-3 text-right whitespace-nowrap space-x-3">
+                                            <td class="px-6 py-3 text-right whitespace-nowrap">
                                                 <button type="button" @click="editingProductId = editingProductId === {{ $product->id }} ? null : {{ $product->id }}" class="text-amber-600 hover:underline text-xs">
                                                     Edit
                                                 </button>
-                                                <form method="POST" action="{{ route('products.update', $product) }}" class="inline">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <input type="hidden" name="name" value="{{ $product->name }}">
-                                                    <input type="hidden" name="sku" value="{{ $product->sku }}">
-                                                    <input type="hidden" name="price" value="{{ $product->price }}">
-                                                    <input type="hidden" name="cost" value="{{ $product->cost }}">
-                                                    <input type="hidden" name="is_active" value="{{ $product->is_active ? '0' : '1' }}">
-                                                    <button type="submit" class="text-amber-600 hover:underline text-xs">
-                                                        {{ $product->is_active ? 'Nyahaktifkan' : 'Aktifkan' }}
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline" onsubmit="return confirm('Padam menu ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
-                                                </form>
                                             </td>
                                         </tr>
                                         <tr x-show="editingProductId === {{ $product->id }}" x-cloak>
                                             <td colspan="6" class="px-6 py-3 bg-gray-50">
-                                                <form method="POST" action="{{ route('products.update', $product) }}" class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
+                                                <form method="POST" action="{{ route('products.update', $product) }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <input type="hidden" name="is_active" value="{{ $product->is_active ? '1' : '0' }}">
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Nama</label>
                                                         <input type="text" name="name" value="{{ $product->name }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
@@ -129,10 +111,21 @@
                                                         <label class="block text-xs text-gray-500 mb-1">Kos (RM)</label>
                                                         <input type="number" step="0.01" min="0" name="cost" value="{{ $product->cost }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                     </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <x-primary-button type="submit" class="!py-1.5 !px-3 text-xs">Simpan</x-primary-button>
-                                                        <button type="button" @click="editingProductId = null" class="text-xs text-gray-500 hover:underline">Batal</button>
+                                                    <div class="sm:col-span-4 flex items-center justify-between pt-1">
+                                                        <label class="inline-flex items-center gap-2 text-sm text-gray-600">
+                                                            <input type="checkbox" name="is_active" value="1" @checked($product->is_active) class="rounded border-gray-300">
+                                                            Aktif
+                                                        </label>
+                                                        <div class="flex items-center gap-3">
+                                                            <button type="button" @click="editingProductId = null" class="text-xs text-gray-500 hover:underline">Batal</button>
+                                                            <x-primary-button type="submit" class="!py-1.5 !px-3 text-xs">Simpan</x-primary-button>
+                                                        </div>
                                                     </div>
+                                                </form>
+                                                <form method="POST" action="{{ route('products.destroy', $product) }}" class="mt-2" onsubmit="return confirm('Padam menu ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-500 hover:underline text-xs">Padam menu ini</button>
                                                 </form>
                                             </td>
                                         </tr>
