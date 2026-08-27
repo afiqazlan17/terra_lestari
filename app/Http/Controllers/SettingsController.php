@@ -52,8 +52,6 @@ class SettingsController extends Controller
 
     public function updatePaperWidth(Request $request): RedirectResponse
     {
-        abort_unless($request->user()->canManageOperations(), 403);
-
         $validated = $request->validate([
             'receipt_paper_width' => ['required', Rule::in([Project::PAPER_WIDTH_58MM, Project::PAPER_WIDTH_80MM])],
         ]);

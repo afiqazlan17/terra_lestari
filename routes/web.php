@@ -26,7 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Settings (all roles; paper-width is operations-only, reset-data is superuser-only, enforced in controller)
+    // Settings (all roles; reset-data is superuser-only, enforced in controller)
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/locale', [SettingsController::class, 'updateLocale'])->name('settings.locale');
     Route::post('/settings/paper-width', [SettingsController::class, 'updatePaperWidth'])->name('settings.paper-width');

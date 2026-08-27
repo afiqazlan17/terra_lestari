@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('projects', function (Blueprint $table) {
-            $table->string('receipt_paper_width')->default('80mm')->after('phone');
+            $table->string('receipt_paper_width')->default('58mm')->after('phone');
         });
     }
 
