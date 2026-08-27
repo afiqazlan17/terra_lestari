@@ -10,67 +10,92 @@
     <style>
         * { box-sizing: border-box; }
         body {
-            font-family: 'Courier New', monospace;
-            width: {{ $is58mm ? '220px' : '300px' }};
-            margin: 0 auto;
-            padding: {{ $is58mm ? '10px' : '16px' }};
-            font-size: {{ $is58mm ? '11px' : '13px' }};
-            color: #111;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 32px 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-        h1 { font-size: {{ $is58mm ? '14px' : '16px' }}; text-align: center; margin: 0 0 4px; }
+        .receipt {
+            font-family: 'Courier New', monospace;
+            width: 380px;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 24px;
+            font-size: 15px;
+            color: #111;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,.12);
+        }
+        h1 { font-size: 20px; text-align: center; margin: 0 0 4px; }
         .center { text-align: center; }
-        .muted { color: #555; font-size: {{ $is58mm ? '9px' : '11px' }}; }
-        .divider { border-top: 1px dashed #999; margin: {{ $is58mm ? '6px' : '8px' }} 0; }
+        .muted { color: #555; font-size: 13px; }
+        .divider { border-top: 1px dashed #999; margin: 10px 0; }
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 2px 0; vertical-align: top; }
+        td { padding: 3px 0; vertical-align: top; }
         .right { text-align: right; white-space: nowrap; }
-        .totals td { padding: 2px 0; }
-        .grand { font-weight: bold; font-size: {{ $is58mm ? '12px' : '14px' }}; }
-        .actions { margin-top: 16px; text-align: center; }
+        .totals td { padding: 3px 0; }
+        .grand { font-weight: bold; font-size: 17px; }
+        .actions { margin-top: 20px; text-align: center; }
         .actions a, .actions button {
             display: inline-block; margin: 4px; padding: 8px 16px;
             background: #f59e0b; color: white; text-decoration: none;
             border-radius: 6px; border: none; font-size: 13px; cursor: pointer;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
+        .actions .secondary { background: #fff; color: #6b7280; border: 1px solid #d1d5db; }
         @media print {
+            body { background: #fff; padding: 0; }
+            .receipt {
+                width: {{ $is58mm ? '220px' : '300px' }};
+                padding: {{ $is58mm ? '10px' : '16px' }};
+                font-size: {{ $is58mm ? '11px' : '13px' }};
+                border-radius: 0;
+                box-shadow: none;
+            }
+            h1 { font-size: {{ $is58mm ? '14px' : '16px' }}; }
+            .muted { font-size: {{ $is58mm ? '9px' : '11px' }}; }
+            .grand { font-size: {{ $is58mm ? '12px' : '14px' }}; }
             .actions { display: none; }
-            body { width: auto; }
         }
     </style>
 </head>
 <body>
-    <h1>SAJIAN BAGINDA</h1>
-    <p class="center muted">Warisan Rasa Pantai Timur</p>
-    <div class="divider"></div>
-    <p class="muted">
-        No. Resit: {{ $order->order_number }}<br>
-        Tarikh: {{ $order->created_at->format('d/m/Y H:i') }}<br>
-        Jenis: {{ $order->typeLabel() }}
-    </p>
-    <div class="divider"></div>
-    <table>
-        @foreach ($order->items as $item)
-            <tr>
-                <td>{{ $item->product_name }}<br><span class="muted">{{ $item->qty }} x RM {{ number_format($item->unit_price, 2) }}</span></td>
-                <td class="right">RM {{ number_format($item->subtotal, 2) }}</td>
-            </tr>
-        @endforeach
-    </table>
-    <div class="divider"></div>
-    <table class="totals">
-        <tr><td>Subtotal</td><td class="right">RM {{ number_format($order->subtotal, 2) }}</td></tr>
-        @if ($order->discount > 0)
-            <tr><td>Diskaun</td><td class="right">RM {{ number_format($order->discount, 2) }}</td></tr>
-        @endif
-        <tr class="grand"><td>Jumlah</td><td class="right">RM {{ number_format($order->total, 2) }}</td></tr>
-        <tr><td class="muted">Bayaran</td><td class="right muted">{{ $order->paymentMethodLabel() }}</td></tr>
-    </table>
-    <div class="divider"></div>
-    <p class="center muted">Terima kasih!</p>
+    <div class="receipt">
+        <h1>SAJIAN BAGINDA</h1>
+        <p class="center muted">Warisan Rasa Pantai Timur</p>
+        <div class="divider"></div>
+        <p class="muted">
+            No. Resit: {{ $order->order_number }}<br>
+            Tarikh: {{ $order->created_at->format('d/m/Y H:i') }}<br>
+            Jenis: {{ $order->typeLabel() }}
+        </p>
+        <div class="divider"></div>
+        <table>
+            @foreach ($order->items as $item)
+                <tr>
+                    <td>{{ $item->product_name }}<br><span class="muted">{{ $item->qty }} x RM {{ number_format($item->unit_price, 2) }}</span></td>
+                    <td class="right">RM {{ number_format($item->subtotal, 2) }}</td>
+                </tr>
+            @endforeach
+        </table>
+        <div class="divider"></div>
+        <table class="totals">
+            <tr><td>Subtotal</td><td class="right">RM {{ number_format($order->subtotal, 2) }}</td></tr>
+            @if ($order->discount > 0)
+                <tr><td>Diskaun</td><td class="right">RM {{ number_format($order->discount, 2) }}</td></tr>
+            @endif
+            <tr class="grand"><td>Jumlah</td><td class="right">RM {{ number_format($order->total, 2) }}</td></tr>
+            <tr><td class="muted">Bayaran</td><td class="right muted">{{ $order->paymentMethodLabel() }}</td></tr>
+        </table>
+        <div class="divider"></div>
+        <p class="center muted">Terima kasih!</p>
 
-    <div class="actions">
-        <button onclick="sbPrintReceipt()">Print</button>
-        <a href="{{ route('pos.index') }}">Order Baru</a>
+        <div class="actions">
+            <button onclick="sbPrintReceipt()">Print</button>
+            <button class="secondary" onclick="sbGoBack()">Back</button>
+            <a href="{{ route('pos.index') }}">Order Baru</a>
+        </div>
     </div>
 
     <script>
@@ -121,6 +146,14 @@
             }
 
             window.print();
+        }
+
+        function sbGoBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+                return;
+            }
+            window.location.href = '{{ route('pos.index') }}';
         }
     </script>
 </body>
