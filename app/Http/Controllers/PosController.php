@@ -138,7 +138,10 @@ class PosController extends Controller
             'voided_by' => $request->user()->id,
         ]);
 
-        return response()->json(['message' => 'Order dibatalkan.']);
+        return response()->json([
+            'message' => 'Order dibatalkan.',
+            'voided_at' => $order->voided_at->format('d/m/Y H:i'),
+        ]);
     }
 
     private function generateOrderNumber(int $projectId): string

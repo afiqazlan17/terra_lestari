@@ -274,6 +274,7 @@
                     'time' => $o->created_at->format('H:i'),
                     'status' => $o->status,
                     'voidReason' => $o->void_reason,
+                    'voidedAt' => $o->voided_at?->format('d/m/Y H:i'),
                     'receiptUrl' => route('orders.receipt', $o),
                 ])))"
                 @order-created.window="orders.unshift($event.detail)">
@@ -289,7 +290,8 @@
                                     <span x-text="order.orderNumber"></span> &mdash; RM <span x-text="order.total.toFixed(2)"></span>
                                     <span class="text-gray-400" x-text="'(' + order.time + ')'"></span>
                                 </p>
-                                <p class="text-xs text-red-500" x-show="order.status === 'voided'" x-text="'Dibatalkan: ' + order.voidReason"></p>
+                                <p class="text-xs text-red-500" x-show="order.status === 'voided'"
+                                    x-text="'Dibatalkan ' + order.voidedAt + ': ' + order.voidReason"></p>
                             </div>
                             <div class="flex items-center gap-3 shrink-0">
                                 <a :href="order.receiptUrl" target="_blank" class="text-amber-600 hover:underline text-xs">Cetak Semula</a>
@@ -336,8 +338,10 @@
                         });
 
                         if (res.ok) {
+                            const data = await res.json();
                             order.status = 'voided';
                             order.voidReason = reason.trim();
+                            order.voidedAt = data.voided_at;
                             return;
                         }
 
