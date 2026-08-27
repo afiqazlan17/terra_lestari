@@ -56,6 +56,7 @@ class CashierLoginController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->intended(route('pos.index', absolute: false));
+        // See AuthenticatedSessionController for why intended() is avoided.
+        return redirect(route('pos.index', absolute: false));
     }
 }

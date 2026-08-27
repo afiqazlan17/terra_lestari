@@ -32,7 +32,12 @@ class AuthenticatedSessionController extends Controller
             ? route('dashboard', absolute: false)
             : route('pos.index', absolute: false);
 
-        return redirect()->intended($home);
+        // Deliberately not using redirect()->intended() here: a stale
+        // "intended URL" left over from an earlier unauthenticated visit to
+        // a role-gated page (e.g. Cashier tried /dashboard, got bounced to
+        // login) would override this role-correct destination and send the
+        // user straight into a 403 right after logging in.
+        return redirect($home);
     }
 
     /**
