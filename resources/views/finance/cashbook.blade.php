@@ -60,7 +60,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($entries as $entry)
                                     <tr>
-                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($entry['date'])->format('d M Y') }}</td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($entry['date'])->format('d F Y') }}</td>
                                         <td class="px-6 py-3 text-gray-800">{{ $entry['description'] }}</td>
                                         <td class="px-6 py-3 text-right font-medium whitespace-nowrap {{ $entry['type'] === 'masuk' ? 'text-green-600' : 'text-red-600' }}">
                                             {{ $entry['type'] === 'masuk' ? '+' : '-' }} RM {{ number_format($entry['amount'], 2) }}

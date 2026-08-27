@@ -9,7 +9,7 @@
             @include('finance.partials.filter')
 
             <p class="text-sm text-gray-500 mb-4">
-                Untung rugi bagi {{ $from->format('d M Y') }} hingga {{ $to->format('d M Y') }}
+                Untung rugi bagi {{ $from->format('d F Y') }} hingga {{ $to->format('d F Y') }}
             </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -118,7 +118,7 @@
                                         <div class="flex items-center justify-between">
                                             <div>
                                                 <p class="text-gray-700">
-                                                    {{ $injection->injected_at->format('d M Y') }} &middot; {{ $injection->source_account }}
+                                                    {{ $injection->injected_at->format('d F Y') }} &middot; {{ $injection->source_account }}
                                                     @if ($injection->receipt_path)
                                                         &middot; <a href="{{ Storage::url($injection->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat lampiran</a>
                                                     @endif
@@ -127,7 +127,7 @@
                                                     <p class="text-xs text-gray-400">{{ $injection->notes }}</p>
                                                 @endif
                                                 <p class="text-xs text-gray-400 mt-0.5">
-                                                    Ditambah oleh {{ $injection->recordedBy->name }}, {{ $injection->created_at->format('d M Y, H:i') }}
+                                                    Ditambah oleh {{ $injection->recordedBy->name }}, {{ $injection->created_at->format('d F Y, H:i') }}
                                                 </p>
                                                 @if ($injection->edits->isNotEmpty())
                                                     <button type="button" @click="showHistory = ! showHistory" class="text-xs text-gray-400 hover:underline mt-0.5">
@@ -136,7 +136,7 @@
                                                     <div x-show="showHistory" x-cloak class="mt-1 space-y-1 border-s-2 border-gray-100 ps-2">
                                                         @foreach ($injection->edits as $edit)
                                                             <p class="text-xs text-gray-400">
-                                                                {{ $edit->editedBy->name }}, {{ $edit->created_at->format('d M Y, H:i') }}<br>
+                                                                {{ $edit->editedBy->name }}, {{ $edit->created_at->format('d F Y, H:i') }}<br>
                                                                 <span class="whitespace-pre-line">{{ $edit->changes }}</span>
                                                             </p>
                                                         @endforeach

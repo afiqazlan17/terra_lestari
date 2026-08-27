@@ -18,7 +18,7 @@
 
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4 no-print">
                 <p class="text-sm text-gray-500">
-                    Laporan jualan bagi {{ $from->format('d M Y') }} hingga {{ $to->format('d M Y') }}
+                    Laporan jualan bagi {{ $from->format('d F Y') }} hingga {{ $to->format('d F Y') }}
                 </p>
                 <div class="flex gap-2">
                     <a href="{{ route('finance.sales.export', request()->query()) }}"
@@ -135,7 +135,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($dailyBreakdown as $day)
                                     <tr>
-                                        <td class="px-6 py-3 text-gray-700 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($day->day)->translatedFormat('l, d M Y') }}</td>
+                                        <td class="px-6 py-3 text-gray-700 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($day->day)->translatedFormat('l, d F Y') }}</td>
                                         <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $day->order_count }}</td>
                                         <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($day->total, 2) }}</td>
                                     </tr>

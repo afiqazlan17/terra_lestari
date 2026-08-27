@@ -31,7 +31,7 @@
                     </div>
                     <div x-show="role === 'manager'" x-cloak>
                         <x-input-label for="password" value="Password" />
-                        <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" />
+                        <x-password-input id="password" name="password" class="mt-1 block w-full" />
                     </div>
                     <div class="sm:col-span-2">
                         <p class="text-xs text-gray-400 -mt-2 mb-1" x-show="role === 'cashier'">PIN untuk log masuk di halaman "Log Masuk Cashier".</p>

@@ -29,7 +29,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($purchases as $purchase)
                                     <tr>
-                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $purchase->purchase_date->format('d M Y') }}</td>
+                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $purchase->purchase_date->format('d F Y') }}</td>
                                         <td class="px-4 py-3 text-gray-800">
                                             {{ $purchase->description }}
                                             @if ($purchase->notes)

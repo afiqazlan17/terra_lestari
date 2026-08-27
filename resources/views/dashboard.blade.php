@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('Dashboard') }}
             </h2>
-            <span class="text-sm text-gray-500">{{ now()->translatedFormat('l, d M Y') }}</span>
+            <span class="text-sm text-gray-500">{{ now()->translatedFormat('l, d F Y') }}</span>
         </div>
     </x-slot>
 
@@ -123,7 +123,7 @@
                             <div class="py-2 flex items-center justify-between text-sm">
                                 <div>
                                     <p class="text-gray-800">{{ $purchase->description }}</p>
-                                    <p class="text-gray-400">{{ $purchase->purchase_date->format('d M Y') }} &middot; {{ $purchase->recordedBy->name }}</p>
+                                    <p class="text-gray-400">{{ $purchase->purchase_date->format('d F Y') }} &middot; {{ $purchase->recordedBy->name }}</p>
                                 </div>
                                 <p class="font-medium text-gray-900">RM {{ number_format($purchase->amount, 2) }}</p>
                             </div>

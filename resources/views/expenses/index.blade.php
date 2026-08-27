@@ -30,7 +30,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($expenses as $expense)
                                     <tr>
-                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $expense->purchase_date->format('d M Y') }}</td>
+                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $expense->purchase_date->format('d F Y') }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <span class="inline-flex rounded-full px-2 py-1 text-xs bg-gray-100 text-gray-600">
                                                 {{ $expense->categoryLabel() }}

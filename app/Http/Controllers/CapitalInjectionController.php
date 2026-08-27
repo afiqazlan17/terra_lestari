@@ -71,8 +71,8 @@ class CapitalInjectionController extends Controller
         if (! $capitalInjection->injected_at->isSameDay($newDate)) {
             $changes[] = sprintf(
                 'Tarikh: %s → %s',
-                $capitalInjection->injected_at->format('d M Y'),
-                $newDate->format('d M Y')
+                $capitalInjection->injected_at->format('d F Y'),
+                $newDate->format('d F Y')
             );
         }
 

@@ -7,7 +7,7 @@
 <body style="font-family: Arial, sans-serif; color: #1f2937; margin: 0; padding: 24px; background: #f9fafb;">
     <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 8px; padding: 24px;">
         <h2 style="margin: 0 0 4px; font-size: 18px;">{{ $project->name }}</h2>
-        <p style="margin: 0 0 20px; color: #6b7280; font-size: 13px;">Ringkasan jualan {{ $date->translatedFormat('l, d M Y') }}</p>
+        <p style="margin: 0 0 20px; color: #6b7280; font-size: 13px;">Ringkasan jualan {{ $date->translatedFormat('l, d F Y') }}</p>
 
         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
             <tr>
