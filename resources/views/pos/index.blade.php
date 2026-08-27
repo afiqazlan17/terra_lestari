@@ -195,7 +195,7 @@
                             <p class="text-center text-xs text-gray-500">Warisan Rasa Pantai Timur</p>
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
                             <p class="text-xs text-gray-500">
-                                No. Resit: <span class="italic">Belum dijana</span><br>
+                                No. Resit: <span :class="! orderResult && 'italic'" x-text="orderResult ? orderResult.orderNumber : 'Belum dijana'"></span><br>
                                 Tarikh: <span x-text="confirmDateStr"></span><br>
                                 Jenis: <span x-text="orderType === 'dine_in' ? 'Dine In' : 'Take Away'"></span>
                             </p>
@@ -236,14 +236,30 @@
                             <p class="text-center text-xs text-gray-500">Terima kasih!</p>
 
                             <div class="mt-5 flex gap-2 font-sans">
-                                <button type="button" @click="checkout()" :disabled="submitting"
-                                    class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
-                                    <span x-text="submitting ? 'Menghantar...' : 'Print'"></span>
-                                </button>
-                                <button type="button" @click="confirming = false" :disabled="submitting"
-                                    class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                                    Back
-                                </button>
+                                <template x-if="! orderResult">
+                                    <button type="button" @click="checkout()" :disabled="submitting"
+                                        class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
+                                        <span x-text="submitting ? 'Menghantar...' : 'Print'"></span>
+                                    </button>
+                                </template>
+                                <template x-if="! orderResult">
+                                    <button type="button" @click="confirming = false" :disabled="submitting"
+                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                        Back
+                                    </button>
+                                </template>
+                                <template x-if="orderResult">
+                                    <button type="button" @click="reprintFromPreview()"
+                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
+                                        Print
+                                    </button>
+                                </template>
+                                <template x-if="orderResult">
+                                    <button type="button" @click="resetAfterPrint()"
+                                        class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 rounded-lg">
+                                        Order Baru
+                                    </button>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -271,6 +287,7 @@
                 printerBusy: false,
                 confirming: false,
                 confirmDateStr: '',
+                orderResult: null,
 
                 openConfirm() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
@@ -279,7 +296,15 @@
                     const now = new Date();
                     const pad = (n) => String(n).padStart(2, '0');
                     this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                    this.orderResult = null;
                     this.confirming = true;
+                },
+
+                resetAfterPrint() {
+                    this.confirming = false;
+                    this.orderResult = null;
+                    this.items = [];
+                    this.discount = 0;
                 },
 
                 init() {
@@ -382,7 +407,6 @@
                         return;
                     }
 
-                    this.confirming = false;
                     const payload = this.buildPayload();
 
                     if (! this.$store.connectivity.online) {
@@ -406,7 +430,8 @@
                         if (res.ok) {
                             const data = await res.json();
                             await this.printViaBluetooth(this.buildReceiptData(data.order_number, this.items, payload, new Date()));
-                            window.location.href = data.receipt_url;
+                            this.orderResult = { orderNumber: data.order_number, receiptUrl: data.receipt_url };
+                            this.submitting = false;
                             return;
                         }
 
@@ -426,6 +451,18 @@
                     }
                 },
 
+                async reprintFromPreview() {
+                    if (! this.orderResult) {
+                        return;
+                    }
+                    const payload = this.buildPayload();
+                    const data = this.buildReceiptData(this.orderResult.orderNumber, this.items, payload, new Date());
+                    const printed = await this.printViaBluetooth(data, { forceConnect: true });
+                    if (! printed && window.SBPrinter && window.SBPrinter.isSupported()) {
+                        alert('Printer tidak connect. Sila cuba lagi.');
+                    }
+                },
+
                 queueOffline(payload) {
                     const pending = {
                         localId: 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
@@ -436,8 +473,7 @@
                     this.pendingOrders.push(pending);
                     this.savePending();
                     this.printLocalReceipt(pending);
-                    this.items = [];
-                    this.discount = 0;
+                    this.orderResult = { orderNumber: 'Menunggu Sync', receiptUrl: null, offline: true };
                 },
 
                 buildReceiptData(orderNumber, itemsList, payload, when) {
