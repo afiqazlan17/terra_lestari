@@ -266,11 +266,12 @@
                 </template>
             </div>
 
-            <div class="bg-white shadow-sm rounded-lg p-4 mt-6"
+            <div class="bg-white shadow-sm rounded-lg mt-6"
                 x-data="orderHistory(@js($todaysOrders->map(fn ($o) => [
                     'id' => $o->id,
                     'orderNumber' => $o->order_number,
                     'total' => (float) $o->total,
+                    'date' => $o->created_at->format('d/m/Y'),
                     'time' => $o->created_at->format('H:i'),
                     'status' => $o->status,
                     'voidReason' => $o->void_reason,
@@ -278,30 +279,55 @@
                     'receiptUrl' => route('orders.receipt', $o),
                 ])))"
                 @order-created.window="orders.unshift($event.detail)">
-                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Order Hari Ini</h3>
-                <template x-if="orders.length === 0">
-                    <p class="text-sm text-gray-400 py-4 text-center">Tiada order lagi hari ini.</p>
-                </template>
-                <div class="divide-y divide-gray-100" x-show="orders.length > 0">
-                    <template x-for="order in orders" :key="order.id">
-                        <div class="flex items-center justify-between py-2 text-sm gap-3">
-                            <div>
-                                <p :class="order.status === 'voided' ? 'line-through text-gray-400' : 'text-gray-800'">
-                                    <span x-text="order.orderNumber"></span> &mdash; RM <span x-text="order.total.toFixed(2)"></span>
-                                    <span class="text-gray-400" x-text="'(' + order.time + ')'"></span>
-                                </p>
-                                <p class="text-xs text-red-500" x-show="order.status === 'voided'"
-                                    x-text="'Dibatalkan ' + order.voidedAt + ': ' + order.voidReason"></p>
-                            </div>
-                            <div class="flex items-center gap-3 shrink-0">
-                                <a :href="order.receiptUrl" target="_blank" class="text-amber-600 hover:underline text-xs">Cetak Semula</a>
-                                <button type="button" x-show="order.status !== 'voided'" @click="voidOrder(order)"
-                                    class="text-red-500 hover:underline text-xs">
-                                    Void
-                                </button>
-                            </div>
-                        </div>
-                    </template>
+                <button type="button" @click="open = ! open" class="w-full flex items-center justify-between p-4 text-left">
+                    <span class="text-sm font-semibold text-gray-500 uppercase">
+                        Order Hari Ini
+                        <span class="text-gray-400 normal-case font-normal">| {{ now()->translatedFormat('d F Y') }} | {{ now()->translatedFormat('l') }}</span>
+                    </span>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform shrink-0" :class="open && 'rotate-180'"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div x-show="open" x-transition class="border-t border-gray-100 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100 text-sm">
+                        <thead class="bg-gray-50">
+                            <tr class="text-left text-xs text-gray-500 uppercase">
+                                <th class="px-4 py-2">No. Resit</th>
+                                <th class="px-4 py-2 text-right">Harga</th>
+                                <th class="px-4 py-2">Tarikh</th>
+                                <th class="px-4 py-2">Masa</th>
+                                <th class="px-4 py-2 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <template x-for="order in orders" :key="order.id">
+                                <tr>
+                                    <td class="px-4 py-2" :class="order.status === 'voided' ? 'line-through text-gray-400' : 'text-gray-800'">
+                                        <span x-text="order.orderNumber"></span>
+                                        <p class="text-xs text-red-500 mt-0.5 no-underline" x-show="order.status === 'voided'"
+                                            x-text="'Dibatalkan ' + order.voidedAt + ': ' + order.voidReason"></p>
+                                    </td>
+                                    <td class="px-4 py-2 text-right whitespace-nowrap" :class="order.status === 'voided' ? 'line-through text-gray-400' : 'text-gray-800'">
+                                        RM <span x-text="order.total.toFixed(2)"></span>
+                                    </td>
+                                    <td class="px-4 py-2 text-gray-500 whitespace-nowrap" x-text="order.date"></td>
+                                    <td class="px-4 py-2 text-gray-500 whitespace-nowrap" x-text="order.time"></td>
+                                    <td class="px-4 py-2 text-right whitespace-nowrap">
+                                        <a :href="order.receiptUrl" target="_blank" class="text-amber-600 hover:underline text-xs">Cetak Semula</a>
+                                        <button type="button" x-show="order.status !== 'voided'" @click="voidOrder(order)"
+                                            class="text-red-500 hover:underline text-xs ml-3">
+                                            Void
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="orders.length === 0">
+                                <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-sm">Tiada order lagi hari ini.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -315,6 +341,7 @@
         function orderHistory(initialOrders) {
             return {
                 orders: initialOrders,
+                open: false,
 
                 async voidOrder(order) {
                     const reason = prompt('Sebab void order ' + order.orderNumber + ':');
@@ -521,9 +548,11 @@
                                 id: data.order_id,
                                 orderNumber: data.order_number,
                                 total: this.total(),
+                                date: `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`,
                                 time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
                                 status: 'completed',
                                 voidReason: null,
+                                voidedAt: null,
                                 receiptUrl: data.receipt_url,
                             } }));
 
