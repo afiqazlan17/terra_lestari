@@ -15,6 +15,10 @@ document.addEventListener('alpine:init', () => {
 
 Alpine.start();
 
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
 function formatMoney(value) {
     const num = parseFloat(String(value).replace(/,/g, ''));
 
