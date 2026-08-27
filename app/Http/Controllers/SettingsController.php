@@ -6,6 +6,7 @@ use App\Models\CapitalInjection;
 use App\Models\DailySession;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Project;
 use App\Models\Purchase;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,6 +35,7 @@ class SettingsController extends Controller
         return view('settings.index', [
             'user' => $request->user(),
             'counts' => $counts,
+            'project' => $request->user()->currentProject(),
         ]);
     }
 
@@ -46,6 +48,19 @@ class SettingsController extends Controller
         $request->user()->update(['locale' => $validated['locale']]);
 
         return back()->with('success', 'Bahasa dikemaskini.');
+    }
+
+    public function updatePaperWidth(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->canManageOperations(), 403);
+
+        $validated = $request->validate([
+            'receipt_paper_width' => ['required', Rule::in([Project::PAPER_WIDTH_58MM, Project::PAPER_WIDTH_80MM])],
+        ]);
+
+        $request->user()->currentProject()->update(['receipt_paper_width' => $validated['receipt_paper_width']]);
+
+        return back()->with('success', 'Lebar kertas resit dikemaskini.');
     }
 
     public function resetData(Request $request): RedirectResponse

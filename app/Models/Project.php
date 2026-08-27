@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
-    protected $fillable = ['company_id', 'name', 'slug', 'address', 'phone', 'is_active'];
+    public const PAPER_WIDTH_58MM = '58mm';
+    public const PAPER_WIDTH_80MM = '80mm';
+
+    protected $fillable = ['company_id', 'name', 'slug', 'address', 'phone', 'is_active', 'receipt_paper_width'];
 
     protected $casts = [
         'is_active' => 'boolean',

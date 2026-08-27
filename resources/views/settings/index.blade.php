@@ -18,6 +18,21 @@
                 </form>
             </div>
 
+            @if ($user->canManageOperations())
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Lebar Kertas Resit</h3>
+                    <form method="POST" action="{{ route('settings.paper-width') }}" class="flex items-center gap-3">
+                        @csrf
+                        <select name="receipt_paper_width" class="rounded-md border-gray-300 shadow-sm text-sm" onchange="this.form.submit()">
+                            <option value="58mm" @selected($project->receipt_paper_width === '58mm')>58mm</option>
+                            <option value="80mm" @selected($project->receipt_paper_width === '80mm')>80mm</option>
+                        </select>
+                        <noscript><x-primary-button type="submit">{{ __('Save') }}</x-primary-button></noscript>
+                    </form>
+                    <p class="text-xs text-gray-400 mt-2">Pilih ikut lebar kertas thermal printer resit yang digunakan.</p>
+                </div>
+            @endif
+
             @if ($user->isSuperuser())
                 <div class="bg-white shadow-sm sm:rounded-lg p-6 border border-red-200" x-data="{ open: false, selected: [] }">
                     <h3 class="text-sm font-semibold text-red-600 uppercase mb-2">{{ __('Danger Zone') }}</h3>

@@ -3,25 +3,28 @@
 <head>
     <meta charset="utf-8">
     <title>Resit {{ $order->order_number }}</title>
+    @php
+        $is58mm = ($order->project->receipt_paper_width ?? '80mm') === '58mm';
+    @endphp
     <style>
         * { box-sizing: border-box; }
         body {
             font-family: 'Courier New', monospace;
-            width: 300px;
+            width: {{ $is58mm ? '220px' : '300px' }};
             margin: 0 auto;
-            padding: 16px;
-            font-size: 13px;
+            padding: {{ $is58mm ? '10px' : '16px' }};
+            font-size: {{ $is58mm ? '11px' : '13px' }};
             color: #111;
         }
-        h1 { font-size: 16px; text-align: center; margin: 0 0 4px; }
+        h1 { font-size: {{ $is58mm ? '14px' : '16px' }}; text-align: center; margin: 0 0 4px; }
         .center { text-align: center; }
-        .muted { color: #555; font-size: 11px; }
-        .divider { border-top: 1px dashed #999; margin: 8px 0; }
+        .muted { color: #555; font-size: {{ $is58mm ? '9px' : '11px' }}; }
+        .divider { border-top: 1px dashed #999; margin: {{ $is58mm ? '6px' : '8px' }} 0; }
         table { width: 100%; border-collapse: collapse; }
         td { padding: 2px 0; vertical-align: top; }
         .right { text-align: right; white-space: nowrap; }
         .totals td { padding: 2px 0; }
-        .grand { font-weight: bold; font-size: 14px; }
+        .grand { font-weight: bold; font-size: {{ $is58mm ? '12px' : '14px' }}; }
         .actions { margin-top: 16px; text-align: center; }
         .actions a, .actions button {
             display: inline-block; margin: 4px; padding: 8px 16px;

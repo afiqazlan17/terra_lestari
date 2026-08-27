@@ -180,6 +180,7 @@
 
     <script>
         const POS_PENDING_KEY = 'sb_pending_orders';
+        const PAPER_58MM = {{ $project->receipt_paper_width === '58mm' ? 'true' : 'false' }};
 
         function posCart(hasSession) {
             return {
@@ -354,15 +355,15 @@
                         <!DOCTYPE html><html lang="ms"><head><meta charset="utf-8"><title>Resit (Menunggu Sync)</title>
                         <style>
                             * { box-sizing: border-box; }
-                            body { font-family: 'Courier New', monospace; width: 300px; margin: 0 auto; padding: 16px; font-size: 13px; color: #111; }
-                            h1 { font-size: 16px; text-align: center; margin: 0 0 4px; }
+                            body { font-family: 'Courier New', monospace; width: ${PAPER_58MM ? '220px' : '300px'}; margin: 0 auto; padding: ${PAPER_58MM ? '10px' : '16px'}; font-size: ${PAPER_58MM ? '11px' : '13px'}; color: #111; }
+                            h1 { font-size: ${PAPER_58MM ? '14px' : '16px'}; text-align: center; margin: 0 0 4px; }
                             .center { text-align: center; }
-                            .muted { color: #555; font-size: 11px; }
-                            .divider { border-top: 1px dashed #999; margin: 8px 0; }
+                            .muted { color: #555; font-size: ${PAPER_58MM ? '9px' : '11px'}; }
+                            .divider { border-top: 1px dashed #999; margin: ${PAPER_58MM ? '6px' : '8px'} 0; }
                             table { width: 100%; border-collapse: collapse; }
                             td { padding: 2px 0; vertical-align: top; }
                             .right { text-align: right; white-space: nowrap; }
-                            .grand { font-weight: bold; font-size: 14px; }
+                            .grand { font-weight: bold; font-size: ${PAPER_58MM ? '12px' : '14px'}; }
                             .pending-badge { text-align: center; background: #fef3c7; color: #92400e; padding: 6px; font-size: 11px; margin-bottom: 8px; border-radius: 4px; }
                         </style></head><body>
                             <h1>SAJIAN BAGINDA</h1>
