@@ -339,6 +339,9 @@
                     const pad = (n) => String(n).padStart(2, '0');
                     const dateStr = `${pad(created.getDate())}/${pad(created.getMonth() + 1)}/${created.getFullYear()} ${pad(created.getHours())}:${pad(created.getMinutes())}`;
 
+                    if (window.SBPrinter) {
+                        await window.SBPrinter.waitUntilReady();
+                    }
                     if (window.SBPrinter && window.SBPrinter.isConnected()) {
                         try {
                             const bytes = window.buildReceiptEscPos({

@@ -27,9 +27,21 @@ const SBPrinter = {
     device: null,
     characteristic: null,
     lastError: null,
+    ready: Promise.resolve(false),
 
     isSupported() {
         return 'bluetooth' in navigator;
+    },
+
+    // Callers that print right after a page load (e.g. the receipt page,
+    // reached immediately after checkout) can race the background
+    // reconnectIfKnown() triggered in app.js. Wait for it (capped) before
+    // checking isConnected().
+    async waitUntilReady(timeoutMs = 4000) {
+        return Promise.race([
+            this.ready,
+            new Promise((resolve) => setTimeout(resolve, timeoutMs)),
+        ]);
     },
 
     getSavedConfig() {

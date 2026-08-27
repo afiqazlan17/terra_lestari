@@ -21,7 +21,7 @@ if ('serviceWorker' in navigator) {
 }
 
 if (window.SBPrinter) {
-    window.SBPrinter.reconnectIfKnown();
+    window.SBPrinter.ready = window.SBPrinter.reconnectIfKnown();
 }
 
 function formatMoney(value) {

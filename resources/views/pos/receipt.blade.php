@@ -90,6 +90,9 @@
         };
 
         async function sbPrintReceipt() {
+            if (window.SBPrinter) {
+                await window.SBPrinter.waitUntilReady();
+            }
             if (window.SBPrinter && window.SBPrinter.isConnected()) {
                 try {
                     const bytes = window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
