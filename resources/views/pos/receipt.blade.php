@@ -91,22 +91,33 @@
 
         async function sbPrintReceipt() {
             if (window.SBPrinter && window.SBPrinter.isSupported()) {
-                await window.SBPrinter.waitUntilReady();
+                if (! window.SBPrinter.isConnected()) {
+                    await window.SBPrinter.waitUntilReady(1500);
+                }
 
-                if (window.SBPrinter.isConnected()) {
+                if (! window.SBPrinter.isConnected()) {
+                    // Reconnecting silently didn't work (common on Android Chrome -
+                    // persistent BLE reconnect across page loads isn't reliable).
+                    // Re-request the device right here, while we still have the
+                    // user gesture from this Print tap.
                     try {
-                        const bytes = window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
-                        await window.SBPrinter.write(bytes);
-                        return;
+                        await window.SBPrinter.connect();
                     } catch (e) {
-                        console.error('Bluetooth print gagal', e);
-                        alert('Cetak gagal. Sila semak sambungan printer di Settings > Printer Resit (Bluetooth).');
+                        console.error('Bluetooth connect gagal', e);
+                        alert('Printer tidak connect. Sila pilih "RichTech" pada senarai yang keluar.');
                         return;
                     }
                 }
 
-                alert('Printer tidak connect. Sila sambung printer di Settings > Printer Resit (Bluetooth).');
-                return;
+                try {
+                    const bytes = window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
+                    await window.SBPrinter.write(bytes);
+                    return;
+                } catch (e) {
+                    console.error('Bluetooth print gagal', e);
+                    alert('Cetak gagal. Sila semak sambungan printer di Settings > Printer Resit (Bluetooth).');
+                    return;
+                }
             }
 
             window.print();

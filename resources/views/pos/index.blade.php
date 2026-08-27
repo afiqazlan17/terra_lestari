@@ -340,36 +340,43 @@
                     const dateStr = `${pad(created.getDate())}/${pad(created.getMonth() + 1)}/${created.getFullYear()} ${pad(created.getHours())}:${pad(created.getMinutes())}`;
 
                     if (window.SBPrinter && window.SBPrinter.isSupported()) {
-                        await window.SBPrinter.waitUntilReady();
+                        if (! window.SBPrinter.isConnected()) {
+                            await window.SBPrinter.waitUntilReady(1500);
+                        }
 
-                        if (window.SBPrinter.isConnected()) {
+                        if (! window.SBPrinter.isConnected()) {
                             try {
-                                const bytes = window.buildReceiptEscPos({
-                                    orderNumber: 'Menunggu Sync',
-                                    dateStr: dateStr,
-                                    typeLabel: typeLabel,
-                                    items: pending.items.map(i => ({
-                                        name: i.name,
-                                        qty: i.qty,
-                                        price: i.price.toFixed(2),
-                                        lineTotal: (i.price * i.qty).toFixed(2),
-                                    })),
-                                    subtotal: subtotal.toFixed(2),
-                                    discount: discount,
-                                    total: total.toFixed(2),
-                                    paymentLabel: paymentLabel,
-                                }, PAPER_58MM);
-                                await window.SBPrinter.write(bytes);
-                                return;
+                                await window.SBPrinter.connect();
                             } catch (e) {
-                                console.error('Bluetooth print gagal', e);
-                                alert('Cetak gagal. Order tetap disimpan — sila semak sambungan printer di Settings > Printer Resit (Bluetooth).');
+                                console.error('Bluetooth connect gagal', e);
+                                alert('Printer tidak connect. Order tetap disimpan — sila sambung printer di Settings > Printer Resit (Bluetooth).');
                                 return;
                             }
                         }
 
-                        alert('Printer tidak connect. Order tetap disimpan — sila sambung printer di Settings > Printer Resit (Bluetooth).');
-                        return;
+                        try {
+                            const bytes = window.buildReceiptEscPos({
+                                orderNumber: 'Menunggu Sync',
+                                dateStr: dateStr,
+                                typeLabel: typeLabel,
+                                items: pending.items.map(i => ({
+                                    name: i.name,
+                                    qty: i.qty,
+                                    price: i.price.toFixed(2),
+                                    lineTotal: (i.price * i.qty).toFixed(2),
+                                })),
+                                subtotal: subtotal.toFixed(2),
+                                discount: discount,
+                                total: total.toFixed(2),
+                                paymentLabel: paymentLabel,
+                            }, PAPER_58MM);
+                            await window.SBPrinter.write(bytes);
+                            return;
+                        } catch (e) {
+                            console.error('Bluetooth print gagal', e);
+                            alert('Cetak gagal. Order tetap disimpan — sila semak sambungan printer di Settings > Printer Resit (Bluetooth).');
+                            return;
+                        }
                     }
 
                     const win = window.open('', '_blank');
