@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'owner' => \App\Http\Middleware\EnsureUserIsOwner::class,
             'operations' => \App\Http\Middleware\EnsureUserCanManageOperations::class,
+            'password.change' => \App\Http\Middleware\ForcePasswordChange::class,
         ]);
 
         $middleware->web(append: [

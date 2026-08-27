@@ -20,7 +20,7 @@ Route::get('/', function () {
         : redirect()->route('login');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'password.change'])->group(function () {
     // Profile (all roles)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
