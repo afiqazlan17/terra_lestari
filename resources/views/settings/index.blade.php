@@ -54,9 +54,17 @@
                                 class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
                                 Test Print
                             </button>
-                            <button type="button" x-show="connected" @click="testOpenDrawer()" :disabled="busy"
+                            <button type="button" x-show="connected" @click="testOpenDrawer(0)" :disabled="busy"
                                 class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
-                                Buka Laci Duit
+                                Buka Laci (Pin 2)
+                            </button>
+                            <button type="button" x-show="connected" @click="testOpenDrawer(1)" :disabled="busy"
+                                class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
+                                Buka Laci (Pin 5)
+                            </button>
+                            <button type="button" x-show="connected" @click="testOpenDrawerAlt()" :disabled="busy"
+                                class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
+                                Buka Laci (Mod 2)
                             </button>
                             <button type="button" x-show="connected" @click="disconnect()"
                                 class="text-sm text-red-500 hover:underline px-2 py-2">
@@ -211,12 +219,26 @@
                     this.busy = false;
                 },
 
-                async testOpenDrawer() {
+                async testOpenDrawer(pin) {
                     this.busy = true;
                     this.status = '';
                     try {
-                        await window.SBPrinter.write(window.buildOpenDrawerCommand());
-                        this.status = 'Arahan buka laci dihantar.';
+                        await window.SBPrinter.write(window.buildOpenDrawerCommand(pin));
+                        this.status = 'Arahan buka laci dihantar (Pin ' + (pin === 0 ? '2' : '5') + ').';
+                        this.statusIsError = false;
+                    } catch (e) {
+                        this.status = 'Gagal buka laci: ' + e.message;
+                        this.statusIsError = true;
+                    }
+                    this.busy = false;
+                },
+
+                async testOpenDrawerAlt() {
+                    this.busy = true;
+                    this.status = '';
+                    try {
+                        await window.SBPrinter.write(window.buildOpenDrawerCommandAlt());
+                        this.status = 'Arahan buka laci dihantar (Mod 2).';
                         this.statusIsError = false;
                     } catch (e) {
                         this.status = 'Gagal buka laci: ' + e.message;

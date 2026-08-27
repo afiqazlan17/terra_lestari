@@ -188,12 +188,20 @@ function wrapText(text, width) {
     return lines;
 }
 
-// Standard ESC/POS "generate pulse" command that kicks a cash drawer
-// wired into the printer's RJ11/RJ12 drawer port. m=0 selects the usual
-// single-drawer pin; t1/t2 are the pulse on/off durations in 2ms units
-// (25/250 = a common, safe default most drawers respond to).
-function buildOpenDrawerCommand() {
-    return new Uint8Array([0x1B, 0x70, 0x00, 0x19, 0xFA]);
+// ESC/POS "generate pulse" command that kicks a cash drawer wired into
+// the printer's RJ11/RJ12 drawer port. pin=0 vs pin=1 selects which of
+// the two connector pins carries the pulse - drawers/printers disagree
+// on which one they're wired to, so both are worth trying. t1/t2 are
+// the pulse on/off durations in 2ms units (25/250 is a common default).
+function buildOpenDrawerCommand(pin = 0) {
+    return new Uint8Array([0x1B, 0x70, pin, 0x19, 0xFA]);
+}
+
+// Some generic/OEM printer boards (common on unbranded Chinese thermal
+// printers) implement cash drawer kick via this alternate DLE DC4
+// sequence instead of, or in addition to, the standard ESC p command.
+function buildOpenDrawerCommandAlt() {
+    return new Uint8Array([0x10, 0x14, 0x01, 0x00, 0x01]);
 }
 
 function buildReceiptEscPos(data, is58mm, options = {}) {
@@ -251,3 +259,4 @@ function buildReceiptEscPos(data, is58mm, options = {}) {
 window.SBPrinter = SBPrinter;
 window.buildReceiptEscPos = buildReceiptEscPos;
 window.buildOpenDrawerCommand = buildOpenDrawerCommand;
+window.buildOpenDrawerCommandAlt = buildOpenDrawerCommandAlt;
