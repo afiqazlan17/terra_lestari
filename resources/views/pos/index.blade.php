@@ -187,49 +187,62 @@
                 </div>
                 </div>
 
-                {{-- Confirm order before final print --}}
+                {{-- Receipt preview before the order is actually saved/printed --}}
                 <template x-if="confirming">
-                    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="confirming = false">
-                        <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-5">
-                            <h3 class="text-base font-semibold text-gray-800 mb-1">Sahkan Order</h3>
-                            <p class="text-xs text-gray-400 mb-3">Semak order sebelum resit dicetak. Tekan Back kalau customer nak tukar order.</p>
+                    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 font-mono">
+                            <h1 class="text-center font-bold text-lg">SAJIAN BAGINDA</h1>
+                            <p class="text-center text-xs text-gray-500">Warisan Rasa Pantai Timur</p>
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+                            <p class="text-xs text-gray-500">
+                                No. Resit: <span class="italic">Belum dijana</span><br>
+                                Tarikh: <span x-text="confirmDateStr"></span><br>
+                                Jenis: <span x-text="orderType === 'dine_in' ? 'Dine In' : 'Take Away'"></span>
+                            </p>
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
 
-                            <div class="space-y-1 max-h-64 overflow-y-auto text-sm mb-3">
+                            <div class="space-y-2 max-h-60 overflow-y-auto text-sm">
                                 <template x-for="item in items" :key="item.product_id">
-                                    <div class="flex justify-between text-gray-700">
-                                        <span x-text="item.qty + 'x ' + item.name"></span>
-                                        <span>RM <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
+                                    <div>
+                                        <div class="flex justify-between text-gray-800">
+                                            <span x-text="item.name"></span>
+                                            <span>RM <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
+                                        </div>
+                                        <p class="text-xs text-gray-400" x-text="item.qty + ' x RM ' + item.price.toFixed(2)"></p>
                                     </div>
                                 </template>
                             </div>
 
-                            <div class="border-t border-gray-100 pt-2 space-y-1 text-sm">
-                                <div class="flex justify-between text-gray-600">
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+                            <div class="text-sm space-y-1">
+                                <div class="flex justify-between text-gray-700">
                                     <span>Subtotal</span>
                                     <span>RM <span x-text="subtotal().toFixed(2)"></span></span>
                                 </div>
-                                <div class="flex justify-between text-gray-600" x-show="discount > 0">
+                                <div class="flex justify-between text-gray-700" x-show="discount > 0">
                                     <span>Diskaun</span>
                                     <span>RM <span x-text="(discount || 0).toFixed(2)"></span></span>
                                 </div>
-                                <div class="flex justify-between font-semibold text-gray-900 text-base">
+                                <div class="flex justify-between font-bold text-gray-900 text-base">
                                     <span>Jumlah</span>
                                     <span>RM <span x-text="total().toFixed(2)"></span></span>
                                 </div>
-                                <div class="flex justify-between text-gray-500 text-xs pt-1">
-                                    <span x-text="orderType === 'dine_in' ? 'Dine In' : 'Take Away'"></span>
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>Bayaran</span>
                                     <span x-text="paymentMethod === 'cash' ? 'Cash' : 'QR / DuitNow'"></span>
                                 </div>
                             </div>
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+                            <p class="text-center text-xs text-gray-500">Terima kasih!</p>
 
-                            <div class="mt-4 flex gap-2">
-                                <button type="button" @click="confirming = false"
-                                    class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
-                                    Back
-                                </button>
-                                <button type="button" @click="confirming = false; checkout()" :disabled="submitting"
+                            <div class="mt-5 flex gap-2 font-sans">
+                                <button type="button" @click="checkout()" :disabled="submitting"
                                     class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
-                                    <span x-text="submitting ? 'Menghantar...' : 'Cetak Resit'"></span>
+                                    <span x-text="submitting ? 'Menghantar...' : 'Print'"></span>
+                                </button>
+                                <button type="button" @click="confirming = false" :disabled="submitting"
+                                    class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                    Back
                                 </button>
                             </div>
                         </div>
@@ -257,11 +270,15 @@
                 printerConnected: false,
                 printerBusy: false,
                 confirming: false,
+                confirmDateStr: '',
 
                 openConfirm() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
                         return;
                     }
+                    const now = new Date();
+                    const pad = (n) => String(n).padStart(2, '0');
+                    this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
                     this.confirming = true;
                 },
 
@@ -365,6 +382,7 @@
                         return;
                     }
 
+                    this.confirming = false;
                     const payload = this.buildPayload();
 
                     if (! this.$store.connectivity.online) {
