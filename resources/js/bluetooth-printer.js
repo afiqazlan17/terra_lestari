@@ -193,8 +193,8 @@ function wrapText(text, width) {
 // the two connector pins carries the pulse - drawers/printers disagree
 // on which one they're wired to, so both are worth trying. t1/t2 are
 // the pulse on/off durations in 2ms units (25/250 is a common default).
-function buildOpenDrawerCommand(pin = 0) {
-    return new Uint8Array([0x1B, 0x70, pin, 0x19, 0xFA]);
+function buildOpenDrawerCommand(pin = 0, t1 = 25, t2 = 250) {
+    return new Uint8Array([0x1B, 0x70, pin, t1, t2]);
 }
 
 // Some generic/OEM printer boards (common on unbranded Chinese thermal

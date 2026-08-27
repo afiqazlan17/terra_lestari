@@ -66,6 +66,10 @@
                                 class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
                                 Buka Laci (Mod 2)
                             </button>
+                            <button type="button" x-show="connected" @click="testOpenDrawerLong()" :disabled="busy"
+                                class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
+                                Buka Laci (Pulse Panjang)
+                            </button>
                             <button type="button" x-show="connected" @click="disconnect()"
                                 class="text-sm text-red-500 hover:underline px-2 py-2">
                                 Putuskan Sambungan
@@ -239,6 +243,20 @@
                     try {
                         await window.SBPrinter.write(window.buildOpenDrawerCommandAlt());
                         this.status = 'Arahan buka laci dihantar (Mod 2).';
+                        this.statusIsError = false;
+                    } catch (e) {
+                        this.status = 'Gagal buka laci: ' + e.message;
+                        this.statusIsError = true;
+                    }
+                    this.busy = false;
+                },
+
+                async testOpenDrawerLong() {
+                    this.busy = true;
+                    this.status = '';
+                    try {
+                        await window.SBPrinter.write(window.buildOpenDrawerCommand(0, 200, 200));
+                        this.status = 'Arahan buka laci dihantar (pulse panjang).';
                         this.statusIsError = false;
                     } catch (e) {
                         this.status = 'Gagal buka laci: ' + e.message;
