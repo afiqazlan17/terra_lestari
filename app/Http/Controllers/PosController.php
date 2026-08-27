@@ -32,6 +32,7 @@ class PosController extends Controller
 
         $todaysOrders = Order::where('project_id', $project->id)
             ->whereDate('created_at', now()->toDateString())
+            ->with('items')
             ->latest('created_at')
             ->get();
 

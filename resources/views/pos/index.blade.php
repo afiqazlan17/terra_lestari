@@ -277,6 +277,16 @@
                     'voidReason' => $o->void_reason,
                     'voidedAt' => $o->voided_at?->format('d/m/Y H:i'),
                     'receiptUrl' => route('orders.receipt', $o),
+                    'typeLabel' => $o->typeLabel(),
+                    'paymentLabel' => $o->paymentMethodLabel(),
+                    'subtotal' => number_format($o->subtotal, 2, '.', ''),
+                    'discount' => (float) $o->discount,
+                    'items' => $o->items->map(fn ($item) => [
+                        'name' => $item->product_name,
+                        'qty' => $item->qty,
+                        'price' => number_format($item->unit_price, 2, '.', ''),
+                        'lineTotal' => number_format($item->subtotal, 2, '.', ''),
+                    ])->values(),
                 ])))"
                 @order-created.window="orders.unshift($event.detail)">
                 <button type="button" @click="open = ! open" class="w-full flex items-center justify-between p-4 text-left">
@@ -315,7 +325,10 @@
                                     <td class="px-4 py-2 text-gray-500 whitespace-nowrap" x-text="order.date"></td>
                                     <td class="px-4 py-2 text-gray-500 whitespace-nowrap" x-text="order.time"></td>
                                     <td class="px-4 py-2 text-right whitespace-nowrap">
-                                        <a :href="order.receiptUrl" target="_blank" class="text-amber-600 hover:underline text-xs">Cetak Semula</a>
+                                        <button type="button" @click="printReceipt(order)" :disabled="printing"
+                                            class="text-amber-600 hover:underline text-xs disabled:opacity-50">
+                                            Cetak Semula
+                                        </button>
                                         <button type="button" x-show="order.status !== 'voided'" @click="voidOrder(order)"
                                             class="text-red-500 hover:underline text-xs ml-3">
                                             Void
@@ -338,10 +351,70 @@
         const PAPER_58MM = {{ $project->receipt_paper_width === '58mm' ? 'true' : 'false' }};
         const ORDERS_BASE_URL = '{{ url('/orders') }}';
 
+        // Shared by posCart and orderHistory - prints via whatever Bluetooth
+        // printer is already connected in this page's live session, forcing
+        // a fresh device pick (the OS Bluetooth chooser) when nothing is
+        // connected and forceConnect is true.
+        async function sbSendReceipt(data, { forceConnect = false, openDrawer = false } = {}) {
+            if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
+                return false;
+            }
+
+            if (! window.SBPrinter.isConnected()) {
+                await window.SBPrinter.waitUntilReady(1500);
+            }
+
+            if (! window.SBPrinter.isConnected() && forceConnect) {
+                try {
+                    await window.SBPrinter.connect();
+                } catch (e) {
+                    console.error('Bluetooth connect gagal', e);
+                }
+            }
+
+            if (! window.SBPrinter.isConnected()) {
+                return false;
+            }
+
+            try {
+                const bytes = window.buildReceiptEscPos(data, PAPER_58MM, { openDrawer });
+                await window.SBPrinter.write(bytes);
+                return true;
+            } catch (e) {
+                console.error('Bluetooth print gagal', e);
+                return false;
+            }
+        }
+
         function orderHistory(initialOrders) {
             return {
                 orders: initialOrders,
                 open: false,
+                printing: false,
+
+                async printReceipt(order) {
+                    if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
+                        window.open(order.receiptUrl, '_blank');
+                        return;
+                    }
+
+                    this.printing = true;
+                    const printed = await sbSendReceipt({
+                        orderNumber: order.orderNumber,
+                        dateStr: `${order.date} ${order.time}`,
+                        typeLabel: order.typeLabel,
+                        items: order.items,
+                        subtotal: order.subtotal,
+                        discount: order.discount,
+                        total: order.total.toFixed(2),
+                        paymentLabel: order.paymentLabel,
+                    }, { forceConnect: true });
+                    this.printing = false;
+
+                    if (! printed) {
+                        alert('Printer tidak connect. Sila cuba lagi.');
+                    }
+                },
 
                 async voidOrder(order) {
                     const reason = prompt('Sebab void order ' + order.orderNumber + ':');
@@ -538,11 +611,12 @@
 
                         if (res.ok) {
                             const data = await res.json();
-                            await this.printViaBluetooth(this.buildReceiptData(data.order_number, this.items, payload, new Date()), { openDrawer: payload.payment_method === 'cash' });
+                            const now = new Date();
+                            const receiptData = this.buildReceiptData(data.order_number, this.items, payload, now);
+                            await this.printViaBluetooth(receiptData, { openDrawer: payload.payment_method === 'cash' });
                             this.orderResult = { orderNumber: data.order_number, receiptUrl: data.receipt_url };
                             this.submitting = false;
 
-                            const now = new Date();
                             const pad = (n) => String(n).padStart(2, '0');
                             window.dispatchEvent(new CustomEvent('order-created', { detail: {
                                 id: data.order_id,
@@ -554,6 +628,11 @@
                                 voidReason: null,
                                 voidedAt: null,
                                 receiptUrl: data.receipt_url,
+                                typeLabel: receiptData.typeLabel,
+                                paymentLabel: receiptData.paymentLabel,
+                                subtotal: receiptData.subtotal,
+                                discount: receiptData.discount,
+                                items: receiptData.items,
                             } }));
 
                             return;
@@ -632,38 +711,10 @@
                 // re-requests the device (shows the OS picker) when silent reconnect
                 // fails - only used for the offline/manual print path, not the quiet
                 // auto-print after a normal checkout.
-                async printViaBluetooth(data, { forceConnect = false, openDrawer = false } = {}) {
-                    if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
-                        return false;
-                    }
-
-                    if (! window.SBPrinter.isConnected()) {
-                        await window.SBPrinter.waitUntilReady(1500);
-                    }
-
-                    if (! window.SBPrinter.isConnected() && forceConnect) {
-                        try {
-                            await window.SBPrinter.connect();
-                        } catch (e) {
-                            console.error('Bluetooth connect gagal', e);
-                        }
-                    }
-
+                async printViaBluetooth(data, options = {}) {
+                    const printed = await sbSendReceipt(data, options);
                     this.refreshPrinterStatus();
-
-                    if (! window.SBPrinter.isConnected()) {
-                        return false;
-                    }
-
-                    try {
-                        const bytes = window.buildReceiptEscPos(data, PAPER_58MM, { openDrawer });
-                        await window.SBPrinter.write(bytes);
-                        return true;
-                    } catch (e) {
-                        console.error('Bluetooth print gagal', e);
-                        this.refreshPrinterStatus();
-                        return false;
-                    }
+                    return printed;
                 },
 
                 async printLocalReceipt(pending) {
