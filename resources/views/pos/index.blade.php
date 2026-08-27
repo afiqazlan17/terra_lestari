@@ -164,6 +164,18 @@
                         </div>
                     </div>
 
+                    <template x-if="window.SBPrinter && window.SBPrinter.isSupported()">
+                        <div class="mt-3 flex items-center justify-between text-xs">
+                            <span :class="printerConnected ? 'text-green-700' : 'text-gray-400'">
+                                <span x-text="printerConnected ? 'Printer: Disambung' : 'Printer: Tiada sambungan'"></span>
+                            </span>
+                            <button type="button" x-show="! printerConnected" @click="connectPrinter()" :disabled="printerBusy"
+                                class="text-amber-600 font-medium hover:underline disabled:opacity-50">
+                                Sambung Printer
+                            </button>
+                        </div>
+                    </template>
+
                     <button type="button" @click="checkout()" :disabled="! hasSession || items.length === 0 || submitting"
                         class="mt-4 w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-3 rounded-lg transition">
                         <span x-text="submitting ? 'Menghantar...' : 'Checkout'"></span>
@@ -193,12 +205,37 @@
                 syncing: false,
                 submitting: false,
                 syncMessage: '',
+                printerConnected: false,
+                printerBusy: false,
 
                 init() {
                     this.loadPending();
                     window.addEventListener('online', () => { this.trySync(); });
                     this.checkConnectivity();
                     setInterval(() => this.checkConnectivity(), 20000);
+
+                    this.refreshPrinterStatus();
+                    if (window.SBPrinter && window.SBPrinter.isSupported()) {
+                        window.SBPrinter.ready.then(() => this.refreshPrinterStatus());
+                    }
+                },
+
+                refreshPrinterStatus() {
+                    this.printerConnected = !!(window.SBPrinter && window.SBPrinter.isConnected());
+                },
+
+                async connectPrinter() {
+                    if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
+                        return;
+                    }
+                    this.printerBusy = true;
+                    try {
+                        await window.SBPrinter.connect();
+                    } catch (e) {
+                        console.error('Bluetooth connect gagal', e);
+                    }
+                    this.refreshPrinterStatus();
+                    this.printerBusy = false;
                 },
 
                 loadPending() {
@@ -293,6 +330,7 @@
 
                         if (res.ok) {
                             const data = await res.json();
+                            await this.printViaBluetooth(this.buildReceiptData(data.order_number, this.items, payload, new Date()));
                             window.location.href = data.receipt_url;
                             return;
                         }
@@ -327,56 +365,83 @@
                     this.discount = 0;
                 },
 
-                async printLocalReceipt(pending) {
-                    const subtotal = pending.items.reduce((s, i) => s + i.price * i.qty, 0);
-                    const discount = pending.payload.discount || 0;
+                buildReceiptData(orderNumber, itemsList, payload, when) {
+                    const subtotal = itemsList.reduce((s, i) => s + i.price * i.qty, 0);
+                    const discount = payload.discount || 0;
                     const total = Math.max(subtotal - discount, 0);
                     const typeLabels = { dine_in: 'Dine In', takeaway: 'Take Away' };
                     const paymentLabels = { cash: 'Cash', qr: 'QR / DuitNow', card: 'Kad Debit/Kad Kredit' };
-                    const typeLabel = typeLabels[pending.payload.order_type] || pending.payload.order_type;
-                    const paymentLabel = paymentLabels[pending.payload.payment_method] || pending.payload.payment_method;
-                    const created = new Date(pending.createdAt);
                     const pad = (n) => String(n).padStart(2, '0');
-                    const dateStr = `${pad(created.getDate())}/${pad(created.getMonth() + 1)}/${created.getFullYear()} ${pad(created.getHours())}:${pad(created.getMinutes())}`;
+
+                    return {
+                        orderNumber: orderNumber,
+                        dateStr: `${pad(when.getDate())}/${pad(when.getMonth() + 1)}/${when.getFullYear()} ${pad(when.getHours())}:${pad(when.getMinutes())}`,
+                        typeLabel: typeLabels[payload.order_type] || payload.order_type,
+                        items: itemsList.map(i => ({
+                            name: i.name,
+                            qty: i.qty,
+                            price: i.price.toFixed(2),
+                            lineTotal: (i.price * i.qty).toFixed(2),
+                        })),
+                        subtotal: subtotal.toFixed(2),
+                        discount: discount,
+                        total: total.toFixed(2),
+                        paymentLabel: paymentLabels[payload.payment_method] || payload.payment_method,
+                    };
+                },
+
+                // Prints via the already-connected Bluetooth printer. Since checkout
+                // stays on this same page (no navigation) until after printing, a
+                // printer connected once at the start of a shift keeps working for
+                // every order without needing to reselect it each time. forceConnect
+                // re-requests the device (shows the OS picker) when silent reconnect
+                // fails - only used for the offline/manual print path, not the quiet
+                // auto-print after a normal checkout.
+                async printViaBluetooth(data, { forceConnect = false } = {}) {
+                    if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
+                        return false;
+                    }
+
+                    if (! window.SBPrinter.isConnected()) {
+                        await window.SBPrinter.waitUntilReady(1500);
+                    }
+
+                    if (! window.SBPrinter.isConnected() && forceConnect) {
+                        try {
+                            await window.SBPrinter.connect();
+                        } catch (e) {
+                            console.error('Bluetooth connect gagal', e);
+                        }
+                    }
+
+                    this.refreshPrinterStatus();
+
+                    if (! window.SBPrinter.isConnected()) {
+                        return false;
+                    }
+
+                    try {
+                        const bytes = window.buildReceiptEscPos(data, PAPER_58MM);
+                        await window.SBPrinter.write(bytes);
+                        return true;
+                    } catch (e) {
+                        console.error('Bluetooth print gagal', e);
+                        this.refreshPrinterStatus();
+                        return false;
+                    }
+                },
+
+                async printLocalReceipt(pending) {
+                    const data = this.buildReceiptData('Menunggu Sync', pending.items, pending.payload, new Date(pending.createdAt));
+
+                    const printed = await this.printViaBluetooth(data, { forceConnect: true });
+                    if (printed) {
+                        return;
+                    }
 
                     if (window.SBPrinter && window.SBPrinter.isSupported()) {
-                        if (! window.SBPrinter.isConnected()) {
-                            await window.SBPrinter.waitUntilReady(1500);
-                        }
-
-                        if (! window.SBPrinter.isConnected()) {
-                            try {
-                                await window.SBPrinter.connect();
-                            } catch (e) {
-                                console.error('Bluetooth connect gagal', e);
-                                alert('Printer tidak connect. Order tetap disimpan — sila sambung printer di Settings > Printer Resit (Bluetooth).');
-                                return;
-                            }
-                        }
-
-                        try {
-                            const bytes = window.buildReceiptEscPos({
-                                orderNumber: 'Menunggu Sync',
-                                dateStr: dateStr,
-                                typeLabel: typeLabel,
-                                items: pending.items.map(i => ({
-                                    name: i.name,
-                                    qty: i.qty,
-                                    price: i.price.toFixed(2),
-                                    lineTotal: (i.price * i.qty).toFixed(2),
-                                })),
-                                subtotal: subtotal.toFixed(2),
-                                discount: discount,
-                                total: total.toFixed(2),
-                                paymentLabel: paymentLabel,
-                            }, PAPER_58MM);
-                            await window.SBPrinter.write(bytes);
-                            return;
-                        } catch (e) {
-                            console.error('Bluetooth print gagal', e);
-                            alert('Cetak gagal. Order tetap disimpan — sila semak sambungan printer di Settings > Printer Resit (Bluetooth).');
-                            return;
-                        }
+                        alert('Printer tidak connect. Order tetap disimpan — sila sambung printer di Settings > Printer Resit (Bluetooth).');
+                        return;
                     }
 
                     const win = window.open('', '_blank');
@@ -385,10 +450,10 @@
                     }
 
                     const esc = (s) => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-                    const itemsHtml = pending.items.map(i => `
+                    const itemsHtml = data.items.map(i => `
                         <tr>
-                            <td>${esc(i.name)}<br><span class="muted">${i.qty} x RM ${i.price.toFixed(2)}</span></td>
-                            <td class="right">RM ${(i.price * i.qty).toFixed(2)}</td>
+                            <td>${esc(i.name)}<br><span class="muted">${i.qty} x RM ${i.price}</span></td>
+                            <td class="right">RM ${i.lineTotal}</td>
                         </tr>
                     `).join('');
 
@@ -413,17 +478,17 @@
                             <div class="divider"></div>
                             <p class="muted">
                                 No. Resit: Menunggu Sync<br>
-                                Tarikh: ${dateStr}<br>
-                                Jenis: ${typeLabel}
+                                Tarikh: ${data.dateStr}<br>
+                                Jenis: ${data.typeLabel}
                             </p>
                             <div class="divider"></div>
                             <table>${itemsHtml}</table>
                             <div class="divider"></div>
                             <table>
-                                <tr><td>Subtotal</td><td class="right">RM ${subtotal.toFixed(2)}</td></tr>
-                                ${discount > 0 ? `<tr><td>Diskaun</td><td class="right">RM ${discount.toFixed(2)}</td></tr>` : ''}
-                                <tr class="grand"><td>Jumlah</td><td class="right">RM ${total.toFixed(2)}</td></tr>
-                                <tr><td class="muted">Bayaran</td><td class="right muted">${paymentLabel}</td></tr>
+                                <tr><td>Subtotal</td><td class="right">RM ${data.subtotal}</td></tr>
+                                ${data.discount > 0 ? `<tr><td>Diskaun</td><td class="right">RM ${data.discount.toFixed(2)}</td></tr>` : ''}
+                                <tr class="grand"><td>Jumlah</td><td class="right">RM ${data.total}</td></tr>
+                                <tr><td class="muted">Bayaran</td><td class="right muted">${data.paymentLabel}</td></tr>
                             </table>
                             <div class="divider"></div>
                             <p class="center muted">Terima kasih!</p>
