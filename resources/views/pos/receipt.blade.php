@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Resit {{ $order->order_number }}</title>
+    @vite(['resources/js/app.js'])
     @php
         $is58mm = ($order->project->receipt_paper_width ?? '80mm') === '58mm';
     @endphp
@@ -68,8 +69,38 @@
     <p class="center muted">Terima kasih!</p>
 
     <div class="actions">
-        <button onclick="window.print()">Print</button>
+        <button onclick="sbPrintReceipt()">Print</button>
         <a href="{{ route('pos.index') }}">Order Baru</a>
     </div>
+
+    <script>
+        const RECEIPT_DATA = {
+            orderNumber: @json($order->order_number),
+            dateStr: @json($order->created_at->format('d/m/Y H:i')),
+            typeLabel: @json($order->typeLabel()),
+            items: [
+                @foreach ($order->items as $item)
+                { name: @json($item->product_name), qty: {{ $item->qty }}, price: @json(number_format($item->unit_price, 2)), lineTotal: @json(number_format($item->subtotal, 2)) },
+                @endforeach
+            ],
+            subtotal: @json(number_format($order->subtotal, 2)),
+            discount: {{ $order->discount }},
+            total: @json(number_format($order->total, 2)),
+            paymentLabel: @json($order->paymentMethodLabel()),
+        };
+
+        async function sbPrintReceipt() {
+            if (window.SBPrinter && window.SBPrinter.isConnected()) {
+                try {
+                    const bytes = window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
+                    await window.SBPrinter.write(bytes);
+                    return;
+                } catch (e) {
+                    console.error('Bluetooth print gagal, guna print browser sebagai fallback', e);
+                }
+            }
+            window.print();
+        }
+    </script>
 </body>
 </html>

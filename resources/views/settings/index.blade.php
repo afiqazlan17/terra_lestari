@@ -31,6 +31,40 @@
                 <p class="text-xs text-gray-400 mt-2">Pilih ikut lebar kertas thermal printer resit yang digunakan.</p>
             </div>
 
+            <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="printerSettings()" x-init="init()">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Printer Resit (Bluetooth)</h3>
+
+                <template x-if="! supported">
+                    <p class="text-sm text-red-600">Bluetooth printing tidak disokong oleh browser ini.</p>
+                </template>
+
+                <template x-if="supported">
+                    <div>
+                        <p class="text-sm mb-3">
+                            <span x-show="connected" class="text-green-700 font-medium">Disambung: <span x-text="printerName"></span></span>
+                            <span x-show="! connected" class="text-gray-500">Tiada printer disambung.</span>
+                        </p>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" @click="connect()" :disabled="busy"
+                                class="bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                                <span x-text="connected ? 'Sambung Semula / Tukar Printer' : 'Sambung Printer'"></span>
+                            </button>
+                            <button type="button" x-show="connected" @click="testPrint()" :disabled="busy"
+                                class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
+                                Test Print
+                            </button>
+                            <button type="button" x-show="connected" @click="disconnect()"
+                                class="text-sm text-red-500 hover:underline px-2 py-2">
+                                Putuskan Sambungan
+                            </button>
+                        </div>
+
+                        <p class="text-xs mt-3" :class="statusIsError ? 'text-red-600' : 'text-gray-400'" x-text="status"></p>
+                    </div>
+                </template>
+            </div>
+
             @if ($user->isSuperuser())
                 <div class="bg-white shadow-sm sm:rounded-lg p-6 border border-red-200" x-data="{ open: false, selected: [] }">
                     <h3 class="text-sm font-semibold text-red-600 uppercase mb-2">{{ __('Danger Zone') }}</h3>
@@ -106,4 +140,81 @@
             @endif
         </div>
     </div>
+
+    <script>
+        function printerSettings() {
+            return {
+                supported: false,
+                connected: false,
+                printerName: '',
+                busy: false,
+                status: '',
+                statusIsError: false,
+
+                async init() {
+                    this.supported = window.SBPrinter ? window.SBPrinter.isSupported() : false;
+                    if (! this.supported) {
+                        return;
+                    }
+
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                    this.refreshState();
+                },
+
+                refreshState() {
+                    this.connected = window.SBPrinter.isConnected();
+                    const saved = window.SBPrinter.getSavedConfig();
+                    this.printerName = (window.SBPrinter.device && window.SBPrinter.device.name) || (saved && saved.deviceName) || '';
+                },
+
+                async connect() {
+                    this.busy = true;
+                    this.status = '';
+                    try {
+                        const result = await window.SBPrinter.connect();
+                        this.printerName = result.name;
+                        this.connected = true;
+                        this.status = 'Berjaya disambung.';
+                        this.statusIsError = false;
+                    } catch (e) {
+                        this.status = 'Gagal sambung: ' + e.message;
+                        this.statusIsError = true;
+                    }
+                    this.busy = false;
+                },
+
+                async testPrint() {
+                    this.busy = true;
+                    this.status = '';
+                    try {
+                        const bytes = window.buildReceiptEscPos({
+                            orderNumber: 'TEST',
+                            dateStr: new Date().toLocaleString('ms-MY'),
+                            typeLabel: 'Test Print',
+                            items: [{ name: 'Item Ujian', qty: 1, price: '1.00', lineTotal: '1.00' }],
+                            subtotal: '1.00',
+                            discount: 0,
+                            total: '1.00',
+                            paymentLabel: 'Test',
+                        }, {{ $project->receipt_paper_width === '58mm' ? 'true' : 'false' }});
+                        await window.SBPrinter.write(bytes);
+                        this.status = 'Test print dihantar.';
+                        this.statusIsError = false;
+                    } catch (e) {
+                        this.status = 'Gagal print: ' + e.message;
+                        this.statusIsError = true;
+                    }
+                    this.busy = false;
+                },
+
+                disconnect() {
+                    window.SBPrinter.disconnect();
+                    this.connected = false;
+                    this.printerName = '';
+                    this.status = 'Sambungan diputuskan.';
+                    this.statusIsError = false;
+                },
+            };
+        }
+    </script>
 </x-app-layout>

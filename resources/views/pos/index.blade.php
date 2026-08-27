@@ -327,22 +327,10 @@
                     this.discount = 0;
                 },
 
-                printLocalReceipt(pending) {
-                    const win = window.open('', '_blank');
-                    if (! win) {
-                        return;
-                    }
-
+                async printLocalReceipt(pending) {
                     const subtotal = pending.items.reduce((s, i) => s + i.price * i.qty, 0);
                     const discount = pending.payload.discount || 0;
                     const total = Math.max(subtotal - discount, 0);
-                    const esc = (s) => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-                    const itemsHtml = pending.items.map(i => `
-                        <tr>
-                            <td>${esc(i.name)}<br><span class="muted">${i.qty} x RM ${i.price.toFixed(2)}</span></td>
-                            <td class="right">RM ${(i.price * i.qty).toFixed(2)}</td>
-                        </tr>
-                    `).join('');
                     const typeLabels = { dine_in: 'Dine In', takeaway: 'Take Away' };
                     const paymentLabels = { cash: 'Cash', qr: 'QR / DuitNow', card: 'Kad Debit/Kad Kredit' };
                     const typeLabel = typeLabels[pending.payload.order_type] || pending.payload.order_type;
@@ -350,6 +338,43 @@
                     const created = new Date(pending.createdAt);
                     const pad = (n) => String(n).padStart(2, '0');
                     const dateStr = `${pad(created.getDate())}/${pad(created.getMonth() + 1)}/${created.getFullYear()} ${pad(created.getHours())}:${pad(created.getMinutes())}`;
+
+                    if (window.SBPrinter && window.SBPrinter.isConnected()) {
+                        try {
+                            const bytes = window.buildReceiptEscPos({
+                                orderNumber: 'Menunggu Sync',
+                                dateStr: dateStr,
+                                typeLabel: typeLabel,
+                                items: pending.items.map(i => ({
+                                    name: i.name,
+                                    qty: i.qty,
+                                    price: i.price.toFixed(2),
+                                    lineTotal: (i.price * i.qty).toFixed(2),
+                                })),
+                                subtotal: subtotal.toFixed(2),
+                                discount: discount,
+                                total: total.toFixed(2),
+                                paymentLabel: paymentLabel,
+                            }, PAPER_58MM);
+                            await window.SBPrinter.write(bytes);
+                            return;
+                        } catch (e) {
+                            console.error('Bluetooth print gagal, guna print browser sebagai fallback', e);
+                        }
+                    }
+
+                    const win = window.open('', '_blank');
+                    if (! win) {
+                        return;
+                    }
+
+                    const esc = (s) => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+                    const itemsHtml = pending.items.map(i => `
+                        <tr>
+                            <td>${esc(i.name)}<br><span class="muted">${i.qty} x RM ${i.price.toFixed(2)}</span></td>
+                            <td class="right">RM ${(i.price * i.qty).toFixed(2)}</td>
+                        </tr>
+                    `).join('');
 
                     win.document.write(`
                         <!DOCTYPE html><html lang="ms"><head><meta charset="utf-8"><title>Resit (Menunggu Sync)</title>

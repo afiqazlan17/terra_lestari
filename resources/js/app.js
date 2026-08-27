@@ -1,6 +1,7 @@
 
 
 import Alpine from 'alpinejs';
+import './bluetooth-printer';
 
 window.Alpine = Alpine;
 
@@ -17,6 +18,10 @@ Alpine.start();
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+if (window.SBPrinter) {
+    window.SBPrinter.reconnectIfKnown();
 }
 
 function formatMoney(value) {
