@@ -32,7 +32,8 @@
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="printerSettings()" x-init="init()">
-                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Printer Resit (Bluetooth)</h3>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-1">Printer Resit (Bluetooth)</h3>
+                <p class="text-xs text-gray-400 mb-4">Sambungan di sini untuk uji printer sahaja (Test Print, Buka Laci) &mdash; ia tak dibawa bila tukar ke page lain. Untuk operasi jualan harian, sambung terus di page <strong>POS</strong> (butang "Sambung Printer" sebelum Checkout).</p>
 
                 <template x-if="! supported">
                     <p class="text-sm text-red-600">Bluetooth printing tidak disokong oleh browser ini.</p>
