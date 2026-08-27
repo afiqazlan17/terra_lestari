@@ -194,6 +194,39 @@
                     </div>
                 @endif
             </div>
+
+            @if ($voidedOrders->isNotEmpty())
+                <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden mt-6 border border-red-100">
+                    <div class="px-6 py-3 bg-red-50 flex items-center justify-between">
+                        <span class="text-sm font-semibold text-red-700">Order Dibatalkan (Void)</span>
+                        <span class="text-xs text-red-400">Tidak dikira dalam Jualan</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead class="bg-gray-50">
+                                <tr class="text-left text-xs text-gray-500 uppercase">
+                                    <th class="px-6 py-2 whitespace-nowrap">No. Resit</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">Jumlah</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">Dibatalkan pada</th>
+                                    <th class="px-6 py-2 whitespace-nowrap">Oleh</th>
+                                    <th class="px-6 py-2">Sebab</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach ($voidedOrders as $order)
+                                    <tr>
+                                        <td class="px-6 py-3 text-gray-700 whitespace-nowrap">{{ $order->order_number }}</td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">RM {{ number_format($order->total, 2) }}</td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->voided_at?->format('d/m/Y H:i') }}</td>
+                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->voidedBy?->name ?? '-' }}</td>
+                                        <td class="px-6 py-3 text-gray-600">{{ $order->void_reason }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

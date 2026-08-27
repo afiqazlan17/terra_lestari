@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $weekStart = now()->startOfWeek()->toDateString();
 
         $todaySales = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
+            ->where('status', Order::STATUS_COMPLETED)
             ->whereDate('created_at', $today)
             ->sum('total');
 
@@ -30,7 +30,7 @@ class DashboardController extends Controller
             ->sum('amount');
 
         $weekSales = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
+            ->where('status', Order::STATUS_COMPLETED)
             ->whereDate('created_at', '>=', $weekStart)
             ->sum('total');
 
@@ -39,7 +39,7 @@ class DashboardController extends Controller
             ->sum('amount');
 
         $dailyTrend = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
+            ->where('status', Order::STATUS_COMPLETED)
             ->whereDate('created_at', '>=', now()->subDays(6)->toDateString())
             ->selectRaw('DATE(created_at) as day, SUM(total) as total')
             ->groupBy('day')

@@ -30,10 +30,16 @@ class PosController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $todaysOrders = Order::where('project_id', $project->id)
+            ->whereDate('created_at', now()->toDateString())
+            ->latest('created_at')
+            ->get();
+
         return view('pos.index', [
             'project' => $project,
             'session' => $session,
             'categories' => $categories,
+            'todaysOrders' => $todaysOrders,
         ]);
     }
 
@@ -90,7 +96,7 @@ class PosController extends Controller
                 'total' => $total,
                 'payment_method' => $validated['payment_method'],
                 'order_type' => $validated['order_type'],
-                'status' => 'completed',
+                'status' => Order::STATUS_COMPLETED,
             ]);
 
             foreach ($lineItems as $lineItem) {
@@ -111,6 +117,28 @@ class PosController extends Controller
     public function ping(): JsonResponse
     {
         return response()->json(['ok' => true]);
+    }
+
+    public function void(Request $request, Order $order): JsonResponse
+    {
+        abort_unless($order->project_id === $request->user()->currentProject()?->id, 403);
+
+        if ($order->isVoided()) {
+            return response()->json(['message' => 'Order ini sudah dibatalkan.'], 422);
+        }
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'min:3', 'max:255'],
+        ]);
+
+        $order->update([
+            'status' => Order::STATUS_VOIDED,
+            'void_reason' => $validated['reason'],
+            'voided_at' => now(),
+            'voided_by' => $request->user()->id,
+        ]);
+
+        return response()->json(['message' => 'Order dibatalkan.']);
     }
 
     private function generateOrderNumber(int $projectId): string

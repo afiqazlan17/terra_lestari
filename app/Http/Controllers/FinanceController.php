@@ -32,7 +32,7 @@ class FinanceController extends Controller
         [$from, $to] = $this->resolveRange($request);
 
         $revenue = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
+            ->where('status', Order::STATUS_COMPLETED)
             ->whereBetween('created_at', [$from, $to])
             ->sum('total');
 
@@ -86,7 +86,7 @@ class FinanceController extends Controller
         [$from, $to] = $this->resolveRange($request);
 
         $orders = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
+            ->where('status', Order::STATUS_COMPLETED)
             ->whereBetween('created_at', [$from, $to]);
 
         $totalSales = (clone $orders)->sum('total');
@@ -105,7 +105,7 @@ class FinanceController extends Controller
 
         $topProducts = OrderItem::whereHas('order', function ($query) use ($project, $from, $to) {
             $query->where('project_id', $project->id)
-                ->where('status', 'completed')
+                ->where('status', Order::STATUS_COMPLETED)
                 ->whereBetween('created_at', [$from, $to]);
         })
             ->selectRaw('product_name, SUM(qty) as qty_sold, SUM(subtotal) as revenue')
@@ -126,6 +126,13 @@ class FinanceController extends Controller
             ->limit(100)
             ->get();
 
+        $voidedOrders = Order::where('project_id', $project->id)
+            ->where('status', Order::STATUS_VOIDED)
+            ->whereBetween('created_at', [$from, $to])
+            ->with(['items', 'voidedBy'])
+            ->latest('voided_at')
+            ->get();
+
         return view('finance.sales', [
             'project' => $project,
             'from' => $from,
@@ -138,13 +145,14 @@ class FinanceController extends Controller
             'topProducts' => $topProducts,
             'dailyBreakdown' => $dailyBreakdown,
             'recentOrders' => $recentOrders,
+            'voidedOrders' => $voidedOrders,
         ]);
     }
 
     private function buildCashbookEntries($project, Carbon $from, Carbon $to): array
     {
         $sales = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
+            ->where('status', Order::STATUS_COMPLETED)
             ->whereBetween('created_at', [$from, $to])
             ->get()
             ->map(fn ($order) => [
@@ -235,7 +243,7 @@ class FinanceController extends Controller
         [$from, $to] = $this->resolveRange($request);
 
         $orders = Order::where('project_id', $project->id)
-            ->where('status', 'completed')
+            ->where('status', Order::STATUS_COMPLETED)
             ->whereBetween('created_at', [$from, $to])
             ->with('items')
             ->orderBy('created_at')

@@ -64,6 +64,9 @@
     <div class="receipt">
         <h1>SAJIAN BAGINDA</h1>
         <p class="center muted">Warisan Rasa Pantai Timur</p>
+        @if ($order->isVoided())
+            <p class="center" style="color: #b91c1c; font-weight: bold; margin: 6px 0;">*** DIBATALKAN (VOID) ***</p>
+        @endif
         <div class="divider"></div>
         <p class="muted">
             No. Resit: {{ $order->order_number }}<br>

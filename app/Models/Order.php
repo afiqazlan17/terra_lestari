@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    public const STATUS_COMPLETED = 'completed';
+
+    public const STATUS_VOIDED = 'voided';
+
     public const TYPE_DINE_IN = 'dine_in';
     public const TYPE_TAKEAWAY = 'takeaway';
 
@@ -29,12 +33,14 @@ class Order extends Model
     protected $fillable = [
         'project_id', 'daily_session_id', 'cashier_id', 'order_number',
         'subtotal', 'discount', 'total', 'payment_method', 'order_type', 'status',
+        'void_reason', 'voided_at', 'voided_by',
     ];
 
     protected $casts = [
         'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
+        'voided_at' => 'datetime',
     ];
 
     public function project(): BelongsTo
@@ -52,9 +58,19 @@ class Order extends Model
         return $this->belongsTo(User::class, 'cashier_id');
     }
 
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function isVoided(): bool
+    {
+        return $this->status === self::STATUS_VOIDED;
     }
 
     public function typeLabel(): string

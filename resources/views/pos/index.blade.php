@@ -265,12 +265,90 @@
                     </div>
                 </template>
             </div>
+
+            <div class="bg-white shadow-sm rounded-lg p-4 mt-6"
+                x-data="orderHistory(@js($todaysOrders->map(fn ($o) => [
+                    'id' => $o->id,
+                    'orderNumber' => $o->order_number,
+                    'total' => (float) $o->total,
+                    'time' => $o->created_at->format('H:i'),
+                    'status' => $o->status,
+                    'voidReason' => $o->void_reason,
+                    'receiptUrl' => route('orders.receipt', $o),
+                ])))"
+                @order-created.window="orders.unshift($event.detail)">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-3">Order Hari Ini</h3>
+                <template x-if="orders.length === 0">
+                    <p class="text-sm text-gray-400 py-4 text-center">Tiada order lagi hari ini.</p>
+                </template>
+                <div class="divide-y divide-gray-100" x-show="orders.length > 0">
+                    <template x-for="order in orders" :key="order.id">
+                        <div class="flex items-center justify-between py-2 text-sm gap-3">
+                            <div>
+                                <p :class="order.status === 'voided' ? 'line-through text-gray-400' : 'text-gray-800'">
+                                    <span x-text="order.orderNumber"></span> &mdash; RM <span x-text="order.total.toFixed(2)"></span>
+                                    <span class="text-gray-400" x-text="'(' + order.time + ')'"></span>
+                                </p>
+                                <p class="text-xs text-red-500" x-show="order.status === 'voided'" x-text="'Dibatalkan: ' + order.voidReason"></p>
+                            </div>
+                            <div class="flex items-center gap-3 shrink-0">
+                                <a :href="order.receiptUrl" target="_blank" class="text-amber-600 hover:underline text-xs">Cetak Semula</a>
+                                <button type="button" x-show="order.status !== 'voided'" @click="voidOrder(order)"
+                                    class="text-red-500 hover:underline text-xs">
+                                    Void
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const POS_PENDING_KEY = 'sb_pending_orders';
         const PAPER_58MM = {{ $project->receipt_paper_width === '58mm' ? 'true' : 'false' }};
+        const ORDERS_BASE_URL = '{{ url('/orders') }}';
+
+        function orderHistory(initialOrders) {
+            return {
+                orders: initialOrders,
+
+                async voidOrder(order) {
+                    const reason = prompt('Sebab void order ' + order.orderNumber + ':');
+                    if (reason === null) {
+                        return;
+                    }
+                    if (reason.trim().length < 3) {
+                        alert('Sila isi sebab (minimum 3 aksara).');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`${ORDERS_BASE_URL}/${order.id}/void`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ reason: reason.trim() }),
+                        });
+
+                        if (res.ok) {
+                            order.status = 'voided';
+                            order.voidReason = reason.trim();
+                            return;
+                        }
+
+                        const err = await res.json().catch(() => ({}));
+                        alert(err.message || 'Gagal void order.');
+                    } catch (e) {
+                        alert('Gagal void order. Sila cuba lagi.');
+                    }
+                },
+            };
+        }
 
         function posCart(hasSession) {
             return {
@@ -432,6 +510,19 @@
                             await this.printViaBluetooth(this.buildReceiptData(data.order_number, this.items, payload, new Date()));
                             this.orderResult = { orderNumber: data.order_number, receiptUrl: data.receipt_url };
                             this.submitting = false;
+
+                            const now = new Date();
+                            const pad = (n) => String(n).padStart(2, '0');
+                            window.dispatchEvent(new CustomEvent('order-created', { detail: {
+                                id: data.order_id,
+                                orderNumber: data.order_number,
+                                total: this.total(),
+                                time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+                                status: 'completed',
+                                voidReason: null,
+                                receiptUrl: data.receipt_url,
+                            } }));
+
                             return;
                         }
 
