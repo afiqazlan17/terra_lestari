@@ -36,8 +36,16 @@
                         </select>
                     </div>
                     <div>
+                        <x-input-label for="sku" value="SKU" />
+                        <x-text-input id="sku" name="sku" type="text" class="mt-1 block w-full" />
+                    </div>
+                    <div>
                         <x-input-label for="price" value="Harga (RM)" />
                         <x-text-input id="price" name="price" type="number" step="0.01" min="0" class="mt-1 block w-full" required />
+                    </div>
+                    <div>
+                        <x-input-label for="cost" value="Kos (RM)" />
+                        <x-text-input id="cost" name="cost" type="number" step="0.01" min="0" class="mt-1 block w-full" />
                     </div>
                     <div class="sm:col-span-4">
                         <x-input-error :messages="$errors->all()" class="mt-1" />
@@ -52,24 +60,41 @@
                     @if ($category->products->isEmpty())
                         <p class="p-6 text-sm text-gray-400">Belum ada item.</p>
                     @else
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full table-fixed divide-y divide-gray-100 text-sm">
+                        <div class="overflow-x-auto" x-data="{ editingProductId: null }">
+                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr class="text-left text-xs text-gray-500 uppercase">
+                                        <th class="px-6 py-2">Nama</th>
+                                        <th class="px-6 py-2">SKU</th>
+                                        <th class="px-6 py-2 text-right">Harga</th>
+                                        <th class="px-6 py-2 text-right">Kos</th>
+                                        <th class="px-6 py-2">Status</th>
+                                        <th class="px-6 py-2"></th>
+                                    </tr>
+                                </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     @foreach ($category->products as $product)
                                         <tr>
-                                            <td class="px-6 py-3 text-gray-800 truncate">{{ $product->name }}</td>
-                                            <td class="px-6 py-3 text-gray-600 text-right tabular-nums whitespace-nowrap w-24">RM {{ number_format($product->price, 2) }}</td>
-                                            <td class="px-6 py-3 whitespace-nowrap w-28">
+                                            <td class="px-6 py-3 text-gray-800">{{ $product->name }}</td>
+                                            <td class="px-6 py-3 text-gray-500 whitespace-nowrap">{{ $product->sku ?: '-' }}</td>
+                                            <td class="px-6 py-3 text-gray-600 text-right tabular-nums whitespace-nowrap">RM {{ number_format($product->price, 2) }}</td>
+                                            <td class="px-6 py-3 text-gray-500 text-right tabular-nums whitespace-nowrap">{{ $product->cost !== null ? 'RM '.number_format($product->cost, 2) : '-' }}</td>
+                                            <td class="px-6 py-3 whitespace-nowrap">
                                                 <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
                                                     {{ $product->is_active ? 'Aktif' : 'Tidak Aktif' }}
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-3 text-right whitespace-nowrap space-x-3 w-44">
+                                            <td class="px-6 py-3 text-right whitespace-nowrap space-x-3">
+                                                <button type="button" @click="editingProductId = editingProductId === {{ $product->id }} ? null : {{ $product->id }}" class="text-amber-600 hover:underline text-xs">
+                                                    Edit
+                                                </button>
                                                 <form method="POST" action="{{ route('products.update', $product) }}" class="inline">
                                                     @csrf
                                                     @method('PATCH')
                                                     <input type="hidden" name="name" value="{{ $product->name }}">
+                                                    <input type="hidden" name="sku" value="{{ $product->sku }}">
                                                     <input type="hidden" name="price" value="{{ $product->price }}">
+                                                    <input type="hidden" name="cost" value="{{ $product->cost }}">
                                                     <input type="hidden" name="is_active" value="{{ $product->is_active ? '0' : '1' }}">
                                                     <button type="submit" class="text-amber-600 hover:underline text-xs">
                                                         {{ $product->is_active ? 'Nyahaktifkan' : 'Aktifkan' }}
@@ -79,6 +104,35 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <tr x-show="editingProductId === {{ $product->id }}" x-cloak>
+                                            <td colspan="6" class="px-6 py-3 bg-gray-50">
+                                                <form method="POST" action="{{ route('products.update', $product) }}" class="grid grid-cols-1 sm:grid-cols-5 gap-3 items-end">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="is_active" value="{{ $product->is_active ? '1' : '0' }}">
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">Nama</label>
+                                                        <input type="text" name="name" value="{{ $product->name }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">SKU</label>
+                                                        <input type="text" name="sku" value="{{ $product->sku }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">Harga (RM)</label>
+                                                        <input type="number" step="0.01" min="0" name="price" value="{{ $product->price }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">Kos (RM)</label>
+                                                        <input type="number" step="0.01" min="0" name="cost" value="{{ $product->cost }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <x-primary-button type="submit" class="!py-1.5 !px-3 text-xs">Simpan</x-primary-button>
+                                                        <button type="button" @click="editingProductId = null" class="text-xs text-gray-500 hover:underline">Batal</button>
+                                                    </div>
                                                 </form>
                                             </td>
                                         </tr>

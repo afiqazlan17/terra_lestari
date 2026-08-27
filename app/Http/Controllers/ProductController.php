@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -47,13 +48,17 @@ class ProductController extends Controller
         $validated = $request->validate([
             'category_id' => ['nullable', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:64', Rule::unique('products')->where(fn ($q) => $q->where('project_id', $project->id))],
             'price' => ['required', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $project->products()->create([
             'category_id' => $validated['category_id'] ?? null,
             'name' => $validated['name'],
+            'sku' => $validated['sku'] ?? null,
             'price' => $validated['price'],
+            'cost' => $validated['cost'] ?? null,
             'is_active' => true,
             'sort_order' => $project->products()->count(),
         ]);
@@ -67,13 +72,17 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:64', Rule::unique('products')->where(fn ($q) => $q->where('project_id', $product->project_id))->ignore($product->id)],
             'price' => ['required', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
         $product->update([
             'name' => $validated['name'],
+            'sku' => $validated['sku'] ?? null,
             'price' => $validated['price'],
+            'cost' => $validated['cost'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ]);
 
