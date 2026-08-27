@@ -61,22 +61,22 @@
                         <p class="p-6 text-sm text-gray-400">Belum ada item.</p>
                     @else
                         <div class="overflow-x-auto" x-data="{ editingProductId: null }">
-                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <table class="min-w-full table-fixed divide-y divide-gray-100 text-sm">
                                 <thead class="bg-gray-50">
                                     <tr class="text-left text-xs text-gray-500 uppercase">
                                         <th class="px-6 py-2">Nama</th>
-                                        <th class="px-6 py-2">SKU</th>
-                                        <th class="px-6 py-2 text-right">Harga</th>
-                                        <th class="px-6 py-2 text-right">Kos</th>
-                                        <th class="px-6 py-2">Status</th>
-                                        <th class="px-6 py-2"></th>
+                                        <th class="px-6 py-2 w-28">SKU</th>
+                                        <th class="px-6 py-2 text-right w-24">Harga</th>
+                                        <th class="px-6 py-2 text-right w-24">Kos</th>
+                                        <th class="px-6 py-2 w-28">Status</th>
+                                        <th class="px-6 py-2 w-16"></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     @foreach ($category->products as $product)
                                         <tr>
-                                            <td class="px-6 py-3 text-gray-800">{{ $product->name }}</td>
-                                            <td class="px-6 py-3 text-gray-500 whitespace-nowrap">{{ $product->sku ?: '-' }}</td>
+                                            <td class="px-6 py-3 text-gray-800 truncate">{{ $product->name }}</td>
+                                            <td class="px-6 py-3 text-gray-500 truncate">{{ $product->sku ?: '-' }}</td>
                                             <td class="px-6 py-3 text-gray-600 text-right tabular-nums whitespace-nowrap">RM {{ number_format($product->price, 2) }}</td>
                                             <td class="px-6 py-3 text-gray-500 text-right tabular-nums whitespace-nowrap">{{ $product->cost !== null ? 'RM '.number_format($product->cost, 2) : '-' }}</td>
                                             <td class="px-6 py-3 whitespace-nowrap">
