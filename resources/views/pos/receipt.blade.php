@@ -90,18 +90,25 @@
         };
 
         async function sbPrintReceipt() {
-            if (window.SBPrinter) {
+            if (window.SBPrinter && window.SBPrinter.isSupported()) {
                 await window.SBPrinter.waitUntilReady();
-            }
-            if (window.SBPrinter && window.SBPrinter.isConnected()) {
-                try {
-                    const bytes = window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
-                    await window.SBPrinter.write(bytes);
-                    return;
-                } catch (e) {
-                    console.error('Bluetooth print gagal, guna print browser sebagai fallback', e);
+
+                if (window.SBPrinter.isConnected()) {
+                    try {
+                        const bytes = window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
+                        await window.SBPrinter.write(bytes);
+                        return;
+                    } catch (e) {
+                        console.error('Bluetooth print gagal', e);
+                        alert('Cetak gagal. Sila semak sambungan printer di Settings > Printer Resit (Bluetooth).');
+                        return;
+                    }
                 }
+
+                alert('Printer tidak connect. Sila sambung printer di Settings > Printer Resit (Bluetooth).');
+                return;
             }
+
             window.print();
         }
     </script>
