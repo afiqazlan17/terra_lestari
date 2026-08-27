@@ -538,7 +538,7 @@
 
                         if (res.ok) {
                             const data = await res.json();
-                            await this.printViaBluetooth(this.buildReceiptData(data.order_number, this.items, payload, new Date()));
+                            await this.printViaBluetooth(this.buildReceiptData(data.order_number, this.items, payload, new Date()), { openDrawer: payload.payment_method === 'cash' });
                             this.orderResult = { orderNumber: data.order_number, receiptUrl: data.receipt_url };
                             this.submitting = false;
 
@@ -581,7 +581,7 @@
                     }
                     const payload = this.buildPayload();
                     const data = this.buildReceiptData(this.orderResult.orderNumber, this.items, payload, new Date());
-                    const printed = await this.printViaBluetooth(data, { forceConnect: true });
+                    const printed = await this.printViaBluetooth(data, { forceConnect: true, openDrawer: payload.payment_method === 'cash' });
                     if (! printed && window.SBPrinter && window.SBPrinter.isSupported()) {
                         alert('Printer tidak connect. Sila cuba lagi.');
                     }
@@ -632,7 +632,7 @@
                 // re-requests the device (shows the OS picker) when silent reconnect
                 // fails - only used for the offline/manual print path, not the quiet
                 // auto-print after a normal checkout.
-                async printViaBluetooth(data, { forceConnect = false } = {}) {
+                async printViaBluetooth(data, { forceConnect = false, openDrawer = false } = {}) {
                     if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
                         return false;
                     }
@@ -656,7 +656,7 @@
                     }
 
                     try {
-                        const bytes = window.buildReceiptEscPos(data, PAPER_58MM);
+                        const bytes = window.buildReceiptEscPos(data, PAPER_58MM, { openDrawer });
                         await window.SBPrinter.write(bytes);
                         return true;
                     } catch (e) {
@@ -669,7 +669,7 @@
                 async printLocalReceipt(pending) {
                     const data = this.buildReceiptData('Menunggu Sync', pending.items, pending.payload, new Date(pending.createdAt));
 
-                    const printed = await this.printViaBluetooth(data, { forceConnect: true });
+                    const printed = await this.printViaBluetooth(data, { forceConnect: true, openDrawer: pending.payload.payment_method === 'cash' });
                     if (printed) {
                         return;
                     }

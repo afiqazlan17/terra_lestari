@@ -188,7 +188,15 @@ function wrapText(text, width) {
     return lines;
 }
 
-function buildReceiptEscPos(data, is58mm) {
+// Standard ESC/POS "generate pulse" command that kicks a cash drawer
+// wired into the printer's RJ11/RJ12 drawer port. m=0 selects the usual
+// single-drawer pin; t1/t2 are the pulse on/off durations in 2ms units
+// (25/250 = a common, safe default most drawers respond to).
+function buildOpenDrawerCommand() {
+    return new Uint8Array([0x1B, 0x70, 0x00, 0x19, 0xFA]);
+}
+
+function buildReceiptEscPos(data, is58mm, options = {}) {
     const width = is58mm ? 32 : 42;
     const enc = new TextEncoder();
     const bytes = [];
@@ -199,6 +207,10 @@ function buildReceiptEscPos(data, is58mm) {
     const GS = 0x1D;
 
     push([ESC, 0x40]); // initialize
+
+    if (options.openDrawer) {
+        push(Array.from(buildOpenDrawerCommand()));
+    }
     push([ESC, 0x61, 0x01]); // center align
     push([ESC, 0x45, 0x01]); // bold on
     text('SAJIAN BAGINDA\n');
@@ -238,3 +250,4 @@ function buildReceiptEscPos(data, is58mm) {
 
 window.SBPrinter = SBPrinter;
 window.buildReceiptEscPos = buildReceiptEscPos;
+window.buildOpenDrawerCommand = buildOpenDrawerCommand;

@@ -54,6 +54,10 @@
                                 class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
                                 Test Print
                             </button>
+                            <button type="button" x-show="connected" @click="testOpenDrawer()" :disabled="busy"
+                                class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50">
+                                Buka Laci Duit
+                            </button>
                             <button type="button" x-show="connected" @click="disconnect()"
                                 class="text-sm text-red-500 hover:underline px-2 py-2">
                                 Putuskan Sambungan
@@ -202,6 +206,20 @@
                         this.statusIsError = false;
                     } catch (e) {
                         this.status = 'Gagal print: ' + e.message;
+                        this.statusIsError = true;
+                    }
+                    this.busy = false;
+                },
+
+                async testOpenDrawer() {
+                    this.busy = true;
+                    this.status = '';
+                    try {
+                        await window.SBPrinter.write(window.buildOpenDrawerCommand());
+                        this.status = 'Arahan buka laci dihantar.';
+                        this.statusIsError = false;
+                    } catch (e) {
+                        this.status = 'Gagal buka laci: ' + e.message;
                         this.statusIsError = true;
                     }
                     this.busy = false;
