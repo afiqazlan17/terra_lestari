@@ -176,7 +176,7 @@
                         </div>
                     </template>
 
-                    <button type="button" @click="checkout()" :disabled="! hasSession || items.length === 0 || submitting"
+                    <button type="button" @click="openConfirm()" :disabled="! hasSession || items.length === 0 || submitting"
                         class="mt-4 w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-3 rounded-lg transition">
                         <span x-text="submitting ? 'Menghantar...' : 'Checkout'"></span>
                     </button>
@@ -186,6 +186,55 @@
                     </button>
                 </div>
                 </div>
+
+                {{-- Confirm order before final print --}}
+                <template x-if="confirming">
+                    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="confirming = false">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-5">
+                            <h3 class="text-base font-semibold text-gray-800 mb-1">Sahkan Order</h3>
+                            <p class="text-xs text-gray-400 mb-3">Semak order sebelum resit dicetak. Tekan Back kalau customer nak tukar order.</p>
+
+                            <div class="space-y-1 max-h-64 overflow-y-auto text-sm mb-3">
+                                <template x-for="item in items" :key="item.product_id">
+                                    <div class="flex justify-between text-gray-700">
+                                        <span x-text="item.qty + 'x ' + item.name"></span>
+                                        <span>RM <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div class="border-t border-gray-100 pt-2 space-y-1 text-sm">
+                                <div class="flex justify-between text-gray-600">
+                                    <span>Subtotal</span>
+                                    <span>RM <span x-text="subtotal().toFixed(2)"></span></span>
+                                </div>
+                                <div class="flex justify-between text-gray-600" x-show="discount > 0">
+                                    <span>Diskaun</span>
+                                    <span>RM <span x-text="(discount || 0).toFixed(2)"></span></span>
+                                </div>
+                                <div class="flex justify-between font-semibold text-gray-900 text-base">
+                                    <span>Jumlah</span>
+                                    <span>RM <span x-text="total().toFixed(2)"></span></span>
+                                </div>
+                                <div class="flex justify-between text-gray-500 text-xs pt-1">
+                                    <span x-text="orderType === 'dine_in' ? 'Dine In' : 'Take Away'"></span>
+                                    <span x-text="paymentMethod === 'cash' ? 'Cash' : 'QR / DuitNow'"></span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 flex gap-2">
+                                <button type="button" @click="confirming = false"
+                                    class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
+                                    Back
+                                </button>
+                                <button type="button" @click="confirming = false; checkout()" :disabled="submitting"
+                                    class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
+                                    <span x-text="submitting ? 'Menghantar...' : 'Cetak Resit'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
@@ -207,6 +256,14 @@
                 syncMessage: '',
                 printerConnected: false,
                 printerBusy: false,
+                confirming: false,
+
+                openConfirm() {
+                    if (! this.hasSession || this.items.length === 0 || this.submitting) {
+                        return;
+                    }
+                    this.confirming = true;
+                },
 
                 init() {
                     this.loadPending();
