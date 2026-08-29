@@ -56,4 +56,27 @@ class Purchase extends Model
     {
         return self::CATEGORIES[$this->category] ?? $this->category;
     }
+
+    /**
+     * Filename used when this purchase's receipt is backed up to Google
+     * Drive, e.g. "260814 - RM750.00 - MSBENJAMIN - BAHAN MENTAH - Ayam.pdf".
+     */
+    public function driveBackupFileName(string $extension): string
+    {
+        $supplier = $this->supplier_name
+            ? strtoupper(preg_replace('/\s+/', '', $this->supplier_name))
+            : 'TUNAI';
+
+        $parts = [
+            $this->purchase_date->format('ymd'),
+            'RM'.number_format((float) $this->amount, 2),
+            $supplier,
+            strtoupper($this->categoryLabel()),
+            $this->description,
+        ];
+
+        $name = implode(' - ', $parts).'.'.($extension ?: 'bin');
+
+        return preg_replace('/[\/\\\\:*?"<>|]/', '', $name);
+    }
 }

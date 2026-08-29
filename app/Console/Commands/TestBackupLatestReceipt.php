@@ -52,7 +52,7 @@ class TestBackupLatestReceipt extends Command
 
         $dateFolder = $purchase->purchase_date->format('Y-m-d');
         $extension = pathinfo($purchase->receipt_path, PATHINFO_EXTENSION);
-        $driveFileName = sprintf('TEST_%s_purchase%d.%s', $dateFolder, $purchase->id, $extension ?: 'bin');
+        $driveFileName = 'TEST_'.$purchase->driveBackupFileName($extension);
 
         try {
             $fileId = $service->uploadReceipt($purchase->receipt_path, $dateFolder, $driveFileName);

@@ -72,14 +72,7 @@ class BackupReceiptsToDrive extends Command
 
             $dateFolder = $purchase->purchase_date->format('Y-m-d');
             $extension = pathinfo($purchase->receipt_path, PATHINFO_EXTENSION);
-            $driveFileName = sprintf(
-                '%s_%s_RM%s_purchase%d.%s',
-                $dateFolder,
-                str($purchase->categoryLabel())->slug(),
-                number_format((float) $purchase->amount, 2, '.', ''),
-                $purchase->id,
-                $extension ?: 'bin'
-            );
+            $driveFileName = $purchase->driveBackupFileName($extension);
 
             try {
                 $service->uploadReceipt($purchase->receipt_path, $dateFolder, $driveFileName);
