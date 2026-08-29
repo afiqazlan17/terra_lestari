@@ -22,20 +22,35 @@ class ReceiptExtractionService
     ];
 
     private const PROMPT = <<<'TEXT'
-        This is a photo or scan of a Malaysian business receipt or invoice (amounts in RM/MYR).
-        Extract these fields as best you can, even if the image is imperfect - this only
-        pre-fills a form that a human will review and correct before saving, so a best-effort
-        guess is more useful than leaving a field empty.
+        This is a photo or scan of a Malaysian business receipt or invoice (amounts in RM/MYR),
+        for a small restaurant (Sajian Baginda). Extract these fields as best you can, even if
+        the image is imperfect - this only pre-fills a form that a human will review and
+        correct before saving, so a best-effort guess is more useful than leaving a field empty.
 
-        - purchase_date: the transaction date in YYYY-MM-DD format. If no year is printed,
-          assume the current year. If truly no date is visible, use an empty string.
+        - purchase_date: the transaction/invoice/bill date in YYYY-MM-DD format - when a bill
+          shows both an issue date and a payment due date, use the issue date, not the due
+          date. If no year is printed, assume the current year. If truly no date is visible,
+          use an empty string.
         - amount: the final total amount paid, as a plain number with no currency symbol or
           commas (e.g. 45.50). Use the grand total, not a subtotal. If unreadable, use 0.
         - supplier_name: the name of the shop/vendor/supplier printed on the receipt. Empty
           string if not visible.
-        - description: a short 2-6 word description in Malay of what was bought (e.g.
-          "Ayam dan sayur", "Bil elektrik"), inferred from the line items or receipt type.
+        - description: a short description in Malay of what was bought, max 6 words.
+          - One line item: name it directly (e.g. "Beef trim").
+          - A few line items: name the 2-3 most expensive ones (e.g. "Ayam, bawang, minyak masak").
+          - Many line items (e.g. a big wet-market/wholesale run): summarise the category
+            instead of listing everything (e.g. "Pelbagai bahan mentah dapur", "Runcit dapur").
           Empty string if you cannot tell.
+        - category: your best guess at which expense category this receipt belongs to, one of:
+          - "bahan_mentah": raw ingredients/food supplies for cooking (meat, vegetables, spices,
+            cooking oil, rice, wet-market or grocery wholesale runs)
+          - "sewa": rent
+          - "utiliti": utility bills (electricity/TNB, water, internet, phone)
+          - "gaji": staff salary/wages
+          - "renovasi": renovation, repairs, fixtures, equipment
+          - "lain_lain": anything else (packaging, cleaning supplies, marketing/printing, etc.)
+          Default to "bahan_mentah" if genuinely unclear and it looks food-related, otherwise
+          "lain_lain".
         TEXT;
 
     public function extract(UploadedFile $file): array
@@ -82,8 +97,12 @@ class ReceiptExtractionService
                             'amount' => ['type' => 'number'],
                             'supplier_name' => ['type' => 'string'],
                             'description' => ['type' => 'string'],
+                            'category' => [
+                                'type' => 'string',
+                                'enum' => ['bahan_mentah', 'sewa', 'utiliti', 'gaji', 'renovasi', 'lain_lain'],
+                            ],
                         ],
-                        'required' => ['purchase_date', 'amount', 'supplier_name', 'description'],
+                        'required' => ['purchase_date', 'amount', 'supplier_name', 'description', 'category'],
                         'additionalProperties' => false,
                     ],
                 ],

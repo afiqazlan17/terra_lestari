@@ -56,12 +56,14 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
         Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+        Route::patch('/purchases/{purchase}', [PurchaseController::class, 'update'])->name('purchases.update');
         Route::patch('/purchases/{purchase}/void', [PurchaseController::class, 'void'])->name('purchases.void');
 
         // Expenses / perbelanjaan (sewa, utiliti, gaji, renovasi, lain-lain)
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
         Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
         Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+        Route::patch('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
         Route::patch('/expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
 
         // Finance

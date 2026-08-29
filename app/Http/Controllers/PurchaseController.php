@@ -7,6 +7,7 @@ use App\Models\Purchase;
 use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class PurchaseController extends Controller
@@ -19,7 +20,7 @@ class PurchaseController extends Controller
 
         $purchases = $project->purchases()
             ->where('category', Purchase::CATEGORY_BAHAN_MENTAH)
-            ->with('recordedBy')
+            ->with(['recordedBy', 'voidedBy', 'edits.editedBy'])
             ->latest('purchase_date')
             ->latest('id')
             ->paginate(20);
@@ -70,10 +71,66 @@ class PurchaseController extends Controller
         return redirect()->route('purchases.index')->with('success', 'Belian berjaya direkodkan.');
     }
 
+    public function update(Request $request, Purchase $purchase): RedirectResponse
+    {
+        abort_unless($purchase->project_id === $request->user()->currentProject()?->id, 403);
+        abort_unless($request->user()->hasFullAccess(), 403, 'Hanya owner/superuser boleh edit rekod belian.');
+        abort_if($purchase->isVoided(), 422, 'Rekod yang telah di-void tidak boleh diedit.');
+
+        $validated = $request->validate([
+            'purchase_date' => ['required', 'date'],
+            'supplier_name' => ['nullable', 'string', 'max:255'],
+            'description' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $changes = [];
+
+        if ((float) $purchase->amount !== (float) $validated['amount']) {
+            $changes[] = sprintf('Jumlah: RM %s → RM %s', number_format($purchase->amount, 2), number_format($validated['amount'], 2));
+        }
+
+        $newDate = Carbon::parse($validated['purchase_date']);
+        if (! $purchase->purchase_date->isSameDay($newDate)) {
+            $changes[] = sprintf('Tarikh: %s → %s', $purchase->purchase_date->format('d F Y'), $newDate->format('d F Y'));
+        }
+
+        if (($purchase->supplier_name ?? '') !== ($validated['supplier_name'] ?? '')) {
+            $changes[] = sprintf('Pembekal: "%s" → "%s"', $purchase->supplier_name ?: '(kosong)', $validated['supplier_name'] ?: '(kosong)');
+        }
+
+        if ($purchase->description !== $validated['description']) {
+            $changes[] = sprintf('Keterangan: "%s" → "%s"', $purchase->description, $validated['description']);
+        }
+
+        if (($purchase->notes ?? '') !== ($validated['notes'] ?? '')) {
+            $changes[] = sprintf('Nota: "%s" → "%s"', $purchase->notes ?: '(kosong)', $validated['notes'] ?: '(kosong)');
+        }
+
+        if (! empty($changes)) {
+            $purchase->edits()->create([
+                'edited_by' => $request->user()->id,
+                'changes' => implode("\n", $changes),
+            ]);
+
+            $purchase->update([
+                'purchase_date' => $validated['purchase_date'],
+                'supplier_name' => $validated['supplier_name'] ?? null,
+                'description' => $validated['description'],
+                'amount' => $validated['amount'],
+                'notes' => $validated['notes'] ?? null,
+            ]);
+        }
+
+        return back()->with('success', 'Belian dikemaskini.');
+    }
+
     public function void(Request $request, Purchase $purchase): RedirectResponse
     {
         abort_unless($purchase->project_id === $request->user()->currentProject()?->id, 403);
         abort_unless($request->user()->hasFullAccess(), 403, 'Hanya owner/superuser boleh void rekod belian.');
+        abort_if($purchase->isVoided(), 422, 'Rekod ini sudah di-void.');
 
         $validated = $request->validate([
             'void_reason' => ['required', 'string', 'max:255'],
