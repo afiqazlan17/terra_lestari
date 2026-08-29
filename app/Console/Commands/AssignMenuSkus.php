@@ -2,45 +2,42 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
 #[Signature('app:assign-menu-skus')]
-#[Description('One-off: assign SKU codes to the Set Nasi (SN01-07) and Ala Carte (AC01-07) menu items, ordered cheapest to most expensive.')]
+#[Description('Renumbers SKU codes for Set Nasi (SN01, SN02, ...) and Ala Carte (AC01, AC02, ...) items, ordered cheapest to most expensive. Safe to re-run any time menu items or prices change.')]
 class AssignMenuSkus extends Command
 {
-    private const SKUS = [
-        'Nasi Berlauk Ayam Budget (Bungkus)' => 'SN01',
-        'Nasi Gulai Ayam' => 'SN02',
-        'Nasi Keli Goreng' => 'SN03',
-        'Nasi Ayam Cincang' => 'SN04',
-        'Nasi Gulai Ikan Tongkol' => 'SN05',
-        'Nasi Daging Berlengas' => 'SN06',
-        'Nasi Sotong Goreng Tepung' => 'SN07',
-        'Nasi Putih' => 'AC01',
-        'Ayam Gulai' => 'AC02',
-        'Keli Goreng' => 'AC03',
-        'Ayam Cincang' => 'AC04',
-        'Ikan Tongkol' => 'AC05',
-        'Daging Berlengas' => 'AC06',
-        'Sotong Goreng Tepung' => 'AC07',
+    private const CATEGORY_PREFIXES = [
+        'Set Nasi' => 'SN',
+        'Ala Carte' => 'AC',
     ];
 
     public function handle(): void
     {
-        foreach (self::SKUS as $name => $sku) {
-            $product = Product::where('name', $name)->first();
+        foreach (self::CATEGORY_PREFIXES as $categoryName => $prefix) {
+            $category = Category::where('name', $categoryName)->first();
 
-            if (! $product) {
-                $this->warn("Skipped (not found): {$name}");
+            if (! $category) {
+                $this->warn("Category not found: {$categoryName}");
 
                 continue;
             }
 
-            $product->update(['sku' => $sku]);
-            $this->info("{$product->name} -> {$sku}");
+            $products = $category->products()->orderBy('price')->orderBy('name')->get();
+
+            // Clear first so re-numbering never collides with a not-yet-updated
+            // sibling still holding the target SKU (unique per project_id+sku).
+            $products->each->update(['sku' => null]);
+
+            foreach ($products as $index => $product) {
+                $sku = $prefix.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT);
+                $product->update(['sku' => $sku]);
+                $this->info("{$product->name} -> {$sku}");
+            }
         }
     }
 }
