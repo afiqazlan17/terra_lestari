@@ -19,9 +19,12 @@ class ProductController extends Controller
             ->orderBy('sort_order')
             ->get();
 
+        $nextSkus = $categories->mapWithKeys(fn ($category) => [$category->id => $category->nextSku()]);
+
         return view('products.index', [
             'project' => $project,
             'categories' => $categories,
+            'nextSkus' => $nextSkus,
         ]);
     }
 
@@ -31,10 +34,12 @@ class ProductController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'sku_prefix' => ['nullable', 'string', 'max:10', 'alpha'],
         ]);
 
         $project->categories()->create([
             'name' => $validated['name'],
+            'sku_prefix' => isset($validated['sku_prefix']) ? strtoupper($validated['sku_prefix']) : null,
             'sort_order' => $project->categories()->count(),
         ]);
 

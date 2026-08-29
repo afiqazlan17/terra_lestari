@@ -28,6 +28,7 @@ class TestBackupLatestReceipt extends Command
 
         $purchase = Purchase::query()
             ->whereNotNull('receipt_path')
+            ->whereNull('voided_at')
             ->latest('created_at')
             ->first();
 

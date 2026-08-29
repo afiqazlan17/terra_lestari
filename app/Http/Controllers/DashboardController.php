@@ -26,6 +26,7 @@ class DashboardController extends Controller
             ->sum('total');
 
         $todayPurchases = Purchase::where('project_id', $project->id)
+            ->whereNull('voided_at')
             ->whereDate('purchase_date', $today)
             ->sum('amount');
 
@@ -35,6 +36,7 @@ class DashboardController extends Controller
             ->sum('total');
 
         $weekPurchases = Purchase::where('project_id', $project->id)
+            ->whereNull('voided_at')
             ->whereDate('purchase_date', '>=', $weekStart)
             ->sum('amount');
 
@@ -56,6 +58,7 @@ class DashboardController extends Controller
             ->first();
 
         $recentPurchases = Purchase::where('project_id', $project->id)
+            ->whereNull('voided_at')
             ->with('recordedBy')
             ->latest('purchase_date')
             ->limit(5)

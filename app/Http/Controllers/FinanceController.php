@@ -37,6 +37,7 @@ class FinanceController extends Controller
             ->sum('total');
 
         $purchasesByCategory = Purchase::where('project_id', $project->id)
+            ->whereNull('voided_at')
             ->whereBetween('purchase_date', [$from, $to])
             ->selectRaw('category, SUM(amount) as total')
             ->groupBy('category')
@@ -173,6 +174,7 @@ class FinanceController extends Controller
             ]);
 
         $expenses = Purchase::where('project_id', $project->id)
+            ->whereNull('voided_at')
             ->whereBetween('purchase_date', [$from, $to])
             ->get()
             ->map(fn ($purchase) => [

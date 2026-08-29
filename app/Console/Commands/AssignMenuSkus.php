@@ -27,6 +27,10 @@ class AssignMenuSkus extends Command
                 continue;
             }
 
+            if ($category->sku_prefix !== $prefix) {
+                $category->update(['sku_prefix' => $prefix]);
+            }
+
             $products = $category->products()->orderBy('price')->orderBy('name')->get();
 
             // Clear first so re-numbering never collides with a not-yet-updated

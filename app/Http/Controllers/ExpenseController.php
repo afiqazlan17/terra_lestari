@@ -7,7 +7,6 @@ use App\Models\Purchase;
 use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -73,16 +72,21 @@ class ExpenseController extends Controller
         return redirect()->route('expenses.index')->with('success', 'Perbelanjaan berjaya direkodkan.');
     }
 
-    public function destroy(Request $request, Purchase $expense): RedirectResponse
+    public function void(Request $request, Purchase $expense): RedirectResponse
     {
         abort_unless($expense->project_id === $request->user()->currentProject()?->id, 403);
+        abort_unless($request->user()->hasFullAccess(), 403, 'Hanya owner/superuser boleh void rekod perbelanjaan.');
 
-        if ($expense->receipt_path) {
-            Storage::disk('public')->delete($expense->receipt_path);
-        }
+        $validated = $request->validate([
+            'void_reason' => ['required', 'string', 'max:255'],
+        ]);
 
-        $expense->delete();
+        $expense->update([
+            'void_reason' => $validated['void_reason'],
+            'voided_at' => now(),
+            'voided_by' => $request->user()->id,
+        ]);
 
-        return back()->with('success', 'Perbelanjaan dipadam.');
+        return back()->with('success', 'Perbelanjaan di-void.');
     }
 }

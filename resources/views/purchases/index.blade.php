@@ -28,15 +28,21 @@
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($purchases as $purchase)
-                                    <tr>
-                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $purchase->purchase_date->format('d F Y') }}</td>
-                                        <td class="px-4 py-3 text-gray-800">
+                                    <tr class="{{ $purchase->isVoided() ? 'opacity-60' : '' }}">
+                                        <td class="px-4 py-3 whitespace-nowrap {{ $purchase->isVoided() ? 'line-through text-gray-400' : 'text-gray-600' }}">{{ $purchase->purchase_date->format('d F Y') }}</td>
+                                        <td class="px-4 py-3 {{ $purchase->isVoided() ? 'line-through text-gray-400' : 'text-gray-800' }}">
                                             {{ $purchase->description }}
                                             @if ($purchase->notes)
                                                 <p class="text-xs text-gray-400">{{ $purchase->notes }}</p>
                                             @endif
+                                            @if ($purchase->isVoided())
+                                                <p class="text-xs text-red-500 mt-0.5 no-underline">
+                                                    <span class="inline-flex rounded-full px-2 py-0.5 bg-red-100 text-red-700 font-medium">Voided</span>
+                                                    {{ $purchase->voidedBy?->name }} · {{ $purchase->voided_at->format('d/m/Y H:i') }}: {{ $purchase->void_reason }}
+                                                </p>
+                                            @endif
                                         </td>
-                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $purchase->supplier_name ?? '-' }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap {{ $purchase->isVoided() ? 'line-through text-gray-400' : 'text-gray-600' }}">{{ $purchase->supplier_name ?? '-' }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             @if ($purchase->receipt_path)
                                                 <a href="{{ Storage::url($purchase->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat</a>
@@ -44,13 +50,16 @@
                                                 <span class="text-gray-300">-</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($purchase->amount, 2) }}</td>
+                                        <td class="px-4 py-3 text-right font-medium whitespace-nowrap {{ $purchase->isVoided() ? 'line-through text-gray-400' : 'text-gray-900' }}">RM {{ number_format($purchase->amount, 2) }}</td>
                                         <td class="px-4 py-3 text-right whitespace-nowrap">
-                                            <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" onsubmit="return confirm('Padam belian ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
-                                            </form>
+                                            @if (auth()->user()->hasFullAccess() && ! $purchase->isVoided())
+                                                <form method="POST" action="{{ route('purchases.void', $purchase) }}" onsubmit="return submitVoidForm(this)">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="void_reason">
+                                                    <button type="submit" class="text-red-500 hover:underline text-xs">Void</button>
+                                                </form>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -64,4 +73,13 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function submitVoidForm(form) {
+            const reason = prompt('Sebab void belian ini:');
+            if (!reason || !reason.trim()) return false;
+            form.void_reason.value = reason.trim();
+            return true;
+        }
+    </script>
 </x-app-layout>

@@ -14,21 +14,27 @@
                         <x-input-label for="category_name" value="Nama Kategori (contoh: Nasi, Minuman)" />
                         <x-text-input id="category_name" name="name" type="text" class="mt-1 block w-full" required />
                     </div>
+                    <div class="w-32">
+                        <x-input-label for="category_sku_prefix" value="Prefix SKU" />
+                        <x-text-input id="category_sku_prefix" name="sku_prefix" type="text" maxlength="10" placeholder="cth: MI" class="mt-1 block w-full uppercase" />
+                    </div>
                     <x-secondary-button type="submit">Tambah</x-secondary-button>
                 </form>
             </div>
 
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+            <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{
+                nextSkus: @js($nextSkus),
+                sku: '',
+                onCategoryChange(categoryId) {
+                    this.sku = this.nextSkus[categoryId] ?? '';
+                },
+            }">
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Tambah Item Menu</h3>
                 <form method="POST" action="{{ route('products.store') }}" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                     @csrf
-                    <div class="sm:col-span-2">
-                        <x-input-label for="product_name" value="Nama Item" />
-                        <x-text-input id="product_name" name="name" type="text" class="mt-1 block w-full" required />
-                    </div>
                     <div>
                         <x-input-label for="category_id" value="Kategori" />
-                        <select id="category_id" name="category_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm">
+                        <select id="category_id" name="category_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm text-sm" @change="onCategoryChange($event.target.value)">
                             <option value="">- Tiada -</option>
                             @foreach ($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -37,7 +43,11 @@
                     </div>
                     <div>
                         <x-input-label for="sku" value="SKU" />
-                        <x-text-input id="sku" name="sku" type="text" class="mt-1 block w-full" />
+                        <x-text-input id="sku" name="sku" type="text" class="mt-1 block w-full" x-model="sku" />
+                    </div>
+                    <div class="sm:col-span-2">
+                        <x-input-label for="product_name" value="Nama Item" />
+                        <x-text-input id="product_name" name="name" type="text" class="mt-1 block w-full" required />
                     </div>
                     <div>
                         <x-input-label for="price" value="Harga (RM)" />

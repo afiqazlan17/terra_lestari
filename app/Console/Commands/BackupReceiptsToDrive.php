@@ -43,6 +43,7 @@ class BackupReceiptsToDrive extends Command
 
         $purchases = Purchase::query()
             ->whereNotNull('receipt_path')
+            ->whereNull('voided_at')
             ->whereBetween('created_at', [$since, $until])
             ->get();
 

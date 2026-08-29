@@ -29,20 +29,26 @@
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($expenses as $expense)
-                                    <tr>
-                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $expense->purchase_date->format('d F Y') }}</td>
+                                    <tr class="{{ $expense->isVoided() ? 'opacity-60' : '' }}">
+                                        <td class="px-4 py-3 whitespace-nowrap {{ $expense->isVoided() ? 'line-through text-gray-400' : 'text-gray-600' }}">{{ $expense->purchase_date->format('d F Y') }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">
-                                            <span class="inline-flex rounded-full px-2 py-1 text-xs bg-gray-100 text-gray-600">
+                                            <span class="inline-flex rounded-full px-2 py-1 text-xs bg-gray-100 text-gray-600 {{ $expense->isVoided() ? 'line-through' : '' }}">
                                                 {{ $expense->categoryLabel() }}
                                             </span>
                                         </td>
-                                        <td class="px-4 py-3 text-gray-800">
+                                        <td class="px-4 py-3 {{ $expense->isVoided() ? 'line-through text-gray-400' : 'text-gray-800' }}">
                                             {{ $expense->description }}
                                             @if ($expense->notes)
                                                 <p class="text-xs text-gray-400">{{ $expense->notes }}</p>
                                             @endif
+                                            @if ($expense->isVoided())
+                                                <p class="text-xs text-red-500 mt-0.5 no-underline">
+                                                    <span class="inline-flex rounded-full px-2 py-0.5 bg-red-100 text-red-700 font-medium">Voided</span>
+                                                    {{ $expense->voidedBy?->name }} · {{ $expense->voided_at->format('d/m/Y H:i') }}: {{ $expense->void_reason }}
+                                                </p>
+                                            @endif
                                         </td>
-                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $expense->supplier_name ?? '-' }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap {{ $expense->isVoided() ? 'line-through text-gray-400' : 'text-gray-600' }}">{{ $expense->supplier_name ?? '-' }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             @if ($expense->receipt_path)
                                                 <a href="{{ Storage::url($expense->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat</a>
@@ -50,13 +56,16 @@
                                                 <span class="text-gray-300">-</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($expense->amount, 2) }}</td>
+                                        <td class="px-4 py-3 text-right font-medium whitespace-nowrap {{ $expense->isVoided() ? 'line-through text-gray-400' : 'text-gray-900' }}">RM {{ number_format($expense->amount, 2) }}</td>
                                         <td class="px-4 py-3 text-right whitespace-nowrap">
-                                            <form method="POST" action="{{ route('expenses.destroy', $expense) }}" onsubmit="return confirm('Padam perbelanjaan ini?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
-                                            </form>
+                                            @if (auth()->user()->hasFullAccess() && ! $expense->isVoided())
+                                                <form method="POST" action="{{ route('expenses.void', $expense) }}" onsubmit="return submitVoidForm(this)">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <input type="hidden" name="void_reason">
+                                                    <button type="submit" class="text-red-500 hover:underline text-xs">Void</button>
+                                                </form>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -70,4 +79,13 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function submitVoidForm(form) {
+            const reason = prompt('Sebab void perbelanjaan ini:');
+            if (!reason || !reason.trim()) return false;
+            form.void_reason.value = reason.trim();
+            return true;
+        }
+    </script>
 </x-app-layout>

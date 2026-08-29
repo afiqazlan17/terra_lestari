@@ -52,13 +52,13 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
         Route::get('/purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
-        Route::delete('/purchases/{purchase}', [PurchaseController::class, 'destroy'])->name('purchases.destroy');
+        Route::patch('/purchases/{purchase}/void', [PurchaseController::class, 'void'])->name('purchases.void');
 
         // Expenses / perbelanjaan (sewa, utiliti, gaji, renovasi, lain-lain)
         Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
         Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
         Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
-        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+        Route::patch('/expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
 
         // Finance
         Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');

@@ -35,11 +35,13 @@ class Purchase extends Model
     protected $fillable = [
         'project_id', 'recorded_by', 'category', 'purchase_date', 'supplier_name',
         'description', 'amount', 'receipt_path', 'notes',
+        'void_reason', 'voided_at', 'voided_by',
     ];
 
     protected $casts = [
         'purchase_date' => 'date',
         'amount' => 'decimal:2',
+        'voided_at' => 'datetime',
     ];
 
     public function project(): BelongsTo
@@ -50,6 +52,16 @@ class Purchase extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function isVoided(): bool
+    {
+        return $this->voided_at !== null;
     }
 
     public function categoryLabel(): string

@@ -27,6 +27,7 @@ class DailySalesReportService
             ->count();
 
         $purchases = Purchase::where('project_id', $project->id)
+            ->whereNull('voided_at')
             ->whereDate('purchase_date', $date)
             ->sum('amount');
 

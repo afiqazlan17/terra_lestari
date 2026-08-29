@@ -7,7 +7,6 @@ use App\Models\Purchase;
 use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PurchaseController extends Controller
@@ -71,16 +70,21 @@ class PurchaseController extends Controller
         return redirect()->route('purchases.index')->with('success', 'Belian berjaya direkodkan.');
     }
 
-    public function destroy(Request $request, Purchase $purchase): RedirectResponse
+    public function void(Request $request, Purchase $purchase): RedirectResponse
     {
         abort_unless($purchase->project_id === $request->user()->currentProject()?->id, 403);
+        abort_unless($request->user()->hasFullAccess(), 403, 'Hanya owner/superuser boleh void rekod belian.');
 
-        if ($purchase->receipt_path) {
-            Storage::disk('public')->delete($purchase->receipt_path);
-        }
+        $validated = $request->validate([
+            'void_reason' => ['required', 'string', 'max:255'],
+        ]);
 
-        $purchase->delete();
+        $purchase->update([
+            'void_reason' => $validated['void_reason'],
+            'voided_at' => now(),
+            'voided_by' => $request->user()->id,
+        ]);
 
-        return back()->with('success', 'Belian dipadam.');
+        return back()->with('success', 'Belian di-void.');
     }
 }
