@@ -104,7 +104,7 @@ class GoogleDriveBackupService
         $oauth = new OAuth2([
             'clientId' => $this->clientId,
             'clientSecret' => $this->clientSecret,
-            'refreshToken' => $this->refreshToken,
+            'refresh_token' => $this->refreshToken,
             'tokenCredentialUri' => self::TOKEN_URI,
         ]);
 
