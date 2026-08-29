@@ -26,7 +26,7 @@ class PosController extends Controller
             ->first();
 
         $categories = $project->categories()
-            ->with(['products' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
+            ->with(['products' => fn ($q) => $q->where('is_active', true)->orderBy('price')->orderBy('name')])
             ->orderBy('sort_order')
             ->get();
 

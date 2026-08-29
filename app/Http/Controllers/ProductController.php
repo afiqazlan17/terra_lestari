@@ -15,7 +15,7 @@ class ProductController extends Controller
         $project = $request->user()->currentProject();
 
         $categories = $project->categories()
-            ->with(['products' => fn ($q) => $q->orderBy('sort_order')])
+            ->with(['products' => fn ($q) => $q->orderBy('price')->orderBy('name')])
             ->orderBy('sort_order')
             ->get();
 
