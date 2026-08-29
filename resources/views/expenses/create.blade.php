@@ -50,7 +50,8 @@
                     <div>
                         <x-input-label for="receipt" value="Gambar/PDF Resit (Jika ada)" />
                         <input id="receipt" name="receipt" type="file" accept="image/*,.pdf,application/pdf"
-                            class="mt-1 block w-full text-sm text-gray-600" />
+                            class="mt-1 block w-full text-sm text-gray-600" onchange="autoFillFromReceipt(this)" />
+                        <p id="receipt-status" class="mt-1 text-xs text-gray-400"></p>
                         <x-input-error :messages="$errors->get('receipt')" class="mt-1" />
                     </div>
 
@@ -69,4 +70,47 @@
             </div>
         </div>
     </div>
+
+    <script>
+        async function autoFillFromReceipt(input) {
+            const file = input.files[0];
+            const status = document.getElementById('receipt-status');
+            if (!file) {
+                status.textContent = '';
+                return;
+            }
+
+            status.textContent = 'Membaca resit...';
+
+            const formData = new FormData();
+            formData.append('receipt', file);
+
+            try {
+                const res = await fetch('{{ route('receipts.extract') }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    status.textContent = data.error || 'Gagal baca resit. Sila isi manual.';
+                    return;
+                }
+
+                if (data.purchase_date) document.getElementById('purchase_date').value = data.purchase_date;
+                if (data.amount) document.getElementById('amount').value = data.amount;
+                if (data.supplier_name) document.getElementById('supplier_name').value = data.supplier_name;
+                if (data.description) document.getElementById('description').value = data.description;
+
+                status.textContent = 'Borang diisi automatik - sila semak sebelum simpan (termasuk Kategori).';
+            } catch (err) {
+                status.textContent = 'Gagal baca resit. Sila isi manual.';
+            }
+        }
+    </script>
 </x-app-layout>

@@ -11,6 +11,7 @@ use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\ReceiptExtractionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +48,9 @@ Route::middleware(['auth', 'password.change'])->group(function () {
     // Dashboard, purchases, menu (owner + manager)
     Route::middleware('operations')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Receipt photo -> auto-extract date/amount/supplier (Belian & Perbelanjaan)
+        Route::post('/receipts/extract', [ReceiptExtractionController::class, 'extract'])->name('receipts.extract');
 
         // Purchases / beli barang basah (bahan mentah sahaja)
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');
