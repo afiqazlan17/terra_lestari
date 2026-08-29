@@ -5,6 +5,7 @@ use App\Http\Controllers\DailySessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\GoogleDriveAuthController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
@@ -86,6 +87,10 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::patch('/capital-injections/{capitalInjection}', [CapitalInjectionController::class, 'update'])->name('capital-injections.update');
         Route::patch('/capital-injections/{capitalInjection}/receipt', [CapitalInjectionController::class, 'updateReceipt'])->name('capital-injections.receipt.update');
         Route::delete('/capital-injections/{capitalInjection}', [CapitalInjectionController::class, 'destroy'])->name('capital-injections.destroy');
+
+        // One-time Google Drive OAuth authorisation for the nightly receipt backup
+        Route::get('/google-drive/authorize', [GoogleDriveAuthController::class, 'authorize'])->name('google-drive.authorize');
+        Route::get('/google-drive/callback', [GoogleDriveAuthController::class, 'callback'])->name('google-drive.callback');
     });
 });
 

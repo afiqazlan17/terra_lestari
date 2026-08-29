@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'google_drive' => [
+        'backup_folder_id' => env('GOOGLE_DRIVE_BACKUP_FOLDER_ID'),
+        'oauth_client_id' => env('GOOGLE_DRIVE_OAUTH_CLIENT_ID'),
+        'oauth_client_secret' => env('GOOGLE_DRIVE_OAUTH_CLIENT_SECRET'),
+    ],
+
 ];
