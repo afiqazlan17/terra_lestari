@@ -8,8 +8,8 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('app:seed-nbk-products')]
-#[Description('One-off: seeds the NBK (Nasi Berlauk Kelantan) vendor product catalog with per-unit cost and minimum order quantity, in the same order as the vendor\'s order form. Unit cost is the vendor\'s bundle price divided by the minimum quantity. Items listed as HABIS STOK/BELUM MULA on the form are seeded inactive with a placeholder cost - edit once stock is available. Safe to re-run - skips items that already exist by name.')]
+#[Signature('app:seed-nbk-products {--fresh : Delete all existing NBK products for the active project first, then reseed from scratch}')]
+#[Description('One-off: seeds the NBK (Nasi Berlauk Kelantan) vendor product catalog with per-unit cost and minimum order quantity, in the same order as the vendor\'s order form. Unit cost is the vendor\'s bundle price divided by the minimum quantity. Items listed as HABIS STOK/BELUM MULA on the form are seeded inactive with a placeholder cost - edit once stock is available. Safe to re-run - skips items that already exist by name. Pass --fresh to wipe and reseed (e.g. after correcting catalog data), which does not touch existing NBK orders.')]
 class SeedNbkProducts extends Command
 {
     /** [name, unit_cost, min_qty] in the vendor form's order. unit_cost is per single unit (vendor's listed price / min_qty). Null cost/qty = out of stock on the form. */
@@ -102,6 +102,11 @@ class SeedNbkProducts extends Command
             $this->error('No active project found.');
 
             return;
+        }
+
+        if ($this->option('fresh')) {
+            $deleted = NbkProduct::where('project_id', $project->id)->delete();
+            $this->info("Deleted {$deleted} existing NBK products.");
         }
 
         $created = 0;
