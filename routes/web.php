@@ -95,6 +95,9 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::get('/nbk/orders/create', [NbkOrderController::class, 'create'])->name('nbk.orders.create');
         Route::post('/nbk/orders', [NbkOrderController::class, 'store'])->name('nbk.orders.store');
         Route::get('/nbk/orders/{nbkOrder}', [NbkOrderController::class, 'show'])->name('nbk.orders.show');
+        Route::get('/nbk/orders/{nbkOrder}/edit', [NbkOrderController::class, 'edit'])->name('nbk.orders.edit');
+        Route::patch('/nbk/orders/{nbkOrder}', [NbkOrderController::class, 'update'])->name('nbk.orders.update');
+        Route::delete('/nbk/orders/{nbkOrder}', [NbkOrderController::class, 'destroy'])->name('nbk.orders.destroy');
         Route::patch('/nbk/orders/{nbkOrder}/paid', [NbkOrderController::class, 'markPaid'])->name('nbk.orders.paid');
     });
 

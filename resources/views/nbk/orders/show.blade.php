@@ -12,15 +12,28 @@
     <div class="py-8">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
             <div class="flex justify-end gap-2 no-print">
-                @if (! $order->isPaid() && auth()->user()->hasFullAccess())
-                    <form method="POST" action="{{ route('nbk.orders.paid', $order) }}" onsubmit="return confirm('Tandai memo ini sebagai dibayar? Ia akan direkodkan terus dalam Belian.')">
+                @unless ($order->isPaid())
+                    <a href="{{ route('nbk.orders.edit', $order) }}"
+                        class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                        Edit Kuantiti
+                    </a>
+                    <form method="POST" action="{{ route('nbk.orders.destroy', $order) }}" onsubmit="return confirm('Padam memo order ini? Tindakan ini tidak boleh diundur.')">
                         @csrf
-                        @method('PATCH')
-                        <button type="submit" class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg">
-                            Tandai Dibayar
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex items-center gap-1.5 bg-white border border-red-300 hover:bg-red-50 text-red-600 text-sm font-medium px-3 py-1.5 rounded-lg">
+                            Padam
                         </button>
                     </form>
-                @endif
+                    @if (auth()->user()->hasFullAccess())
+                        <form method="POST" action="{{ route('nbk.orders.paid', $order) }}" onsubmit="return confirm('Tandai memo ini sebagai dibayar? Ia akan direkodkan terus dalam Belian.')">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg">
+                                Tandai Dibayar
+                            </button>
+                        </form>
+                    @endif
+                @endunless
                 <button type="button" onclick="window.print()"
                     class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
                     Print / Simpan PDF
@@ -34,7 +47,7 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <div class="flex items-start justify-between mb-4">
                     <div>
-                        <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="max-w-[160px] mb-2">
+                        <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="max-w-[90px] mb-2">
                         <p class="text-sm text-gray-500">Memo Pembayaran - Vendor NBK (Nasi Berlauk Kelantan)</p>
                     </div>
                     <div class="text-right text-sm text-gray-500">

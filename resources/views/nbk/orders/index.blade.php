@@ -40,8 +40,16 @@
                                                 <span class="inline-flex rounded-full px-2 py-1 text-xs bg-amber-100 text-amber-700">Belum Dibayar</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 text-right whitespace-nowrap">
+                                        <td class="px-4 py-3 text-right whitespace-nowrap space-x-2">
                                             <a href="{{ route('nbk.orders.show', $order) }}" class="text-amber-600 hover:underline text-xs">Lihat Memo</a>
+                                            @unless ($order->isPaid())
+                                                <a href="{{ route('nbk.orders.edit', $order) }}" class="text-gray-500 hover:underline text-xs">Edit</a>
+                                                <form method="POST" action="{{ route('nbk.orders.destroy', $order) }}" class="inline" onsubmit="return confirm('Padam memo order ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-500 hover:underline text-xs">Padam</button>
+                                                </form>
+                                            @endunless
                                         </td>
                                     </tr>
                                 @endforeach
