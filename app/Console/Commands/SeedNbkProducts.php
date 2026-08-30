@@ -85,6 +85,19 @@ class SeedNbkProducts extends Command
         ['3 SERANGKAI', 9.00, 3],
     ];
 
+    /** Out of stock / not yet started on the vendor's form - no price listed. Seeded inactive with placeholder values; edit once stock is available. */
+    private const OUT_OF_STOCK_PRODUCTS = [
+        'NASI DAGANG DAGING KERUTUK (KACHIK)',
+        'TEPUNG BUNGKUS KELATE (4pc)',
+        'LEPAT UBI KAYU (3pcs)',
+        'PELEBAT UBI',
+        'PULUT LEPO SERUNDING IKAN',
+        'PULUT LEPO SERUNDING DAGING',
+        'PULUT BAKAR KOSONG',
+        'PULUT BAKAR SERUNDING IKAN',
+        'PULUT BAKAR SERUNDING DAGING',
+    ];
+
     public function handle(): void
     {
         $project = Project::where('is_active', true)->orderBy('id')->first();
@@ -102,6 +115,21 @@ class SeedNbkProducts extends Command
             $product = NbkProduct::firstOrCreate(
                 ['project_id' => $project->id, 'name' => $name],
                 ['unit_cost' => $unitCost, 'min_qty' => $minQty, 'is_active' => true, 'sort_order' => $index]
+            );
+
+            if ($product->wasRecentlyCreated) {
+                $created++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        $offset = count(self::PRODUCTS);
+
+        foreach (self::OUT_OF_STOCK_PRODUCTS as $index => $name) {
+            $product = NbkProduct::firstOrCreate(
+                ['project_id' => $project->id, 'name' => $name],
+                ['unit_cost' => 0, 'min_qty' => 1, 'is_active' => false, 'sort_order' => $offset + $index]
             );
 
             if ($product->wasRecentlyCreated) {
