@@ -76,8 +76,15 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap">
-                                            <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-700' }}">
-                                                {{ $product->is_active ? 'Aktif' : 'Tiada Stok' }}
+                                            @php
+                                                $statusColors = [
+                                                    \App\Models\NbkProduct::STATUS_ACTIVE => 'bg-green-100 text-green-800',
+                                                    \App\Models\NbkProduct::STATUS_OUT_OF_STOCK => 'bg-red-100 text-red-700',
+                                                    \App\Models\NbkProduct::STATUS_EXCLUDED => 'bg-gray-200 text-gray-600',
+                                                ];
+                                            @endphp
+                                            <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $statusColors[$product->status] ?? 'bg-gray-200 text-gray-600' }}">
+                                                {{ $product->statusLabel() }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-right whitespace-nowrap">
@@ -108,10 +115,14 @@
                                                     <input type="number" step="0.01" min="0" name="sell_price" value="{{ $product->sell_price }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                 </div>
                                                 <div class="sm:col-span-5 flex items-center justify-between pt-1">
-                                                    <label class="inline-flex items-center gap-2 text-sm text-gray-600">
-                                                        <input type="checkbox" name="is_active" value="1" @checked($product->is_active) class="rounded border-gray-300">
-                                                        Aktif (ada stok)
-                                                    </label>
+                                                    <div class="flex items-center gap-2">
+                                                        <label class="text-xs text-gray-500">Status</label>
+                                                        <select name="status" class="rounded-md border-gray-300 shadow-sm text-sm">
+                                                            @foreach (\App\Models\NbkProduct::STATUSES as $value => $label)
+                                                                <option value="{{ $value }}" @selected($product->status === $value)>{{ $label }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                     <div class="flex items-center gap-3">
                                                         <button type="button" @click="editingId = null" class="text-xs text-gray-500 hover:underline">Batal</button>
                                                         <x-primary-button type="submit" class="!py-1.5 !px-3 text-xs">Simpan</x-primary-button>

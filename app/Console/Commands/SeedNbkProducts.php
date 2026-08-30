@@ -120,7 +120,7 @@ class SeedNbkProducts extends Command
                 [
                     'unit_cost' => $inStock ? $unitCost : 0,
                     'min_qty' => $inStock ? $minQty : 1,
-                    'is_active' => $inStock,
+                    'status' => $inStock ? NbkProduct::STATUS_ACTIVE : NbkProduct::STATUS_OUT_OF_STOCK,
                     'sort_order' => $index,
                 ]
             );

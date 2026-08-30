@@ -210,7 +210,7 @@ class NbkOrderController extends Controller
 
             $product = NbkProduct::where('project_id', $project->id)->findOrFail($item['nbk_product_id']);
 
-            if (! $product->is_active) {
+            if (! $product->isOrderable()) {
                 continue;
             }
 

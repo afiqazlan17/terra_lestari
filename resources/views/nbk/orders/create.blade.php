@@ -23,7 +23,7 @@
                 </div>
             @else
                 <form method="POST" action="{{ $order ? route('nbk.orders.update', $order) : route('nbk.orders.store') }}"
-                    x-data="nbkCalculator(@js($products->map(fn ($p) => ['id' => $p->id, 'unit_cost' => (float) $p->unit_cost, 'sell_price' => (float) ($p->sell_price ?? 0), 'min_qty' => $p->min_qty, 'is_active' => (bool) $p->is_active])), @js($qtyByProductId))">
+                    x-data="nbkCalculator(@js($products->map(fn ($p) => ['id' => $p->id, 'unit_cost' => (float) $p->unit_cost, 'sell_price' => (float) ($p->sell_price ?? 0), 'min_qty' => $p->min_qty, 'orderable' => $p->isOrderable()])), @js($qtyByProductId))">
                     @csrf
                     @if ($order)
                         @method('PATCH')
@@ -51,25 +51,25 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     @foreach ($products as $index => $product)
-                                        <tr class="{{ ! $product->is_active ? 'bg-gray-50' : '' }}">
+                                        <tr class="{{ ! $product->isOrderable() ? 'bg-gray-50' : '' }}">
                                             <td class="px-3 py-2 text-gray-400">{{ $index + 1 }}</td>
-                                            <td class="px-3 py-2 {{ $product->is_active ? 'text-gray-800' : 'text-gray-400' }}">
+                                            <td class="px-3 py-2 {{ $product->isOrderable() ? 'text-gray-800' : 'text-gray-400' }}">
                                                 {{ $product->name }}
-                                                @unless ($product->is_active)
-                                                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-100 text-red-700 ml-1">Tiada Stok</span>
+                                                @unless ($product->isOrderable())
+                                                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs {{ $product->status === \App\Models\NbkProduct::STATUS_EXCLUDED ? 'bg-gray-200 text-gray-600' : 'bg-red-100 text-red-700' }} ml-1">{{ $product->statusLabel() }}</span>
                                                 @endunless
                                                 <input type="hidden" name="items[{{ $index }}][nbk_product_id]" value="{{ $product->id }}">
                                             </td>
                                             <td class="px-3 py-2 text-right text-gray-600 tabular-nums whitespace-nowrap">
-                                                @if ($product->is_active)
+                                                @if ($product->isOrderable())
                                                     RM {{ number_format($product->unit_cost, 2) }}
                                                 @else
                                                     &mdash;
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2 text-right text-gray-600 tabular-nums whitespace-nowrap">{{ $product->is_active ? $product->min_qty : '—' }}</td>
+                                            <td class="px-3 py-2 text-right text-gray-600 tabular-nums whitespace-nowrap">{{ $product->isOrderable() ? $product->min_qty : '—' }}</td>
                                             <td class="px-3 py-2">
-                                                @if ($product->is_active)
+                                                @if ($product->isOrderable())
                                                     <input type="number" min="0" step="1" name="items[{{ $index }}][qty_ordered]"
                                                         x-model.number="qty[{{ $product->id }}]"
                                                         class="w-20 rounded-md shadow-sm text-sm"

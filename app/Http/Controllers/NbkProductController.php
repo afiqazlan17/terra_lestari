@@ -40,7 +40,7 @@ class NbkProductController extends Controller
             'unit_cost' => $validated['unit_cost'],
             'min_qty' => $validated['min_qty'],
             'sell_price' => $validated['sell_price'] ?? null,
-            'is_active' => true,
+            'status' => NbkProduct::STATUS_ACTIVE,
             'sort_order' => $project->nbkProducts()->count(),
         ]);
 
@@ -56,7 +56,7 @@ class NbkProductController extends Controller
             'unit_cost' => ['required', 'numeric', 'min:0'],
             'min_qty' => ['required', 'integer', 'min:1'],
             'sell_price' => ['nullable', 'numeric', 'min:0'],
-            'is_active' => ['sometimes', 'boolean'],
+            'status' => ['required', 'in:'.implode(',', array_keys(NbkProduct::STATUSES))],
         ]);
 
         $nbkProduct->update([
@@ -64,7 +64,7 @@ class NbkProductController extends Controller
             'unit_cost' => $validated['unit_cost'],
             'min_qty' => $validated['min_qty'],
             'sell_price' => $validated['sell_price'] ?? null,
-            'is_active' => $request->boolean('is_active'),
+            'status' => $validated['status'],
         ]);
 
         return back()->with('success', 'Produk NBK dikemaskini.');
