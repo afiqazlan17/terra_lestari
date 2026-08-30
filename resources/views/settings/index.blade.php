@@ -204,7 +204,7 @@
                     this.busy = true;
                     this.status = '';
                     try {
-                        const bytes = window.buildReceiptEscPos({
+                        const bytes = await window.buildReceiptEscPos({
                             orderNumber: 'TEST',
                             dateStr: new Date().toLocaleString('ms-MY'),
                             typeLabel: 'Test Print',

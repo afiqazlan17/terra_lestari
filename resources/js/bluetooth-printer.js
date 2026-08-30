@@ -204,7 +204,80 @@ function buildOpenDrawerCommandAlt() {
     return new Uint8Array([0x10, 0x14, 0x01, 0x00, 0x01]);
 }
 
-function buildReceiptEscPos(data, is58mm, options = {}) {
+// Converts the Sajian Baginda logo (public/images/logo.png) into an
+// ESC/POS raster bitmap (GS v 0) once per paper width, then caches the
+// bytes - every subsequent print reuses them instead of re-loading and
+// re-dithering the image.
+const logoRasterCache = {};
+
+function packBitmapToEscPosRaster(imageData, widthPx, heightPx) {
+    const bytesPerRow = Math.ceil(widthPx / 8);
+    const packed = new Uint8Array(bytesPerRow * heightPx);
+    const px = imageData.data;
+
+    for (let y = 0; y < heightPx; y++) {
+        for (let x = 0; x < widthPx; x++) {
+            const i = (y * widthPx + x) * 4;
+            const luminance = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+            if (luminance < 160) {
+                const byteIndex = y * bytesPerRow + (x >> 3);
+                packed[byteIndex] |= (0x80 >> (x % 8));
+            }
+        }
+    }
+
+    return { packed, bytesPerRow };
+}
+
+async function loadLogoRaster(targetWidthPx) {
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = '/images/logo.png';
+    });
+
+    const aspect = img.naturalHeight / img.naturalWidth;
+    const heightPx = Math.max(1, Math.round(targetWidthPx * aspect));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = targetWidthPx;
+    canvas.height = heightPx;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, targetWidthPx, heightPx);
+    ctx.drawImage(img, 0, 0, targetWidthPx, heightPx);
+
+    const imageData = ctx.getImageData(0, 0, targetWidthPx, heightPx);
+    const { packed, bytesPerRow } = packBitmapToEscPosRaster(imageData, targetWidthPx, heightPx);
+
+    const GS = 0x1D;
+    const header = [
+        GS, 0x76, 0x30, 0x00,
+        bytesPerRow & 0xFF, (bytesPerRow >> 8) & 0xFF,
+        heightPx & 0xFF, (heightPx >> 8) & 0xFF,
+    ];
+
+    return new Uint8Array([...header, ...packed]);
+}
+
+async function getLogoRasterBytes(is58mm) {
+    const key = is58mm ? '58' : '80';
+    if (logoRasterCache[key]) {
+        return logoRasterCache[key];
+    }
+
+    try {
+        const bytes = await loadLogoRaster(is58mm ? 300 : 400);
+        logoRasterCache[key] = bytes;
+        return bytes;
+    } catch (e) {
+        console.error('Gagal muatkan logo untuk cetak', e);
+        return null;
+    }
+}
+
+async function buildReceiptEscPos(data, is58mm, options = {}) {
     const width = is58mm ? 32 : 42;
     const enc = new TextEncoder();
     const bytes = [];
@@ -220,10 +293,19 @@ function buildReceiptEscPos(data, is58mm, options = {}) {
         push(Array.from(buildOpenDrawerCommand()));
     }
     push([ESC, 0x61, 0x01]); // center align
-    push([ESC, 0x45, 0x01]); // bold on
-    text('SAJIAN BAGINDA\n');
-    push([ESC, 0x45, 0x00]); // bold off
-    text('Warisan Rasa Pantai Timur\n');
+
+    const logoBytes = await getLogoRasterBytes(is58mm);
+    if (logoBytes) {
+        push(Array.from(logoBytes));
+        text('\n');
+    } else {
+        // Falls back to plain text if the logo can't be loaded/converted,
+        // so a network hiccup never blocks printing altogether.
+        push([ESC, 0x45, 0x01]); // bold on
+        text('SAJIAN BAGINDA\n');
+        push([ESC, 0x45, 0x00]); // bold off
+        text('Warisan Rasa Pantai Timur\n');
+    }
     text('-'.repeat(width) + '\n');
     push([ESC, 0x61, 0x00]); // left align
     text(`No. Resit: ${data.orderNumber}\n`);

@@ -28,6 +28,7 @@
             box-shadow: 0 1px 4px rgba(0,0,0,.12);
         }
         h1 { font-size: 20px; text-align: center; margin: 0 0 4px; }
+        .logo { display: block; max-width: 220px; width: 100%; height: auto; margin: 0 auto 8px; }
         .center { text-align: center; }
         .muted { color: #555; font-size: 13px; }
         .divider { border-top: 1px dashed #999; margin: 10px 0; }
@@ -54,6 +55,7 @@
                 box-shadow: none;
             }
             h1 { font-size: {{ $is58mm ? '14px' : '16px' }}; }
+            .logo { max-width: {{ $is58mm ? '150px' : '200px' }}; }
             .muted { font-size: {{ $is58mm ? '9px' : '11px' }}; }
             .grand { font-size: {{ $is58mm ? '12px' : '14px' }}; }
             .actions { display: none; }
@@ -62,8 +64,7 @@
 </head>
 <body>
     <div class="receipt">
-        <h1>SAJIAN BAGINDA</h1>
-        <p class="center muted">Warisan Rasa Pantai Timur</p>
+        <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="logo">
         @if ($order->isVoided())
             <p class="center" style="color: #b91c1c; font-weight: bold; margin: 6px 0;">*** DIBATALKAN (VOID) ***</p>
         @endif
@@ -138,7 +139,7 @@
                 }
 
                 try {
-                    const bytes = window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
+                    const bytes = await window.buildReceiptEscPos(RECEIPT_DATA, {{ $is58mm ? 'true' : 'false' }});
                     await window.SBPrinter.write(bytes);
                     return;
                 } catch (e) {

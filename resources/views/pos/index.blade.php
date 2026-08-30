@@ -381,7 +381,7 @@
             }
 
             try {
-                const bytes = window.buildReceiptEscPos(data, PAPER_58MM, { openDrawer });
+                const bytes = await window.buildReceiptEscPos(data, PAPER_58MM, { openDrawer });
                 await window.SBPrinter.write(bytes);
                 return true;
             } catch (e) {
