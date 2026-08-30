@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ $order ? 'Edit Order NBK #'.$order->id : 'Kalkulator Order NBK' }}
+                {{ $order ? 'Edit Order NBK #'.$order->displayNumber() : 'Kalkulator Order NBK' }}
             </h2>
             <div class="flex items-center gap-2">
                 <a href="{{ route('nbk.products.index') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">

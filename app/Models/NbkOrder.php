@@ -50,4 +50,16 @@ class NbkOrder extends Model
     {
         return $this->paid_at !== null;
     }
+
+    /**
+     * The order's position among all orders currently existing for its
+     * project - unlike the raw database id, this has no gaps left behind
+     * by deleted draft memos.
+     */
+    public function displayNumber(): int
+    {
+        return static::where('project_id', $this->project_id)
+            ->where('id', '<=', $this->id)
+            ->count();
+    }
 }

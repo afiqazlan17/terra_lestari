@@ -169,10 +169,10 @@ class NbkOrderController extends Controller
                 'category' => Purchase::CATEGORY_BAHAN_MENTAH,
                 'purchase_date' => now()->toDateString(),
                 'supplier_name' => 'NBK - Nasi Berlauk Kelantan',
-                'description' => 'Belian NBK (Memo #'.$nbkOrder->id.')',
+                'description' => 'Belian NBK (Memo #'.$nbkOrder->displayNumber().')',
                 'amount' => $nbkOrder->total_buy,
                 'receipt_path' => $receiptPath,
-                'notes' => $nbkOrder->items->count().' produk, memo #'.$nbkOrder->id,
+                'notes' => $nbkOrder->items->count().' produk, memo #'.$nbkOrder->displayNumber(),
             ]);
 
             $nbkOrder->update([

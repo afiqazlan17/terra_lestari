@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Memo Pembayaran NBK #{{ $order->id }}</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Memo Pembayaran NBK #{{ $order->displayNumber() }}</h2>
     </x-slot>
 
     <style>
@@ -70,7 +70,7 @@
                         <p class="text-sm text-gray-500">Memo Pembayaran - Vendor NBK (Nasi Berlauk Kelantan)</p>
                     </div>
                     <div class="text-right text-sm text-gray-500">
-                        <p>Memo #{{ $order->id }}</p>
+                        <p>Memo #{{ $order->displayNumber() }}</p>
                         <p>Tarikh Order: {{ $order->order_date->format('d F Y') }}</p>
                         <p>Dijana oleh: {{ $order->createdBy->name }}</p>
                     </div>
