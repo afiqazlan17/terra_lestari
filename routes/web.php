@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BulkReceiptController;
 use App\Http\Controllers\CapitalInjectionController;
 use App\Http\Controllers\DailySessionController;
 use App\Http\Controllers\DashboardController;
@@ -51,6 +52,8 @@ Route::middleware(['auth', 'password.change'])->group(function () {
 
         // Receipt photo -> auto-extract date/amount/supplier (Belian & Perbelanjaan)
         Route::post('/receipts/extract', [ReceiptExtractionController::class, 'extract'])->name('receipts.extract');
+        Route::get('/receipts/bulk', [BulkReceiptController::class, 'create'])->name('receipts.bulk.create');
+        Route::post('/receipts/bulk', [BulkReceiptController::class, 'store'])->name('receipts.bulk.store');
 
         // Purchases / beli barang basah (bahan mentah sahaja)
         Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index');

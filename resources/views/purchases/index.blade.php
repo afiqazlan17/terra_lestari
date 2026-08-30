@@ -2,9 +2,14 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Belian Barang</h2>
-            <a href="{{ route('purchases.create') }}" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-lg">
-                + Rekod Belian
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('receipts.bulk.create') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
+                    Upload Pukal
+                </a>
+                <a href="{{ route('purchases.create') }}" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-lg">
+                    + Rekod Belian
+                </a>
+            </div>
         </div>
     </x-slot>
 

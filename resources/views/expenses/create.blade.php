@@ -12,7 +12,7 @@
 
                     <div>
                         <x-input-label for="receipt" value="1. Snap/Upload Resit Dulu (Jika ada)" />
-                        <p class="text-xs text-gray-400 mb-1">Borang di sebelah akan diisi automatik selepas resit dibaca.</p>
+                        <p class="text-xs text-gray-400 mb-1">Borang akan diisi automatik selepas resit dibaca.</p>
                         <input id="receipt" name="receipt" type="file" accept="image/*,.pdf,application/pdf"
                             class="mt-1 block w-full text-sm text-gray-600" onchange="autoFillFromReceipt(this)" />
                         <p id="receipt-status" class="mt-1 text-xs text-gray-400"></p>
