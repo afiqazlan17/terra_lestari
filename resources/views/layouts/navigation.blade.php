@@ -31,6 +31,9 @@
                         <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                             {{ __('Menu') }}
                         </x-nav-link>
+                        <x-nav-link :href="route('nbk.orders.create')" :active="request()->routeIs('nbk.*')">
+                            {{ __('NBK') }}
+                        </x-nav-link>
                     @endif
                     <x-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*') || request()->routeIs('orders.*')">
                         {{ __('POS') }}
@@ -113,6 +116,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                     {{ __('Menu') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('nbk.orders.create')" :active="request()->routeIs('nbk.*')">
+                    {{ __('NBK') }}
                 </x-responsive-nav-link>
             @endif
             <x-responsive-nav-link :href="route('pos.index')" :active="request()->routeIs('pos.*') || request()->routeIs('orders.*')">

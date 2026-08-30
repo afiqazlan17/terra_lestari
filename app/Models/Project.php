@@ -56,4 +56,14 @@ class Project extends Model
     {
         return $this->hasMany(CapitalInjection::class);
     }
+
+    public function nbkProducts(): HasMany
+    {
+        return $this->hasMany(NbkProduct::class);
+    }
+
+    public function nbkOrders(): HasMany
+    {
+        return $this->hasMany(NbkOrder::class);
+    }
 }

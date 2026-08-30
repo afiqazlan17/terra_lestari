@@ -7,6 +7,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\GoogleDriveAuthController;
+use App\Http\Controllers\NbkOrderController;
+use App\Http\Controllers\NbkProductController;
 use App\Http\Controllers\OrderReceiptController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
@@ -82,6 +84,18 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::post('/products', [ProductController::class, 'store'])->name('products.store');
         Route::patch('/products/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
+        // NBK vendor order calculator + memo
+        Route::get('/nbk/products', [NbkProductController::class, 'index'])->name('nbk.products.index');
+        Route::post('/nbk/products', [NbkProductController::class, 'store'])->name('nbk.products.store');
+        Route::patch('/nbk/products/{nbkProduct}', [NbkProductController::class, 'update'])->name('nbk.products.update');
+        Route::delete('/nbk/products/{nbkProduct}', [NbkProductController::class, 'destroy'])->name('nbk.products.destroy');
+
+        Route::get('/nbk/orders', [NbkOrderController::class, 'index'])->name('nbk.orders.index');
+        Route::get('/nbk/orders/create', [NbkOrderController::class, 'create'])->name('nbk.orders.create');
+        Route::post('/nbk/orders', [NbkOrderController::class, 'store'])->name('nbk.orders.store');
+        Route::get('/nbk/orders/{nbkOrder}', [NbkOrderController::class, 'show'])->name('nbk.orders.show');
+        Route::patch('/nbk/orders/{nbkOrder}/paid', [NbkOrderController::class, 'markPaid'])->name('nbk.orders.paid');
     });
 
     // Staff accounts + capital injections (owner/superuser only)
