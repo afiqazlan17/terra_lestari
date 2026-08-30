@@ -69,11 +69,15 @@
                                     @foreach ($category->products as $product)
                                         <button type="button"
                                             :disabled="! hasSession"
-                                            @click="addItem({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }})"
+                                            @click="{{ $product->is_variable_price ? 'addVariablePriceItem' : 'addItem' }}({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }})"
                                             :class="hasSession ? 'hover:ring-2 hover:ring-amber-400 active:scale-95' : 'opacity-50 cursor-not-allowed'"
                                             class="bg-white shadow-sm rounded-lg p-4 text-left transition">
                                             <p class="font-medium text-gray-800">{{ $product->name }}</p>
-                                            <p class="text-sm text-gray-500 mt-1">RM {{ number_format($product->price, 2) }}</p>
+                                            @if ($product->is_variable_price)
+                                                <p class="text-sm text-amber-600 mt-1">Harga berubah</p>
+                                            @else
+                                                <p class="text-sm text-gray-500 mt-1">RM {{ number_format($product->price, 2) }}</p>
+                                            @endif
                                         </button>
                                     @endforeach
                                 </div>
@@ -552,12 +556,30 @@
                         return;
                     }
 
-                    const existing = this.items.find(i => i.product_id === id);
+                    const existing = this.items.find(i => i.product_id === id && i.price === price);
                     if (existing) {
                         existing.qty++;
                     } else {
                         this.items.push({ product_id: id, name: name, price: price, qty: 1 });
                     }
+                },
+                addVariablePriceItem(id, name) {
+                    if (! this.hasSession) {
+                        return;
+                    }
+
+                    const input = prompt('Masukkan harga untuk ' + name + ' (RM):');
+                    if (input === null) {
+                        return;
+                    }
+
+                    const price = parseFloat(input.replace(',', '.'));
+                    if (isNaN(price) || price < 0) {
+                        alert('Harga tidak sah.');
+                        return;
+                    }
+
+                    this.addItem(id, name, Math.round(price * 100) / 100);
                 },
                 increment(index) {
                     this.items[index].qty++;
@@ -577,7 +599,7 @@
 
                 buildPayload() {
                     return {
-                        items: this.items.map(i => ({ product_id: i.product_id, qty: i.qty })),
+                        items: this.items.map(i => ({ product_id: i.product_id, qty: i.qty, unit_price: i.price })),
                         discount: this.discount || 0,
                         payment_method: this.paymentMethod,
                         order_type: this.orderType,

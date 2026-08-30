@@ -61,6 +61,7 @@ class PosController extends Controller
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.qty' => ['required', 'integer', 'min:1'],
+            'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:cash,qr,card'],
             'order_type' => ['required', Rule::in(array_keys(Order::TYPES))],
@@ -72,13 +73,23 @@ class PosController extends Controller
 
             foreach ($validated['items'] as $item) {
                 $product = Product::where('project_id', $project->id)->findOrFail($item['product_id']);
-                $lineSubtotal = $product->price * $item['qty'];
+
+                // Variable-price products (e.g. Add-On) have no fixed catalog
+                // price - staff enters it in the POS at sale time, so that
+                // client-supplied price is trusted here. Fixed-price
+                // products always use the server-side catalog price,
+                // ignoring whatever the client sent, so it can't be tampered with.
+                $unitPrice = $product->is_variable_price
+                    ? (float) ($item['unit_price'] ?? 0)
+                    : (float) $product->price;
+
+                $lineSubtotal = $unitPrice * $item['qty'];
                 $subtotal += $lineSubtotal;
 
                 $lineItems[] = [
                     'product_id' => $product->id,
                     'product_name' => $product->name,
-                    'unit_price' => $product->price,
+                    'unit_price' => $unitPrice,
                     'qty' => $item['qty'],
                     'subtotal' => $lineSubtotal,
                 ];

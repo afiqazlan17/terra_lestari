@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
-    protected $fillable = ['project_id', 'category_id', 'name', 'sku', 'price', 'cost', 'image_path', 'is_active', 'sort_order'];
+    protected $fillable = ['project_id', 'category_id', 'name', 'sku', 'price', 'is_variable_price', 'cost', 'image_path', 'is_active', 'sort_order'];
 
     protected $casts = [
         'price' => 'decimal:2',
         'cost' => 'decimal:2',
         'is_active' => 'boolean',
+        'is_variable_price' => 'boolean',
     ];
 
     public function project(): BelongsTo

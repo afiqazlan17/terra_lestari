@@ -25,6 +25,7 @@
             <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{
                 nextSkus: @js($nextSkus),
                 sku: '',
+                variablePrice: false,
                 onCategoryChange(categoryId) {
                     this.sku = this.nextSkus[categoryId] ?? '';
                 },
@@ -51,11 +52,17 @@
                     </div>
                     <div>
                         <x-input-label for="price" value="Harga (RM)" />
-                        <x-text-input id="price" name="price" type="number" step="0.01" min="0" class="mt-1 block w-full" required />
+                        <x-text-input id="price" name="price" type="number" step="0.01" min="0" class="mt-1 block w-full" x-bind:required="! variablePrice" x-bind:disabled="variablePrice" />
                     </div>
                     <div>
                         <x-input-label for="cost" value="Kos (RM)" />
                         <x-text-input id="cost" name="cost" type="number" step="0.01" min="0" class="mt-1 block w-full" />
+                    </div>
+                    <div class="sm:col-span-4 flex items-center gap-2 -mt-1">
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-600">
+                            <input type="checkbox" name="is_variable_price" value="1" x-model="variablePrice" class="rounded border-gray-300">
+                            Harga Boleh Ubah (contoh: Add-On - staff masukkan harga semasa jual)
+                        </label>
                     </div>
                     <div class="sm:col-span-4">
                         <x-input-error :messages="$errors->all()" class="mt-1" />
@@ -87,7 +94,13 @@
                                         <tr>
                                             <td class="px-6 py-3 text-gray-800 truncate">{{ $product->name }}</td>
                                             <td class="px-6 py-3 text-gray-500 truncate">{{ $product->sku ?: '-' }}</td>
-                                            <td class="px-6 py-3 text-gray-600 text-right tabular-nums whitespace-nowrap">RM {{ number_format($product->price, 2) }}</td>
+                                            <td class="px-6 py-3 text-right tabular-nums whitespace-nowrap">
+                                                @if ($product->is_variable_price)
+                                                    <span class="text-xs text-amber-600">Berubah</span>
+                                                @else
+                                                    <span class="text-gray-600">RM {{ number_format($product->price, 2) }}</span>
+                                                @endif
+                                            </td>
                                             <td class="px-6 py-3 text-gray-500 text-right tabular-nums whitespace-nowrap">{{ $product->cost !== null ? 'RM '.number_format($product->cost, 2) : '-' }}</td>
                                             <td class="px-6 py-3 whitespace-nowrap">
                                                 <span class="inline-flex rounded-full px-2 py-1 text-xs {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600' }}">
@@ -100,7 +113,7 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                        <tr x-show="editingProductId === {{ $product->id }}" x-cloak>
+                                        <tr x-show="editingProductId === {{ $product->id }}" x-cloak x-data="{ variablePrice: {{ $product->is_variable_price ? 'true' : 'false' }} }">
                                             <td colspan="6" class="px-6 py-3 bg-gray-50">
                                                 <form method="POST" action="{{ route('products.update', $product) }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                                     @csrf
@@ -115,17 +128,23 @@
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Harga (RM)</label>
-                                                        <input type="number" step="0.01" min="0" name="price" value="{{ $product->price }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                        <input type="number" step="0.01" min="0" name="price" value="{{ $product->price }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full" x-bind:required="! variablePrice" x-bind:disabled="variablePrice">
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Kos (RM)</label>
                                                         <input type="number" step="0.01" min="0" name="cost" value="{{ $product->cost }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                     </div>
                                                     <div class="sm:col-span-4 flex items-center justify-between pt-1">
-                                                        <label class="inline-flex items-center gap-2 text-sm text-gray-600">
-                                                            <input type="checkbox" name="is_active" value="1" @checked($product->is_active) class="rounded border-gray-300">
-                                                            Aktif
-                                                        </label>
+                                                        <div class="flex items-center gap-4">
+                                                            <label class="inline-flex items-center gap-2 text-sm text-gray-600">
+                                                                <input type="checkbox" name="is_active" value="1" @checked($product->is_active) class="rounded border-gray-300">
+                                                                Aktif
+                                                            </label>
+                                                            <label class="inline-flex items-center gap-2 text-sm text-gray-600">
+                                                                <input type="checkbox" name="is_variable_price" value="1" x-model="variablePrice" class="rounded border-gray-300">
+                                                                Harga Boleh Ubah
+                                                            </label>
+                                                        </div>
                                                         <div class="flex items-center gap-3">
                                                             <button type="button" @click="editingProductId = null" class="text-xs text-gray-500 hover:underline">Batal</button>
                                                             <x-primary-button type="submit" class="!py-1.5 !px-3 text-xs">Simpan</x-primary-button>
