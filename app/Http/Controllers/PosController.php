@@ -72,7 +72,7 @@ class PosController extends Controller
             $lineItems = [];
 
             foreach ($validated['items'] as $item) {
-                $product = Product::where('project_id', $project->id)->findOrFail($item['product_id']);
+                $product = Product::with('category')->where('project_id', $project->id)->findOrFail($item['product_id']);
 
                 // Variable-price products (e.g. Add-On) have no fixed catalog
                 // price - staff enters it in the POS at sale time, so that
@@ -83,12 +83,19 @@ class PosController extends Controller
                     ? (float) ($item['unit_price'] ?? 0)
                     : (float) $product->price;
 
+                // Variable-price items are prefixed with their category
+                // (e.g. "Add-On: Ayam Cincang") so the receipt still shows
+                // what was actually charged for, not just a bare item name.
+                $productName = $product->is_variable_price && $product->category
+                    ? "{$product->category->name}: {$product->name}"
+                    : $product->name;
+
                 $lineSubtotal = $unitPrice * $item['qty'];
                 $subtotal += $lineSubtotal;
 
                 $lineItems[] = [
                     'product_id' => $product->id,
-                    'product_name' => $product->name,
+                    'product_name' => $productName,
                     'unit_price' => $unitPrice,
                     'qty' => $item['qty'],
                     'subtotal' => $lineSubtotal,

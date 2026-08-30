@@ -69,7 +69,7 @@
                                     @foreach ($category->products as $product)
                                         <button type="button"
                                             :disabled="! hasSession"
-                                            @click="{{ $product->is_variable_price ? 'addVariablePriceItem' : 'addItem' }}({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }})"
+                                            @click="{{ $product->is_variable_price ? 'addVariablePriceItem' : 'addItem' }}({{ $product->id }}, '{{ $product->is_variable_price ? addslashes($category->name.': '.$product->name) : addslashes($product->name) }}', {{ $product->price }})"
                                             :class="hasSession ? 'hover:ring-2 hover:ring-amber-400 active:scale-95' : 'opacity-50 cursor-not-allowed'"
                                             class="bg-white shadow-sm rounded-lg p-4 text-left transition">
                                             <p class="font-medium text-gray-800">{{ $product->name }}</p>
