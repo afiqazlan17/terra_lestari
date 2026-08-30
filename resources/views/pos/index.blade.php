@@ -195,8 +195,7 @@
                 <template x-if="confirming">
                     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                         <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 font-mono">
-                            <h1 class="text-center font-bold text-lg">SAJIAN BAGINDA</h1>
-                            <p class="text-center text-xs text-gray-500">Warisan Rasa Pantai Timur</p>
+                            <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[180px] w-full h-auto mb-2">
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
                             <p class="text-xs text-gray-500">
                                 No. Resit: <span :class="! orderResult && 'italic'" x-text="orderResult ? orderResult.orderNumber : 'Belum dijana'"></span><br>
@@ -354,6 +353,7 @@
         const POS_PENDING_KEY = 'sb_pending_orders';
         const PAPER_58MM = {{ $project->receipt_paper_width === '58mm' ? 'true' : 'false' }};
         const ORDERS_BASE_URL = '{{ url('/orders') }}';
+        const LOGO_URL = '{{ asset('images/logo.png') }}';
 
         // Shared by posCart and orderHistory - prints via whatever Bluetooth
         // printer is already connected in this page's live session, forcing
@@ -771,6 +771,7 @@
                             * { box-sizing: border-box; }
                             body { font-family: 'Courier New', monospace; width: ${PAPER_58MM ? '220px' : '300px'}; margin: 0 auto; padding: ${PAPER_58MM ? '10px' : '16px'}; font-size: ${PAPER_58MM ? '11px' : '13px'}; color: #111; }
                             h1 { font-size: ${PAPER_58MM ? '14px' : '16px'}; text-align: center; margin: 0 0 4px; }
+                            .logo { display: block; max-width: ${PAPER_58MM ? '150px' : '200px'}; width: 100%; height: auto; margin: 0 auto 8px; }
                             .center { text-align: center; }
                             .muted { color: #555; font-size: ${PAPER_58MM ? '9px' : '11px'}; }
                             .divider { border-top: 1px dashed #999; margin: ${PAPER_58MM ? '6px' : '8px'} 0; }
@@ -780,8 +781,7 @@
                             .grand { font-weight: bold; font-size: ${PAPER_58MM ? '12px' : '14px'}; }
                             .pending-badge { text-align: center; background: #fef3c7; color: #92400e; padding: 6px; font-size: 11px; margin-bottom: 8px; border-radius: 4px; }
                         </style></head><body>
-                            <h1>SAJIAN BAGINDA</h1>
-                            <p class="center muted">Warisan Rasa Pantai Timur</p>
+                            <img src="${LOGO_URL}" alt="Sajian Baginda" class="logo">
                             <div class="pending-badge">MENUNGGU SYNC — akan dapat No. Resit rasmi bila online</div>
                             <div class="divider"></div>
                             <p class="muted">
