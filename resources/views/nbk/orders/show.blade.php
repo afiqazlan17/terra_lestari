@@ -11,37 +11,56 @@
 
     <div class="py-8">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
-            <div class="flex justify-end gap-2 no-print">
-                @unless ($order->isPaid())
-                    <a href="{{ route('nbk.orders.edit', $order) }}"
-                        class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
-                        Edit Kuantiti
-                    </a>
-                    <form method="POST" action="{{ route('nbk.orders.destroy', $order) }}" onsubmit="return confirm('Padam memo order ini? Tindakan ini tidak boleh diundur.')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="inline-flex items-center gap-1.5 bg-white border border-red-300 hover:bg-red-50 text-red-600 text-sm font-medium px-3 py-1.5 rounded-lg">
-                            Padam
-                        </button>
-                    </form>
-                    @if (auth()->user()->hasFullAccess())
-                        <form method="POST" action="{{ route('nbk.orders.paid', $order) }}" onsubmit="return confirm('Tandai memo ini sebagai dibayar? Ia akan direkodkan terus dalam Belian.')">
+            <div x-data="{ payFormOpen: {{ $errors->any() ? 'true' : 'false' }} }" class="space-y-4 no-print">
+                <div class="flex justify-end gap-2">
+                    @unless ($order->isPaid())
+                        <a href="{{ route('nbk.orders.edit', $order) }}"
+                            class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                            Edit Kuantiti
+                        </a>
+                        <form method="POST" action="{{ route('nbk.orders.destroy', $order) }}" onsubmit="return confirm('Padam memo order ini? Tindakan ini tidak boleh diundur.')">
                             @csrf
-                            @method('PATCH')
-                            <button type="submit" class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg">
-                                Tandai Dibayar
+                            @method('DELETE')
+                            <button type="submit" class="inline-flex items-center gap-1.5 bg-white border border-red-300 hover:bg-red-50 text-red-600 text-sm font-medium px-3 py-1.5 rounded-lg">
+                                Padam
                             </button>
                         </form>
+                        @if (auth()->user()->hasFullAccess())
+                            <button type="button" @click="payFormOpen = ! payFormOpen"
+                                class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg">
+                                Tandai Dibayar
+                            </button>
+                        @endif
+                    @endunless
+                    <button type="button" onclick="window.print()"
+                        class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                        Print / Simpan PDF
+                    </button>
+                    <a href="{{ route('nbk.orders.index') }}"
+                        class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
+                        Kembali
+                    </a>
+                </div>
+
+                @unless ($order->isPaid())
+                    @if (auth()->user()->hasFullAccess())
+                        <div x-show="payFormOpen" x-cloak>
+                            <div class="bg-white shadow-sm sm:rounded-lg p-4 border border-green-200">
+                                <form method="POST" action="{{ route('nbk.orders.paid', $order) }}" enctype="multipart/form-data"
+                                    onsubmit="return confirm('Tandai memo ini sebagai dibayar? Ia akan direkodkan terus dalam Belian.')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <label class="block text-sm text-gray-600 mb-1">Resit / Bukti Bayaran (pilihan)</label>
+                                    <input type="file" name="receipt" accept="image/*,.pdf" class="block w-full text-sm text-gray-600 mb-3">
+                                    <x-input-error :messages="$errors->all()" class="mb-2" />
+                                    <button type="submit" class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg">
+                                        Sahkan &amp; Rekod dalam Belian
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     @endif
                 @endunless
-                <button type="button" onclick="window.print()"
-                    class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
-                    Print / Simpan PDF
-                </button>
-                <a href="{{ route('nbk.orders.index') }}"
-                    class="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1.5 rounded-lg">
-                    Kembali
-                </a>
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
@@ -61,6 +80,9 @@
                     <div class="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg p-3 mb-4">
                         Dibayar oleh {{ $order->paidBy->name }} pada {{ $order->paid_at->format('d F Y, H:i') }}.
                         Direkodkan dalam Belian (#{{ $order->purchase_id }}).
+                        @if ($order->purchase?->receipt_path)
+                            <a href="{{ Storage::url($order->purchase->receipt_path) }}" target="_blank" class="underline font-medium">Lihat Resit</a>
+                        @endif
                     </div>
                 @endif
 

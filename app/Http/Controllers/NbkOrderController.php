@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\StoresReceipts;
 use App\Models\NbkOrder;
 use App\Models\NbkProduct;
 use App\Models\Project;
 use App\Models\Purchase;
+use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +15,8 @@ use Illuminate\View\View;
 
 class NbkOrderController extends Controller
 {
+    use StoresReceipts;
+
     public function index(Request $request): View
     {
         $project = $request->user()->currentProject();
@@ -76,7 +80,7 @@ class NbkOrderController extends Controller
     {
         abort_unless($nbkOrder->project_id === $request->user()->currentProject()?->id, 403);
 
-        $nbkOrder->load(['items', 'createdBy', 'paidBy']);
+        $nbkOrder->load(['items', 'createdBy', 'paidBy', 'purchase']);
 
         return view('nbk.orders.show', [
             'order' => $nbkOrder,
@@ -148,7 +152,17 @@ class NbkOrderController extends Controller
         abort_unless($request->user()->hasFullAccess(), 403, 'Hanya owner/superuser boleh tandai order NBK dibayar.');
         abort_if($nbkOrder->isPaid(), 422, 'Order ini sudah ditandai dibayar.');
 
-        DB::transaction(function () use ($nbkOrder, $request) {
+        $request->validate([
+            'receipt' => ['nullable', 'file', 'max:8192', new ValidReceiptFile],
+        ]);
+
+        $receiptPath = null;
+
+        if ($request->hasFile('receipt')) {
+            $receiptPath = $this->storeReceipt($request->file('receipt'), 'receipts/'.$nbkOrder->project_id);
+        }
+
+        DB::transaction(function () use ($nbkOrder, $request, $receiptPath) {
             $purchase = Purchase::create([
                 'project_id' => $nbkOrder->project_id,
                 'recorded_by' => $request->user()->id,
@@ -157,6 +171,7 @@ class NbkOrderController extends Controller
                 'supplier_name' => 'NBK - Nasi Berlauk Kelantan',
                 'description' => 'Belian NBK (Memo #'.$nbkOrder->id.')',
                 'amount' => $nbkOrder->total_buy,
+                'receipt_path' => $receiptPath,
                 'notes' => $nbkOrder->items->count().' produk, memo #'.$nbkOrder->id,
             ]);
 
