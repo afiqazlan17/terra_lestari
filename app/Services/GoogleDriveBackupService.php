@@ -74,6 +74,21 @@ class GoogleDriveBackupService
     }
 
     /**
+     * Rename an already-uploaded file, e.g. after the amount/supplier/
+     * description it was named after got corrected post-backup.
+     */
+    public function renameFile(string $fileId, string $newName): void
+    {
+        $response = Http::withToken($this->accessToken())
+            ->timeout(15)
+            ->patch("https://www.googleapis.com/drive/v3/files/{$fileId}", ['name' => $newName]);
+
+        if ($response->failed()) {
+            throw new RuntimeException('Google Drive file rename failed: '.$response->status().' '.$response->body());
+        }
+    }
+
+    /**
      * Upload a file (given a path on the `public` disk) into a dated subfolder
      * of the backup root, creating that subfolder if it doesn't exist yet.
      * Returns the created Drive file ID.

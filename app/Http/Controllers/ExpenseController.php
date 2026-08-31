@@ -140,9 +140,7 @@ class ExpenseController extends Controller
                 ...($receiptPath ? ['receipt_path' => $receiptPath] : []),
             ]);
 
-            if ($dateChanged) {
-                $driveWarning = $this->syncDriveFolderForDateChange($expense);
-            }
+            $driveWarning = $this->syncDriveFileAfterEdit($expense, $dateChanged);
         }
 
         $redirect = back()->with('success', 'Perbelanjaan dikemaskini.');

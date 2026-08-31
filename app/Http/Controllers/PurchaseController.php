@@ -134,9 +134,7 @@ class PurchaseController extends Controller
                 ...($receiptPath ? ['receipt_path' => $receiptPath] : []),
             ]);
 
-            if ($dateChanged) {
-                $driveWarning = $this->syncDriveFolderForDateChange($purchase);
-            }
+            $driveWarning = $this->syncDriveFileAfterEdit($purchase, $dateChanged);
         }
 
         $redirect = back()->with('success', 'Belian dikemaskini.');
