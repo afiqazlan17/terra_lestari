@@ -62,7 +62,7 @@
                                                     @if ($purchase->drive_backed_up_at)
                                                         <span class="text-green-600" title="Disandarkan ke Google Drive pada {{ $purchase->drive_backed_up_at->format('d/m/Y H:i') }}">Backup Completed in Google Drive</span>
                                                     @else
-                                                        <span class="text-gray-400" title="Akan disandarkan pada backup malam seterusnya">Pending backup on 9:00 PM</span>
+                                                        <span class="text-gray-400" title="Akan disandarkan pada backup malam seterusnya">Pending backup on 7:00 PM</span>
                                                     @endif
                                                 @else
                                                     <span class="text-gray-300">Tiada resit</span>
