@@ -59,6 +59,11 @@
                                             <div class="flex flex-wrap items-center gap-4 text-xs">
                                                 @if ($purchase->receipt_path)
                                                     <a href="{{ Storage::url($purchase->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat Resit</a>
+                                                    @if ($purchase->drive_backed_up_at)
+                                                        <span class="text-green-600" title="Disandarkan ke Google Drive pada {{ $purchase->drive_backed_up_at->format('d/m/Y H:i') }}">Disandar ke Drive</span>
+                                                    @else
+                                                        <span class="text-gray-400" title="Akan disandarkan pada backup malam seterusnya">Belum disandar</span>
+                                                    @endif
                                                 @else
                                                     <span class="text-gray-300">Tiada resit</span>
                                                 @endif
