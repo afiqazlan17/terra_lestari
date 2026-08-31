@@ -55,9 +55,12 @@
                                         <td class="px-4 py-3 whitespace-nowrap {{ $expense->isVoided() ? 'line-through text-gray-400' : 'text-gray-600' }}">{{ $expense->supplier_name ?? '-' }}</td>
                                         <td class="px-4 py-3 text-right font-medium whitespace-nowrap {{ $expense->isVoided() ? 'line-through text-gray-400' : 'text-gray-900' }}">RM {{ number_format($expense->amount, 2) }}</td>
                                         <td class="px-4 py-3 text-right whitespace-nowrap">
-                                            <button type="button" @click="manageOpenId = manageOpenId === {{ $expense->id }} ? null : {{ $expense->id }}" class="text-amber-600 hover:underline text-xs">
-                                                Manage
-                                            </button>
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <button type="button" @click="manageOpenId = manageOpenId === {{ $expense->id }} ? null : {{ $expense->id }}" class="text-amber-600 hover:underline text-xs">
+                                                    Manage
+                                                </button>
+                                                <x-drive-backup-badge :record="$expense" />
+                                            </span>
                                         </td>
                                     </tr>
                                     <tr x-show="manageOpenId === {{ $expense->id }}" x-cloak x-data="{ editing: false, showLog: false }">
