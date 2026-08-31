@@ -86,9 +86,16 @@ class ExpenseController extends Controller
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'receipt' => ['nullable', 'file', 'max:8192', new ValidReceiptFile],
         ]);
 
         $changes = [];
+        $receiptPath = null;
+
+        if ($request->hasFile('receipt') && ! $expense->receipt_path) {
+            $receiptPath = $this->storeReceipt($request->file('receipt'), 'receipts/'.$expense->project_id);
+            $changes[] = 'Resit: ditambah';
+        }
 
         if ((float) $expense->amount !== (float) $validated['amount']) {
             $changes[] = sprintf('Jumlah: RM %s → RM %s', number_format($expense->amount, 2), number_format($validated['amount'], 2));
@@ -128,6 +135,7 @@ class ExpenseController extends Controller
                 'description' => $validated['description'],
                 'amount' => $validated['amount'],
                 'notes' => $validated['notes'] ?? null,
+                ...($receiptPath ? ['receipt_path' => $receiptPath] : []),
             ]);
         }
 

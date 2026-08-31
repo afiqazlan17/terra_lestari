@@ -60,9 +60,9 @@
                                                 @if ($purchase->receipt_path)
                                                     <a href="{{ Storage::url($purchase->receipt_path) }}" target="_blank" class="text-amber-600 hover:underline">Lihat Resit</a>
                                                     @if ($purchase->drive_backed_up_at)
-                                                        <span class="text-green-600" title="Disandarkan ke Google Drive pada {{ $purchase->drive_backed_up_at->format('d/m/Y H:i') }}">Disandar ke Drive</span>
+                                                        <span class="text-green-600" title="Disandarkan ke Google Drive pada {{ $purchase->drive_backed_up_at->format('d/m/Y H:i') }}">Backup Completed in Google Drive</span>
                                                     @else
-                                                        <span class="text-gray-400" title="Akan disandarkan pada backup malam seterusnya">Belum disandar</span>
+                                                        <span class="text-gray-400" title="Akan disandarkan pada backup malam seterusnya">Pending backup on 9:00 PM</span>
                                                     @endif
                                                 @else
                                                     <span class="text-gray-300">Tiada resit</span>
@@ -89,7 +89,7 @@
                                             </div>
 
                                             <div x-show="editing" x-cloak class="mt-3 pt-3 border-t border-gray-200">
-                                                <form method="POST" action="{{ route('purchases.update', $purchase) }}" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                                <form method="POST" action="{{ route('purchases.update', $purchase) }}" enctype="multipart/form-data" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                                     @csrf
                                                     @method('PATCH')
                                                     <div>
@@ -108,6 +108,12 @@
                                                         <label class="block text-xs text-gray-500 mb-1">Jumlah (RM)</label>
                                                         <input type="number" step="0.01" min="0" name="amount" value="{{ $purchase->amount }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                     </div>
+                                                    @unless ($purchase->receipt_path)
+                                                        <div class="sm:col-span-3">
+                                                            <label class="block text-xs text-gray-500 mb-1">Tambah Resit</label>
+                                                            <input type="file" name="receipt" accept="image/*,.pdf" class="block w-full text-xs text-gray-600">
+                                                        </div>
+                                                    @endunless
                                                     <div class="sm:col-span-3">
                                                         <label class="block text-xs text-gray-500 mb-1">Nota</label>
                                                         <input type="text" name="notes" value="{{ $purchase->notes }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
