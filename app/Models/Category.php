@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
-    protected $fillable = ['project_id', 'name', 'sku_prefix', 'sort_order'];
+    protected $fillable = ['project_id', 'name', 'sku_prefix', 'sort_order', 'tile_shape', 'color_by_price'];
+
+    protected $casts = [
+        'color_by_price' => 'boolean',
+    ];
 
     public function project(): BelongsTo
     {

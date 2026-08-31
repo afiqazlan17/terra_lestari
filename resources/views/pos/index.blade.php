@@ -61,22 +61,50 @@
 
                 {{-- Menu grid --}}
                 <div class="lg:col-span-2 space-y-6">
+                    @php
+                        $tierClasses = [
+                            1 => 'border bg-blue-50 border-blue-200 text-blue-900',
+                            2 => 'border bg-emerald-50 border-emerald-200 text-emerald-900',
+                            3 => 'border bg-amber-50 border-amber-200 text-amber-900',
+                            4 => 'border bg-pink-50 border-pink-200 text-pink-900',
+                        ];
+                    @endphp
                     @forelse ($categories as $category)
                         @if ($category->products->isNotEmpty())
+                            @php
+                                $isSquare = $category->tile_shape === 'square';
+                                $priceTiers = [];
+                                if ($category->color_by_price) {
+                                    $distinctPrices = $category->products->pluck('price')->map(fn ($p) => (float) $p)->unique()->sort()->values();
+                                    foreach ($distinctPrices as $tierIndex => $tierPrice) {
+                                        $priceTiers[number_format($tierPrice, 2)] = $tierIndex + 1;
+                                    }
+                                }
+                            @endphp
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">{{ $category->name }}</h3>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <div class="grid {{ $isSquare ? 'grid-cols-3 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3' }} gap-3">
                                     @foreach ($category->products as $product)
+                                        @php
+                                            $tier = $priceTiers[number_format((float) $product->price, 2)] ?? null;
+                                            $colorClasses = $tier ? $tierClasses[$tier] : 'bg-white';
+                                            $displayName = $product->name;
+                                            $parenPart = null;
+                                            if (str_contains($displayName, ' (')) {
+                                                [$displayName, $rest] = explode(' (', $displayName, 2);
+                                                $parenPart = '('.$rest;
+                                            }
+                                        @endphp
                                         <button type="button"
                                             :disabled="! hasSession"
                                             @click="{{ $product->is_variable_price ? 'addVariablePriceItem' : 'addItem' }}({{ $product->id }}, '{{ $product->is_variable_price ? addslashes($category->name.': '.$product->name) : addslashes($product->name) }}', {{ $product->price }})"
                                             :class="hasSession ? 'hover:ring-2 hover:ring-amber-400 active:scale-95' : 'opacity-50 cursor-not-allowed'"
-                                            class="bg-white shadow-sm rounded-lg p-4 text-left transition">
-                                            <p class="font-medium text-gray-800">{{ $product->name }}</p>
+                                            class="{{ $colorClasses }} shadow-sm rounded-lg text-left transition {{ $isSquare ? 'aspect-square p-3 flex flex-col justify-center' : 'p-4' }}">
+                                            <p class="font-medium {{ $tier ? '' : 'text-gray-800' }} {{ $isSquare ? 'text-xs' : '' }} leading-tight">{{ $displayName }}@if ($parenPart)<br>{{ $parenPart }}@endif</p>
                                             @if ($product->is_variable_price)
                                                 <p class="text-sm text-amber-600 mt-1">Harga berubah</p>
                                             @else
-                                                <p class="text-sm text-gray-500 mt-1">RM {{ number_format($product->price, 2) }}</p>
+                                                <p class="{{ $isSquare ? 'text-xs' : 'text-sm' }} {{ $tier ? 'opacity-80' : 'text-gray-500' }} mt-1">RM {{ number_format($product->price, 2) }}</p>
                                             @endif
                                         </button>
                                     @endforeach
