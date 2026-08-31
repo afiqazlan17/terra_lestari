@@ -83,7 +83,7 @@
                             @endphp
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">{{ $category->name }}</h3>
-                                <div class="grid {{ $isSquare ? 'grid-cols-3 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3' }} gap-3">
+                                <div class="grid {{ $isSquare ? 'grid-cols-3 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3' }} gap-3">
                                     @foreach ($category->products as $product)
                                         @php
                                             $tier = $priceTiers[number_format((float) $product->price, 2)] ?? null;
@@ -99,7 +99,7 @@
                                             :disabled="! hasSession"
                                             @click="{{ $product->is_variable_price ? 'addVariablePriceItem' : 'addItem' }}({{ $product->id }}, '{{ $product->is_variable_price ? addslashes($category->name.': '.$product->name) : addslashes($product->name) }}', {{ $product->price }})"
                                             :class="hasSession ? 'hover:ring-2 hover:ring-amber-400 active:scale-95' : 'opacity-50 cursor-not-allowed'"
-                                            class="{{ $colorClasses }} shadow-sm rounded-lg text-left transition {{ $isSquare ? 'aspect-square p-3 flex flex-col justify-center' : 'p-4' }}">
+                                            class="{{ $colorClasses }} shadow-sm rounded-lg text-left transition {{ $isSquare ? 'aspect-square p-2 flex flex-col justify-center' : 'p-4' }}">
                                             <p class="font-medium {{ $tier ? '' : 'text-gray-800' }} {{ $isSquare ? 'text-xs' : '' }} leading-tight">{{ $displayName }}@if ($parenPart)<br>{{ $parenPart }}@endif</p>
                                             @if ($product->is_variable_price)
                                                 <p class="text-sm text-amber-600 mt-1">Harga berubah</p>
