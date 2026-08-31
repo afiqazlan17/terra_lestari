@@ -322,7 +322,8 @@
                 await Passkeys.register({ name });
                 window.location.reload();
             } catch (e) {
-                errorEl.textContent = 'Pendaftaran Face ID/Passkey gagal. Sila cuba lagi.';
+                console.error('Passkey registration error:', e);
+                errorEl.textContent = 'Pendaftaran gagal: ' + (e?.message || e?.name || String(e));
                 button.disabled = false;
             }
         });

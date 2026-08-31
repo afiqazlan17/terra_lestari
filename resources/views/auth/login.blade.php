@@ -67,7 +67,8 @@
                 const { redirect } = await Passkeys.verify();
                 window.location.href = redirect || '/';
             } catch (e) {
-                errorEl.textContent = 'Log masuk Face ID/Passkey gagal. Sila cuba lagi atau guna emel & kata laluan.';
+                console.error('Passkey login error:', e);
+                errorEl.textContent = 'Log masuk gagal: ' + (e?.message || e?.name || String(e));
                 button.disabled = false;
             }
         });
