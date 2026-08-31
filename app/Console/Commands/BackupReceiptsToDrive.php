@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
 #[Signature('app:backup-receipts-to-drive')]
-#[Description('Uploads yesterday\'s Belian/Perbelanjaan receipt images to Google Drive, organised into per-date subfolders, for redundancy and tax audit purposes.')]
+#[Description('Uploads any not-yet-backed-up Belian/Perbelanjaan receipt images to Google Drive, organised into per-date subfolders (by the receipt\'s own date, not when it was entered), for redundancy and tax audit purposes. Idempotent regardless of what time it runs - only ever processes receipts that have never been uploaded before.')]
 class BackupReceiptsToDrive extends Command
 {
     public function handle(): void
@@ -38,17 +38,14 @@ class BackupReceiptsToDrive extends Command
             return;
         }
 
-        $since = now()->subDay()->startOfDay();
-        $until = now()->startOfDay();
-
         $purchases = Purchase::query()
             ->whereNotNull('receipt_path')
             ->whereNull('voided_at')
-            ->whereBetween('created_at', [$since, $until])
+            ->whereNull('drive_backed_up_at')
             ->get();
 
         if ($purchases->isEmpty()) {
-            $this->info("No receipts recorded between {$since} and {$until}. Nothing to back up.");
+            $this->info('No unbacked-up receipts found. Nothing to back up.');
 
             return;
         }
@@ -77,6 +74,7 @@ class BackupReceiptsToDrive extends Command
 
             try {
                 $service->uploadReceipt($purchase->receipt_path, $dateFolder, $driveFileName);
+                $purchase->update(['drive_backed_up_at' => now()]);
                 $uploaded++;
             } catch (\Throwable $e) {
                 $this->error("Purchase #{$purchase->id}: upload failed - {$e->getMessage()}");
