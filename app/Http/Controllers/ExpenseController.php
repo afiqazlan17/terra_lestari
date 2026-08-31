@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\StoresReceipts;
+use App\Http\Controllers\Concerns\SyncsDriveBackupFolder;
 use App\Models\Purchase;
 use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
@@ -13,7 +14,7 @@ use Illuminate\View\View;
 
 class ExpenseController extends Controller
 {
-    use StoresReceipts;
+    use StoresReceipts, SyncsDriveBackupFolder;
 
     public function index(Request $request): View
     {
@@ -102,7 +103,8 @@ class ExpenseController extends Controller
         }
 
         $newDate = Carbon::parse($validated['purchase_date']);
-        if (! $expense->purchase_date->isSameDay($newDate)) {
+        $dateChanged = ! $expense->purchase_date->isSameDay($newDate);
+        if ($dateChanged) {
             $changes[] = sprintf('Tarikh: %s → %s', $expense->purchase_date->format('d F Y'), $newDate->format('d F Y'));
         }
 
@@ -137,9 +139,15 @@ class ExpenseController extends Controller
                 'notes' => $validated['notes'] ?? null,
                 ...($receiptPath ? ['receipt_path' => $receiptPath] : []),
             ]);
+
+            if ($dateChanged) {
+                $driveWarning = $this->syncDriveFolderForDateChange($expense);
+            }
         }
 
-        return back()->with('success', 'Perbelanjaan dikemaskini.');
+        $redirect = back()->with('success', 'Perbelanjaan dikemaskini.');
+
+        return isset($driveWarning) && $driveWarning ? $redirect->with('error', $driveWarning) : $redirect;
     }
 
     public function void(Request $request, Purchase $expense): RedirectResponse

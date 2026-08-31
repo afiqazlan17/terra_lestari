@@ -35,7 +35,7 @@ class Purchase extends Model
 
     protected $fillable = [
         'project_id', 'recorded_by', 'category', 'purchase_date', 'supplier_name',
-        'description', 'amount', 'receipt_path', 'drive_backed_up_at', 'notes',
+        'description', 'amount', 'receipt_path', 'drive_backed_up_at', 'drive_file_id', 'notes',
         'void_reason', 'voided_at', 'voided_by',
     ];
 

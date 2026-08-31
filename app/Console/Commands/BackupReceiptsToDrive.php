@@ -15,25 +15,10 @@ class BackupReceiptsToDrive extends Command
 {
     public function handle(): void
     {
-        $tokenPath = storage_path('app/private/google-drive-oauth-token.json');
-        $rootFolderId = config('services.google_drive.backup_folder_id');
+        $service = GoogleDriveBackupService::fromConfig();
 
-        if (! file_exists($tokenPath)) {
-            $this->error("OAuth token file not found at {$tokenPath}. Visit /google-drive/authorize while logged in as owner to set it up. Skipping backup.");
-
-            return;
-        }
-
-        if (! $rootFolderId) {
-            $this->error('GOOGLE_DRIVE_BACKUP_FOLDER_ID is not set. Skipping backup.');
-
-            return;
-        }
-
-        $token = json_decode(file_get_contents($tokenPath), true);
-
-        if (empty($token['refresh_token']) || empty($token['client_id']) || empty($token['client_secret'])) {
-            $this->error("OAuth token file at {$tokenPath} is malformed. Skipping backup.");
+        if (! $service) {
+            $this->error('Google Drive OAuth token or GOOGLE_DRIVE_BACKUP_FOLDER_ID is not set up. Visit /google-drive/authorize while logged in as owner. Skipping backup.');
 
             return;
         }
@@ -49,13 +34,6 @@ class BackupReceiptsToDrive extends Command
 
             return;
         }
-
-        $service = new GoogleDriveBackupService(
-            $token['client_id'],
-            $token['client_secret'],
-            $token['refresh_token'],
-            $rootFolderId,
-        );
 
         $uploaded = 0;
         $skipped = 0;
@@ -73,8 +51,8 @@ class BackupReceiptsToDrive extends Command
             $driveFileName = $purchase->driveBackupFileName($extension);
 
             try {
-                $service->uploadReceipt($purchase->receipt_path, $dateFolder, $driveFileName);
-                $purchase->update(['drive_backed_up_at' => now()]);
+                $fileId = $service->uploadReceipt($purchase->receipt_path, $dateFolder, $driveFileName);
+                $purchase->update(['drive_backed_up_at' => now(), 'drive_file_id' => $fileId]);
                 $uploaded++;
             } catch (\Throwable $e) {
                 $this->error("Purchase #{$purchase->id}: upload failed - {$e->getMessage()}");

@@ -20,6 +20,60 @@ class GoogleDriveBackupService
     }
 
     /**
+     * Build an instance from the OAuth token file + config, or null if either
+     * isn't set up yet (so callers can skip gracefully instead of crashing).
+     */
+    public static function fromConfig(): ?self
+    {
+        $tokenPath = storage_path('app/private/google-drive-oauth-token.json');
+        $rootFolderId = config('services.google_drive.backup_folder_id');
+
+        if (! file_exists($tokenPath) || ! $rootFolderId) {
+            return null;
+        }
+
+        $token = json_decode(file_get_contents($tokenPath), true);
+
+        if (empty($token['refresh_token']) || empty($token['client_id']) || empty($token['client_secret'])) {
+            return null;
+        }
+
+        return new self($token['client_id'], $token['client_secret'], $token['refresh_token'], $rootFolderId);
+    }
+
+    /**
+     * Move an already-uploaded file into a (possibly different) dated
+     * subfolder, e.g. after a receipt's date was corrected post-backup.
+     * Creates the destination subfolder if it doesn't exist yet.
+     */
+    public function moveFileToDateFolder(string $fileId, string $dateFolder): void
+    {
+        $current = Http::withToken($this->accessToken())
+            ->timeout(15)
+            ->get("https://www.googleapis.com/drive/v3/files/{$fileId}", ['fields' => 'parents']);
+
+        if ($current->failed()) {
+            throw new RuntimeException('Google Drive file lookup failed: '.$current->status().' '.$current->body());
+        }
+
+        $oldParents = implode(',', $current->json('parents') ?? []);
+        $newFolderId = $this->findOrCreateDateFolder($dateFolder);
+
+        $query = http_build_query(array_filter([
+            'addParents' => $newFolderId,
+            'removeParents' => $oldParents,
+        ]));
+
+        $response = Http::withToken($this->accessToken())
+            ->timeout(15)
+            ->patch("https://www.googleapis.com/drive/v3/files/{$fileId}?{$query}");
+
+        if ($response->failed()) {
+            throw new RuntimeException('Google Drive file move failed: '.$response->status().' '.$response->body());
+        }
+    }
+
+    /**
      * Upload a file (given a path on the `public` disk) into a dated subfolder
      * of the backup root, creating that subfolder if it doesn't exist yet.
      * Returns the created Drive file ID.
