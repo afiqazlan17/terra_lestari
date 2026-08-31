@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\PasskeyLoginResponse;
 use Illuminate\Filesystem\LocalFilesystemAdapter as IlluminateLocalFilesystemAdapter;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passkeys\Contracts\PasskeyLoginResponse as PasskeyLoginResponseContract;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\PathPrefixing\PathPrefixedAdapter;
@@ -21,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(PasskeyLoginResponseContract::class, PasskeyLoginResponse::class);
     }
 
     /**

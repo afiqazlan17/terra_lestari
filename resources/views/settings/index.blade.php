@@ -18,6 +18,37 @@
                 </form>
             </div>
 
+            <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data x-show="typeof Passkeys !== 'undefined' && Passkeys.isSupported()" x-cloak>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase mb-1">Face ID / Passkey</h3>
+                <p class="text-xs text-gray-400 mb-4">Log masuk terus guna Face ID, Touch ID atau kunci skrin telefon/komputer ini, tanpa perlu taip emel &amp; kata laluan setiap kali.</p>
+
+                <ul class="divide-y divide-gray-100 mb-4" id="passkey-list">
+                    @forelse ($passkeys as $passkey)
+                        <li class="flex items-center justify-between py-2 text-sm" data-passkey-id="{{ $passkey->id }}">
+                            <span class="text-gray-700">
+                                {{ $passkey->name }}
+                                <span class="text-xs text-gray-400 block">
+                                    @if ($passkey->last_used_at)
+                                        Kali terakhir digunakan: {{ $passkey->last_used_at->format('d/m/Y H:i') }}
+                                    @else
+                                        Belum pernah digunakan
+                                    @endif
+                                </span>
+                            </span>
+                            <button type="button" class="text-red-500 hover:underline text-xs" data-passkey-delete="{{ $passkey->id }}">Padam</button>
+                        </li>
+                    @empty
+                        <li class="py-2 text-sm text-gray-400" id="passkey-empty-state">Tiada passkey didaftarkan lagi.</li>
+                    @endforelse
+                </ul>
+
+                <button type="button" id="passkey-register-button"
+                    class="inline-flex items-center gap-2 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    + Daftar Face ID / Passkey
+                </button>
+                <p id="passkey-register-error" class="text-sm text-red-600 mt-2" x-cloak></p>
+            </div>
+
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-4">Lebar Kertas Resit</h3>
                 <form method="POST" action="{{ route('settings.paper-width') }}" class="flex items-center gap-3">
@@ -275,5 +306,51 @@
                 },
             };
         }
+
+        document.getElementById('passkey-register-button')?.addEventListener('click', async (event) => {
+            const button = event.currentTarget;
+            const errorEl = document.getElementById('passkey-register-error');
+            errorEl.textContent = '';
+
+            const name = prompt('Nama untuk peranti ini (contoh: iPhone Afiq):', 'iPhone');
+            if (! name) {
+                return;
+            }
+
+            button.disabled = true;
+            try {
+                await Passkeys.register({ name });
+                window.location.reload();
+            } catch (e) {
+                errorEl.textContent = 'Pendaftaran Face ID/Passkey gagal. Sila cuba lagi.';
+                button.disabled = false;
+            }
+        });
+
+        document.getElementById('passkey-list')?.addEventListener('click', async (event) => {
+            const button = event.target.closest('[data-passkey-delete]');
+            if (! button) {
+                return;
+            }
+
+            if (! confirm('Padam passkey ini?')) {
+                return;
+            }
+
+            const id = button.dataset.passkeyDelete;
+            const response = await fetch(`/user/passkeys/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Gagal padam passkey.');
+            }
+        });
     </script>
 </x-app-layout>

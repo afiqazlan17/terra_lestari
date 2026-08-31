@@ -10,6 +10,7 @@
         "anthropic-ai/sdk": "^0.44.0",
         "google/auth": "^1.53",
         "laravel/framework": "^13.17",
+        "laravel/passkeys": "^0.2.1",
         "laravel/tinker": "^3.0"
     },
     "require-dev": {

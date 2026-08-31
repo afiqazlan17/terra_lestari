@@ -36,6 +36,7 @@ class SettingsController extends Controller
             'user' => $request->user(),
             'counts' => $counts,
             'project' => $request->user()->currentProject(),
+            'passkeys' => $request->user()->passkeys()->latest()->get(),
         ]);
     }
 

@@ -1,9 +1,11 @@
 
 
 import Alpine from 'alpinejs';
+import { Passkeys } from '@laravel/passkeys';
 import './bluetooth-printer';
 
 window.Alpine = Alpine;
+window.Passkeys = Passkeys;
 
 document.addEventListener('alpine:init', () => {
     Alpine.store('connectivity', {
