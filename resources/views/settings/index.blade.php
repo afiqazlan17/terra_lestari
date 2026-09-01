@@ -18,6 +18,35 @@
                 </form>
             </div>
 
+            @if ($user->hasFullAccess())
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase mb-1">PIN Log Masuk</h3>
+                    <p class="text-xs text-gray-400 mb-4">
+                        Set PIN 6-digit untuk log masuk pantas (halaman "Log masuk guna PIN"), tanpa perlu taip emel &amp; kata laluan setiap kali.
+                        @if ($user->pin)
+                            <span class="text-green-600 font-medium">PIN sudah ditetapkan.</span>
+                        @else
+                            <span class="text-amber-600 font-medium">Belum ada PIN ditetapkan.</span>
+                        @endif
+                    </p>
+                    <form method="POST" action="{{ route('settings.pin') }}" class="flex flex-wrap items-end gap-3">
+                        @csrf
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">PIN Baru (6 digit)</label>
+                            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" name="pin" required
+                                class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 mb-1">Sahkan PIN</label>
+                            <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" name="pin_confirmation" required
+                                class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                        </div>
+                        <x-primary-button type="submit">Simpan PIN</x-primary-button>
+                    </form>
+                    <x-input-error :messages="$errors->get('pin')" class="mt-2" />
+                </div>
+            @endif
+
             <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data x-show="typeof Passkeys !== 'undefined' && Passkeys.isSupported()" x-cloak>
                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-1">Face ID / Passkey</h3>
                 <p class="text-xs text-gray-400 mb-4">Log masuk terus guna Face ID, Touch ID atau kunci skrin telefon/komputer ini, tanpa perlu taip emel &amp; kata laluan setiap kali.</p>

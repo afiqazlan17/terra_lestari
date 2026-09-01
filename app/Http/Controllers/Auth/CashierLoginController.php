@@ -23,7 +23,7 @@ class CashierLoginController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'pin' => ['required', 'digits:4'],
+            'pin' => ['required', 'digits_between:4,6'],
         ]);
 
         $throttleKey = 'cashier-login|'.$request->ip();
@@ -38,10 +38,13 @@ class CashierLoginController extends Controller
             ]);
         }
 
-        $user = User::where('role', User::ROLE_CASHIER)
+        // Any active user with a PIN set can log in here - cashiers (4-digit)
+        // and owner-tier accounts (6-digit) share this one screen, and the
+        // matched user's own role decides where they land afterwards.
+        $user = User::whereNotNull('pin')
             ->where('is_active', true)
             ->get()
-            ->first(fn (User $candidate) => $candidate->pin && Hash::check($request->string('pin'), $candidate->pin));
+            ->first(fn (User $candidate) => Hash::check($request->string('pin'), $candidate->pin));
 
         if (! $user) {
             RateLimiter::hit($throttleKey);
@@ -57,6 +60,8 @@ class CashierLoginController extends Controller
         $request->session()->regenerate();
 
         // See AuthenticatedSessionController for why intended() is avoided.
-        return redirect(route('pos.index', absolute: false));
+        $home = $user->canManageOperations() ? route('dashboard', absolute: false) : route('pos.index', absolute: false);
+
+        return redirect($home);
     }
 }

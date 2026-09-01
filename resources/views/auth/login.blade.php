@@ -53,7 +53,7 @@
     </div>
 
     <div class="text-center mt-6">
-        <a href="{{ route('cashier-login') }}" class="text-sm text-gray-500 hover:underline">Log masuk sebagai Cashier</a>
+        <a href="{{ route('cashier-login') }}" class="text-sm text-gray-500 hover:underline">Log masuk guna PIN</a>
     </div>
 
     <script>

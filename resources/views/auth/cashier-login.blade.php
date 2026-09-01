@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div x-data="cashierPin()" x-init="init()">
-        <h2 class="text-center text-lg font-semibold text-gray-800 mb-1">Log Masuk Cashier</h2>
-        <p class="text-center text-sm text-gray-500 mb-6">Masukkan PIN 4 digit</p>
+        <h2 class="text-center text-lg font-semibold text-gray-800 mb-1">Log Masuk PIN</h2>
+        <p class="text-center text-sm text-gray-500 mb-6">Masukkan PIN anda</p>
 
         <x-input-error :messages="$errors->get('pin')" class="mb-4 text-center" />
 
@@ -9,8 +9,8 @@
             @csrf
             <input type="hidden" name="pin" x-model="pin">
 
-            <div class="flex justify-center gap-3 mb-8">
-                <template x-for="i in 4" :key="i">
+            <div class="flex justify-center gap-2.5 mb-8">
+                <template x-for="i in 6" :key="i">
                     <div class="w-4 h-4 rounded-full border-2 border-amber-500"
                         :class="pin.length >= i ? 'bg-amber-500' : 'bg-transparent'"></div>
                 </template>
@@ -36,10 +36,15 @@
                     &larr;
                 </button>
             </div>
+
+            <button type="button" @click="submit()" x-show="pin.length >= 4"
+                class="mt-6 w-full max-w-xs mx-auto block bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg transition">
+                Log Masuk
+            </button>
         </form>
 
         <div class="text-center mt-6">
-            <a href="{{ route('login') }}" class="text-sm text-gray-500 hover:underline">Log masuk sebagai Owner/Manager</a>
+            <a href="{{ route('login') }}" class="text-sm text-gray-500 hover:underline">Log masuk guna Emel/Kata Laluan</a>
         </div>
     </div>
 
@@ -53,11 +58,11 @@
                     @endif
                 },
                 press(digit) {
-                    if (this.pin.length >= 4) {
+                    if (this.pin.length >= 6) {
                         return;
                     }
                     this.pin += digit;
-                    if (this.pin.length === 4) {
+                    if (this.pin.length === 6) {
                         this.$nextTick(() => this.$refs.form.submit());
                     }
                 },
@@ -66,6 +71,11 @@
                 },
                 clear() {
                     this.pin = '';
+                },
+                submit() {
+                    if (this.pin.length >= 4) {
+                        this.$refs.form.submit();
+                    }
                 },
             };
         }

@@ -51,6 +51,19 @@ class SettingsController extends Controller
         return back()->with('success', 'Bahasa dikemaskini.');
     }
 
+    public function updatePin(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->hasFullAccess(), 403);
+
+        $validated = $request->validate([
+            'pin' => ['required', 'digits:6', 'confirmed'],
+        ]);
+
+        $request->user()->update(['pin' => $validated['pin']]);
+
+        return back()->with('success', 'PIN dikemaskini. Boleh guna untuk log masuk pantas lain kali.');
+    }
+
     public function updatePaperWidth(Request $request): RedirectResponse
     {
         $validated = $request->validate([

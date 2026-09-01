@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'benn_mdshah@outlook.com', 'name' => 'Ben', 'role' => User::ROLE_OWNER],
             ['email' => 'afiq@kretiv.co', 'name' => 'Afiq', 'role' => User::ROLE_SUPERUSER],
             ['email' => 'amirul@kretiv.co', 'name' => 'Amirul', 'role' => User::ROLE_SUPERUSER],
+            ['email' => 'Wildyusa@gmail.com', 'name' => 'Din', 'role' => User::ROLE_OWNER],
         ];
 
         foreach ($seedAccounts as $account) {
