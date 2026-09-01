@@ -137,12 +137,6 @@
                                 <p class="text-xs text-gray-400 pt-1">Tunai Sebenar &amp; Beza akan keluar lepas Tutup Hari.</p>
                             @endif
                         </div>
-                        @if ($sessionForReport && $sessionForReport->status === 'closed')
-                            <a href="{{ route('daily-session.report', $sessionForReport) }}" target="_blank"
-                                class="mt-3 inline-block text-sm text-amber-600 hover:underline">
-                                Lihat Laporan Tutup Hari
-                            </a>
-                        @endif
                     </div>
                 @else
                     <div class="bg-white shadow-sm sm:rounded-lg p-6">
@@ -184,22 +178,22 @@
                 </div>
 
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm font-medium text-gray-700 mb-3">Order Dibatalkan</p>
-                    @if ($rangeSummary['voidOrders']->isEmpty())
-                        <p class="text-sm text-gray-400">Tiada order dibatalkan.</p>
+                    <p class="text-sm font-medium text-gray-700 mb-3">Laporan Tutup Hari</p>
+                    @if ($sessionForReport && $sessionForReport->status === 'closed')
+                        <a href="{{ route('daily-session.report', $sessionForReport) }}" target="_blank"
+                            class="inline-block bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-lg">
+                            Lihat Laporan {{ $from->translatedFormat('d F Y') }}
+                        </a>
+                    @elseif ($sessionForReport)
+                        <p class="text-sm text-gray-400">Laporan akan sedia lepas Tutup Hari.</p>
                     @else
-                        <div class="divide-y divide-gray-100">
-                            @foreach ($rangeSummary['voidOrders'] as $void)
-                                <div class="py-1.5 text-sm">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-800">{{ $void->order_number }}</span>
-                                        <span class="text-gray-500">RM {{ number_format($void->total, 2) }}</span>
-                                    </div>
-                                    <p class="text-xs text-red-500">{{ $void->void_reason }}</p>
-                                </div>
-                            @endforeach
-                        </div>
+                        <p class="text-sm text-gray-400">Tiada sesi pada tarikh ini.</p>
                     @endif
+                    <div class="mt-3">
+                        <a href="{{ route('daily-session.reports.index') }}" class="text-sm text-amber-600 hover:underline">
+                            Click Here to View All Reports
+                        </a>
+                    </div>
                 </div>
             </div>
 

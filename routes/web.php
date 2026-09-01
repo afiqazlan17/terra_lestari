@@ -41,6 +41,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
     Route::post('/daily-session/open', [DailySessionController::class, 'open'])->name('daily-session.open');
     Route::post('/daily-session/{dailySession}/close', [DailySessionController::class, 'close'])->name('daily-session.close');
     Route::get('/daily-session/{dailySession}/report', [DailySessionController::class, 'report'])->name('daily-session.report');
+    Route::get('/daily-session-reports', [DailySessionController::class, 'reportsIndex'])->name('daily-session.reports.index');
 
     // POS (owner + manager + cashier)
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');

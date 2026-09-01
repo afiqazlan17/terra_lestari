@@ -80,4 +80,21 @@ class DailySessionController extends Controller
             'cashTally' => $cashTally,
         ]);
     }
+
+    public function reportsIndex(Request $request): View
+    {
+        $project = $request->user()->currentProject();
+
+        abort_if(! $project, 404, 'Tiada projek/outlet dijumpai.');
+
+        $sessions = DailySession::where('project_id', $project->id)
+            ->where('status', 'closed')
+            ->with(['openedBy', 'closedBy'])
+            ->latest('opened_at')
+            ->paginate(30);
+
+        return view('daily-sessions.reports-index', [
+            'sessions' => $sessions,
+        ]);
+    }
 }
