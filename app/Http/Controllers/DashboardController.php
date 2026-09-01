@@ -4,41 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\DailySession;
 use App\Models\Order;
-use App\Models\Purchase;
+use App\Services\SalesSummaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, SalesSummaryService $summaryService): View
     {
         $project = $request->user()->currentProject();
 
         abort_if(! $project, 404, 'Tiada projek/outlet dijumpai.');
 
         $today = now()->toDateString();
-        $weekStart = now()->startOfWeek()->toDateString();
 
-        $todaySales = Order::where('project_id', $project->id)
-            ->where('status', Order::STATUS_COMPLETED)
-            ->whereDate('created_at', $today)
-            ->sum('total');
+        $from = $request->filled('from') ? Carbon::parse($request->input('from')) : Carbon::parse($today);
+        $to = $request->filled('to') ? Carbon::parse($request->input('to')) : Carbon::parse($today);
+        if ($to->lt($from)) {
+            [$from, $to] = [$to, $from];
+        }
+        $isSingleDay = $from->toDateString() === $to->toDateString();
 
-        $todayPurchases = Purchase::where('project_id', $project->id)
-            ->whereNull('voided_at')
-            ->whereDate('purchase_date', $today)
-            ->sum('amount');
-
-        $weekSales = Order::where('project_id', $project->id)
-            ->where('status', Order::STATUS_COMPLETED)
-            ->whereDate('created_at', '>=', $weekStart)
-            ->sum('total');
-
-        $weekPurchases = Purchase::where('project_id', $project->id)
-            ->whereNull('voided_at')
-            ->whereDate('purchase_date', '>=', $weekStart)
-            ->sum('amount');
+        $rangeSummary = $summaryService->summaryFor($project, $from, $to);
+        $cashTally = $isSingleDay
+            ? $summaryService->cashTallyFor($project, $from, $rangeSummary['cashSales'])
+            : null;
 
         $dailyTrend = Order::where('project_id', $project->id)
             ->where('status', Order::STATUS_COMPLETED)
@@ -57,24 +48,23 @@ class DashboardController extends Controller
             ->latest('opened_at')
             ->first();
 
-        $recentPurchases = Purchase::where('project_id', $project->id)
-            ->whereNull('voided_at')
-            ->with('recordedBy')
-            ->latest('purchase_date')
-            ->limit(5)
-            ->get();
+        $sessionForReport = $isSingleDay
+            ? DailySession::where('project_id', $project->id)
+                ->whereDate('opened_at', $from->toDateString())
+                ->latest('opened_at')
+                ->first()
+            : null;
 
         return view('dashboard', [
             'project' => $project,
-            'todaySales' => $todaySales,
-            'todayPurchases' => $todayPurchases,
-            'todayProfit' => $todaySales - $todayPurchases,
-            'weekSales' => $weekSales,
-            'weekPurchases' => $weekPurchases,
-            'weekProfit' => $weekSales - $weekPurchases,
+            'from' => $from,
+            'to' => $to,
+            'isSingleDay' => $isSingleDay,
+            'rangeSummary' => $rangeSummary,
+            'cashTally' => $cashTally,
             'dailyTrend' => $dailyTrend,
             'currentSession' => $currentSession,
-            'recentPurchases' => $recentPurchases,
+            'sessionForReport' => $sessionForReport,
         ]);
     }
 }

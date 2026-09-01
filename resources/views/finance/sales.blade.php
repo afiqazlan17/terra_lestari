@@ -185,7 +185,7 @@
                                         <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->paymentMethodLabel() }}</td>
                                         <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($order->total, 2) }}</td>
                                         <td class="px-6 py-3 text-right whitespace-nowrap no-print">
-                                            <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="text-amber-600 hover:underline">Cetak semula</a>
+                                            <a href="{{ route('orders.receipt', $order) }}" target="_blank" class="text-amber-600 hover:underline">Lihat Resit</a>
                                         </td>
                                     </tr>
                                 @endforeach

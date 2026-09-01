@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\DailySession;
 use App\Services\DailySalesReportService;
+use App\Services\SalesSummaryService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -58,6 +60,24 @@ class DailySessionController extends Controller
 
         $reportService->sendFor($dailySession);
 
-        return back()->with('success', 'Hari ini telah ditutup. Ringkasan jualan telah dihantar ke emel.');
+        return back()
+            ->with('success', 'Hari ini telah ditutup. Ringkasan jualan telah dihantar ke emel.')
+            ->with('closed_session_id', $dailySession->id);
+    }
+
+    public function report(Request $request, DailySession $dailySession, SalesSummaryService $summaryService): View
+    {
+        abort_unless($dailySession->project_id === $request->user()->currentProject()?->id, 403);
+
+        $date = $dailySession->opened_at->copy()->startOfDay();
+        $summary = $summaryService->summaryFor($dailySession->project, $date, $date);
+        $cashTally = $summaryService->cashTallyFor($dailySession->project, $date, $summary['cashSales']);
+
+        return view('daily-sessions.report', [
+            'session' => $dailySession,
+            'date' => $date,
+            'summary' => $summary,
+            'cashTally' => $cashTally,
+        ]);
     }
 }

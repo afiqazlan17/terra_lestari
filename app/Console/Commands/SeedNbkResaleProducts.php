@@ -59,15 +59,15 @@ class SeedNbkResaleProducts extends Command
 
         $nasiCategory = Category::firstOrCreate(
             ['project_id' => $project->id, 'name' => 'Nasi (Fresh From Kelantan)'],
-            ['sku_prefix' => 'NK', 'sort_order' => 1, 'tile_shape' => 'rectangle', 'color_by_price' => true]
+            ['sku_prefix' => 'NK', 'sort_order' => 1, 'tile_shape' => 'rectangle', 'color_by_price' => true, 'is_nbk' => true]
         );
-        $nasiCategory->update(['sku_prefix' => 'NK', 'tile_shape' => 'rectangle', 'color_by_price' => true]);
+        $nasiCategory->update(['sku_prefix' => 'NK', 'tile_shape' => 'rectangle', 'color_by_price' => true, 'is_nbk' => true]);
 
         $kuihCategory = Category::firstOrCreate(
             ['project_id' => $project->id, 'name' => 'Kuih (Fresh From Kelantan)'],
-            ['sku_prefix' => 'KK', 'sort_order' => 2, 'tile_shape' => 'square', 'color_by_price' => true]
+            ['sku_prefix' => 'KK', 'sort_order' => 2, 'tile_shape' => 'square', 'color_by_price' => true, 'is_nbk' => true]
         );
-        $kuihCategory->update(['sku_prefix' => 'KK', 'tile_shape' => 'square', 'color_by_price' => true]);
+        $kuihCategory->update(['sku_prefix' => 'KK', 'tile_shape' => 'square', 'color_by_price' => true, 'is_nbk' => true]);
 
         $this->seedItems($project, $nasiCategory, self::NASI_ITEMS);
         $this->seedItems($project, $kuihCategory, self::KUIH_ITEMS);

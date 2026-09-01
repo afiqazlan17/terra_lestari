@@ -264,21 +264,80 @@
                                 </div>
                             </div>
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <p class="text-center text-xs text-gray-500">Terima kasih!</p>
+                            <p class="text-center text-xs text-gray-500" x-show="! (paymentMethod === 'cash' && cashEntry && ! orderResult)">Terima kasih!</p>
 
-                            <div class="mt-5 flex gap-2 font-sans">
-                                <template x-if="! orderResult">
+                            <template x-if="paymentMethod === 'cash' && cashEntry && ! orderResult">
+                                <div class="font-sans">
+                                    <p class="text-sm font-medium text-gray-700 mb-2">Tunai Diterima</p>
+                                    <div class="grid grid-cols-4 gap-2 mb-2">
+                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 5"
+                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM5</button>
+                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 10"
+                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM10</button>
+                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 20"
+                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM20</button>
+                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 50"
+                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM50</button>
+                                    </div>
+                                    <div class="flex gap-2 items-center mb-3">
+                                        <input type="text" inputmode="decimal" x-model.number="cashReceived" placeholder="Amaun lain (RM)"
+                                            class="flex-1 rounded-md border-gray-300 text-sm">
+                                        <button type="button" @click="cashReceived = 0" class="text-xs text-gray-500 hover:underline shrink-0">Reset</button>
+                                    </div>
+                                    <div class="flex justify-between text-sm text-gray-600">
+                                        <span>Tunai Diterima</span>
+                                        <span class="font-medium text-gray-800">RM <span x-text="(cashReceived || 0).toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-bold mt-1"
+                                        :class="(cashReceived || 0) >= total() ? 'text-green-700' : 'text-red-600'">
+                                        <span>Baki</span>
+                                        <span>RM <span x-text="cashChange().toFixed(2)"></span></span>
+                                    </div>
+                                    <p class="text-xs text-red-500 mt-1" x-show="(cashReceived || 0) < total()">Tunai diterima tidak mencukupi.</p>
+                                    <div class="border-t border-dashed border-gray-300 my-3"></div>
+                                </div>
+                            </template>
+
+                            <div class="mt-2 flex gap-2 font-sans">
+                                <template x-if="! orderResult && paymentMethod === 'cash' && ! cashEntry">
+                                    <button type="button" @click="cashEntry = true"
+                                        class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 rounded-lg">
+                                        Seterusnya
+                                    </button>
+                                </template>
+                                <template x-if="! orderResult && paymentMethod === 'cash' && ! cashEntry">
+                                    <button type="button" @click="confirming = false"
+                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
+                                        Back
+                                    </button>
+                                </template>
+
+                                <template x-if="! orderResult && paymentMethod === 'cash' && cashEntry">
+                                    <button type="button" @click="checkout()" :disabled="submitting || (cashReceived || 0) < total()"
+                                        class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
+                                        <span x-text="submitting ? 'Menghantar...' : 'Sahkan & Selesai'"></span>
+                                    </button>
+                                </template>
+                                <template x-if="! orderResult && paymentMethod === 'cash' && cashEntry">
+                                    <button type="button" @click="cashEntry = false" :disabled="submitting"
+                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                        Back
+                                    </button>
+                                </template>
+
+                                <template x-if="! orderResult && paymentMethod !== 'cash'">
                                     <button type="button" @click="checkout()" :disabled="submitting"
                                         class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
                                         <span x-text="submitting ? 'Menghantar...' : 'Print'"></span>
                                     </button>
                                 </template>
-                                <template x-if="! orderResult">
+                                <template x-if="! orderResult && paymentMethod !== 'cash'">
                                     <button type="button" @click="confirming = false" :disabled="submitting"
                                         class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
                                         Back
                                     </button>
                                 </template>
+
                                 <template x-if="orderResult">
                                     <button type="button" @click="reprintFromPreview()"
                                         class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
@@ -356,10 +415,10 @@
                                     <td class="px-4 py-2 text-gray-500 whitespace-nowrap" x-text="order.date"></td>
                                     <td class="px-4 py-2 text-gray-500 whitespace-nowrap" x-text="order.time"></td>
                                     <td class="px-4 py-2 text-right whitespace-nowrap">
-                                        <button type="button" @click="printReceipt(order)" :disabled="printing"
-                                            class="text-amber-600 hover:underline text-xs disabled:opacity-50">
-                                            Cetak Semula
-                                        </button>
+                                        <a :href="order.receiptUrl"
+                                            class="text-amber-600 hover:underline text-xs">
+                                            Lihat Resit
+                                        </a>
                                         <button type="button" x-show="order.status !== 'voided'" @click="voidOrder(order)"
                                             class="text-red-500 hover:underline text-xs ml-3">
                                             Void
@@ -422,31 +481,6 @@
             return {
                 orders: initialOrders,
                 open: false,
-                printing: false,
-
-                async printReceipt(order) {
-                    if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
-                        window.open(order.receiptUrl, '_blank');
-                        return;
-                    }
-
-                    this.printing = true;
-                    const printed = await sbSendReceipt({
-                        orderNumber: order.orderNumber,
-                        dateStr: `${order.date} ${order.time}`,
-                        typeLabel: order.typeLabel,
-                        items: order.items,
-                        subtotal: order.subtotal,
-                        discount: order.discount,
-                        total: order.total.toFixed(2),
-                        paymentLabel: order.paymentLabel,
-                    }, { forceConnect: true });
-                    this.printing = false;
-
-                    if (! printed) {
-                        alert('Printer tidak connect. Sila cuba lagi.');
-                    }
-                },
 
                 async voidOrder(order) {
                     const reason = prompt('Sebab void order ' + order.orderNumber + ':');
@@ -502,6 +536,8 @@
                 confirming: false,
                 confirmDateStr: '',
                 orderResult: null,
+                cashEntry: false,
+                cashReceived: 0,
 
                 openConfirm() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
@@ -511,12 +547,20 @@
                     const pad = (n) => String(n).padStart(2, '0');
                     this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
                     this.orderResult = null;
+                    this.cashEntry = false;
+                    this.cashReceived = 0;
                     this.confirming = true;
+                },
+
+                cashChange() {
+                    return Math.max((this.cashReceived || 0) - this.total(), 0);
                 },
 
                 resetAfterPrint() {
                     this.confirming = false;
                     this.orderResult = null;
+                    this.cashEntry = false;
+                    this.cashReceived = 0;
                     this.items = [];
                     this.discount = 0;
                 },

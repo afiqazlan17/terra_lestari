@@ -11,6 +11,16 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
+            @if (session('closed_session_id'))
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between gap-3">
+                    <p class="text-sm text-green-800">Hari ini telah ditutup. Laporan tutup hari sedia untuk dimuat turun.</p>
+                    <a href="{{ route('daily-session.report', session('closed_session_id')) }}" target="_blank"
+                        class="shrink-0 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
+                        Muat Turun Laporan
+                    </a>
+                </div>
+            @endif
+
             {{-- Daily session panel --}}
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 @if ($currentSession)
@@ -24,14 +34,17 @@
                                 &middot; Tunai pembukaan RM {{ number_format($currentSession->opening_cash, 2) }}
                             </p>
                         </div>
-                        <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-wrap items-end gap-2" onsubmit="return sbConfirmCloseWithPendingCheck()">
+                        <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-col items-start gap-2" onsubmit="return sbConfirmCloseWithPendingCheck()">
                             @csrf
-                            <div>
-                                <label class="block text-xs text-gray-500 mb-1">Tunai Akhir (RM)</label>
-                                <input type="text" inputmode="decimal" data-money-input name="closing_cash" required
-                                    class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                            <p class="text-xs text-amber-700">Sila kira tunai di tangan sekarang dah input di ruang ini</p>
+                            <div class="flex flex-wrap items-end gap-2">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Tunai Akhir (RM)</label>
+                                    <input type="text" inputmode="decimal" data-money-input name="closing_cash" required
+                                        class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                </div>
+                                <x-danger-button type="submit">Tutup Hari</x-danger-button>
                             </div>
-                            <x-danger-button type="submit">Tutup Hari</x-danger-button>
                         </form>
                     </div>
                 @else
@@ -55,38 +68,138 @@
                 @endif
             </div>
 
-            {{-- Stat tiles --}}
+            {{-- Date range picker --}}
+            <div class="bg-white shadow-sm sm:rounded-lg p-4">
+                <form method="GET" class="flex flex-wrap items-end gap-2">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Dari</label>
+                        <input type="date" name="from" value="{{ $from->toDateString() }}" class="rounded-md border-gray-300 shadow-sm text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Hingga</label>
+                        <input type="date" name="to" value="{{ $to->toDateString() }}" class="rounded-md border-gray-300 shadow-sm text-sm">
+                    </div>
+                    <x-secondary-button type="submit">Papar</x-secondary-button>
+                    <a href="{{ route('dashboard') }}" class="text-sm text-amber-600 hover:underline mb-2">Hari Ini</a>
+                </form>
+            </div>
+
+            {{-- Stat tiles (range-scoped) --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Jualan Hari Ini</p>
-                    <p class="mt-1 text-2xl font-semibold text-gray-900">RM {{ number_format($todaySales, 2) }}</p>
+                    <p class="text-sm text-gray-500">Jumlah Jualan</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">RM {{ number_format($rangeSummary['totalSales'], 2) }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Belian Hari Ini</p>
-                    <p class="mt-1 text-2xl font-semibold text-gray-900">RM {{ number_format($todayPurchases, 2) }}</p>
+                    <p class="text-sm text-gray-500">Transaksi</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">{{ $rangeSummary['orderCount'] }}</p>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Untung Kasar Hari Ini</p>
-                    <p class="mt-1 text-2xl font-semibold {{ $todayProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                        RM {{ number_format($todayProfit, 2) }}
-                    </p>
+                    <p class="text-sm text-gray-500">Item Terjual</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">{{ $rangeSummary['itemCount'] }}</p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Jualan Minggu Ini</p>
-                    <p class="mt-1 text-xl font-semibold text-gray-900">RM {{ number_format($weekSales, 2) }}</p>
+                    <p class="text-sm font-medium text-gray-700 mb-3">Jualan ikut Kaedah Bayaran</p>
+                    <div class="space-y-1 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-600">Cash</span><span class="font-medium">RM {{ number_format($rangeSummary['cashSales'], 2) }}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">QR / DuitNow</span><span class="font-medium">RM {{ number_format($rangeSummary['qrSales'], 2) }}</span></div>
+                        @if ($rangeSummary['cardSales'] > 0)
+                            <div class="flex justify-between"><span class="text-gray-600">Kad</span><span class="font-medium">RM {{ number_format($rangeSummary['cardSales'], 2) }}</span></div>
+                        @endif
+                    </div>
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Belian Minggu Ini</p>
-                    <p class="mt-1 text-xl font-semibold text-gray-900">RM {{ number_format($weekPurchases, 2) }}</p>
+                    <p class="text-sm font-medium text-gray-700 mb-3">Jualan ikut Sumber</p>
+                    <div class="space-y-1 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-600">Sajian Baginda (SB)</span><span class="font-medium">RM {{ number_format($rangeSummary['sbSales'], 2) }}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Fresh From Kelantan (NBK)</span><span class="font-medium">RM {{ number_format($rangeSummary['nbkSales'], 2) }}</span></div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                @if ($cashTally)
+                    <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                        <p class="text-sm font-medium text-gray-700 mb-3">Tunai</p>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between"><span class="text-gray-600">Tunai Pembukaan</span><span class="font-medium">RM {{ number_format($cashTally['openingCash'], 2) }}</span></div>
+                            <div class="flex justify-between"><span class="text-gray-600">+ Jualan Cash</span><span class="font-medium">RM {{ number_format($rangeSummary['cashSales'], 2) }}</span></div>
+                            <div class="flex justify-between font-semibold border-t border-gray-100 pt-1"><span>Jangkaan Tunai</span><span>RM {{ number_format($cashTally['jangkaan'], 2) }}</span></div>
+                            @if ($cashTally['sebenar'] !== null)
+                                <div class="flex justify-between"><span class="text-gray-600">Tunai Sebenar</span><span class="font-medium">RM {{ number_format($cashTally['sebenar'], 2) }}</span></div>
+                                <div class="flex justify-between font-semibold {{ $cashTally['beza'] == 0 ? 'text-green-600' : 'text-red-600' }}">
+                                    <span>Beza</span><span>RM {{ number_format($cashTally['beza'], 2) }}</span>
+                                </div>
+                            @else
+                                <p class="text-xs text-gray-400 pt-1">Tunai Sebenar &amp; Beza akan keluar lepas Tutup Hari.</p>
+                            @endif
+                        </div>
+                        @if ($sessionForReport && $sessionForReport->status === 'closed')
+                            <a href="{{ route('daily-session.report', $sessionForReport) }}" target="_blank"
+                                class="mt-3 inline-block text-sm text-amber-600 hover:underline">
+                                Lihat Laporan Tutup Hari
+                            </a>
+                        @endif
+                    </div>
+                @else
+                    <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Tunai</p>
+                        <p class="text-xs text-gray-400">
+                            @if (! $isSingleDay)
+                                Tally tunai hanya untuk 1 hari — pilih tarikh Dari dan Hingga yang sama untuk lihat.
+                            @else
+                                Tiada sesi dibuka pada tarikh ini.
+                            @endif
+                        </p>
+                    </div>
+                @endif
+
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm text-gray-500">Untung Kasar Minggu Ini</p>
-                    <p class="mt-1 text-xl font-semibold {{ $weekProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                        RM {{ number_format($weekProfit, 2) }}
-                    </p>
+                    <p class="text-sm font-medium text-gray-700 mb-3">Jenis Order</p>
+                    <div class="space-y-1 text-sm">
+                        <div class="flex justify-between"><span class="text-gray-600">Dine In</span><span class="font-medium">RM {{ number_format($rangeSummary['dineInSales'], 2) }}</span></div>
+                        <div class="flex justify-between"><span class="text-gray-600">Take Away</span><span class="font-medium">RM {{ number_format($rangeSummary['takeawaySales'], 2) }}</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <p class="text-sm font-medium text-gray-700 mb-3">Item Terlaris</p>
+                    @if ($rangeSummary['topItems']->isEmpty())
+                        <p class="text-sm text-gray-400">Tiada jualan lagi.</p>
+                    @else
+                        <div class="space-y-1.5">
+                            @foreach ($rangeSummary['topItems'] as $i => $item)
+                                <div class="flex items-center justify-between text-sm bg-amber-50 rounded-md px-3 py-1.5">
+                                    <span class="text-gray-800">{{ $item->product_name }}</span>
+                                    <span class="text-gray-500">{{ $item->qty_sold }} unit</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <p class="text-sm font-medium text-gray-700 mb-3">Order Dibatalkan</p>
+                    @if ($rangeSummary['voidOrders']->isEmpty())
+                        <p class="text-sm text-gray-400">Tiada order dibatalkan.</p>
+                    @else
+                        <div class="divide-y divide-gray-100">
+                            @foreach ($rangeSummary['voidOrders'] as $void)
+                                <div class="py-1.5 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-800">{{ $void->order_number }}</span>
+                                        <span class="text-gray-500">RM {{ number_format($void->total, 2) }}</span>
+                                    </div>
+                                    <p class="text-xs text-red-500">{{ $void->void_reason }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -109,28 +222,6 @@
                 @endif
             </div>
 
-            {{-- Recent purchases --}}
-            <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <p class="text-sm font-medium text-gray-700">Belian Terkini</p>
-                    <a href="{{ route('purchases.index') }}" class="text-sm text-amber-600 hover:underline">Lihat semua</a>
-                </div>
-                @if ($recentPurchases->isEmpty())
-                    <p class="text-sm text-gray-400">Tiada belian direkodkan lagi.</p>
-                @else
-                    <div class="divide-y divide-gray-100">
-                        @foreach ($recentPurchases as $purchase)
-                            <div class="py-2 flex items-center justify-between text-sm">
-                                <div>
-                                    <p class="text-gray-800">{{ $purchase->description }}</p>
-                                    <p class="text-gray-400">{{ $purchase->purchase_date->format('d F Y') }} &middot; {{ $purchase->recordedBy->name }}</p>
-                                </div>
-                                <p class="font-medium text-gray-900">RM {{ number_format($purchase->amount, 2) }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
         </div>
     </div>
 
