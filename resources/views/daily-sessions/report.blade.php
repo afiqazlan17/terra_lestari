@@ -2,6 +2,7 @@
 <html lang="ms">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>[SB] Laporan Harian {{ $date->format('d-m-Y') }}</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -138,6 +139,28 @@
             .pill-row { padding: 4px 10px; }
             footer.doc { margin-top: 8px; padding-top: 6px; }
         }
+
+        /* Applied via JS right before html2pdf renders the page, so the
+           generated PDF gets the same compact spacing as the native
+           print stylesheet above (html2canvas does not honour @media
+           print on its own). Removed again immediately after. */
+        body.pdf-mode { font-size: 12px; }
+        body.pdf-mode .page { padding: 24px 28px; }
+        body.pdf-mode header.doc { padding-bottom: 12px; margin-bottom: 14px; }
+        body.pdf-mode header.doc .brand { font-size: 16px; }
+        body.pdf-mode header.doc .doc-title strong { font-size: 12.5px; }
+        body.pdf-mode .session-line { margin-bottom: 16px; }
+        body.pdf-mode .stat-row { margin-bottom: 16px; gap: 8px; }
+        body.pdf-mode .stat { padding: 10px 12px; }
+        body.pdf-mode .stat .value { font-size: 18px; }
+        body.pdf-mode section { margin-bottom: 12px; }
+        body.pdf-mode section h2 { margin-bottom: 6px; padding-bottom: 4px; }
+        body.pdf-mode table.report td, body.pdf-mode table.report th { padding: 3px 0; }
+        body.pdf-mode table.report tfoot td { padding-top: 5px; }
+        body.pdf-mode .cash-row { padding: 5px 12px; }
+        body.pdf-mode .pill-list { gap: 4px; }
+        body.pdf-mode .pill-row { padding: 4px 10px; }
+        body.pdf-mode footer.doc { margin-top: 8px; padding-top: 6px; }
     </style>
 </head>
 <body>
@@ -179,13 +202,22 @@
             const originalLabel = button.textContent;
             button.disabled = true;
             button.textContent = 'Menjana PDF...';
+            document.body.classList.add('pdf-mode');
 
             try {
                 const pageEl = document.querySelector('.page');
                 const blob = await html2pdf().set({
                     margin: 5,
                     filename: SB_REPORT_FILENAME,
-                    html2canvas: { scale: 2, useCORS: true },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        // Forces a fixed, desktop-sized layout for the capture
+                        // regardless of how narrow the phone's own screen is,
+                        // so nothing renders truncated or off to the side.
+                        windowWidth: 800,
+                        width: 760,
+                    },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 }).from(pageEl).outputPdf('blob');
 
@@ -203,6 +235,7 @@
                     window.open(SB_WA_TEXT_ONLY_URL, '_blank');
                 }
             } finally {
+                document.body.classList.remove('pdf-mode');
                 button.disabled = false;
                 button.textContent = originalLabel;
             }
