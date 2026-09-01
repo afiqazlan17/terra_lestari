@@ -2,7 +2,7 @@
 <html lang="ms">
 <head>
     <meta charset="utf-8">
-    <title>Laporan Tutup Hari - {{ $date->translatedFormat('d F Y') }}</title>
+    <title>[SB] Laporan Harian {{ $date->format('d-m-Y') }}</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
     <style>
         :root {
@@ -47,6 +47,10 @@
             color: var(--ink-muted);
         }
         .toolbar .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .toolbar .whatsapp { background: #25D366; color: #fff; border-color: #25D366; }
+        .toolbar-note {
+            max-width: 760px; margin: 0 auto 16px; font-size: 11.5px; color: var(--ink-faint); text-align: right;
+        }
         .page {
             max-width: 760px;
             margin: 0 auto;
@@ -114,7 +118,7 @@
 
         @media print {
             body { background: #fff; padding: 0; font-size: 12px; }
-            .toolbar { display: none; }
+            .toolbar, .toolbar-note { display: none; }
             .page { max-width: none; width: 190mm; margin: 0 auto; padding: 0; border: none; box-shadow: none; border-radius: 0; }
             @page { size: A4; margin: 10mm; }
             header.doc { padding-bottom: 12px; margin-bottom: 14px; }
@@ -139,7 +143,14 @@
     <div class="toolbar">
         <a href="{{ route('dashboard') }}">Kembali</a>
         <button type="button" class="primary" onclick="window.print()">Print / Simpan PDF</button>
+        <a class="whatsapp" target="_blank" rel="noopener"
+            href="https://wa.me/?text={{ urlencode("Laporan Tutup Hari - Sajian Baginda\n{$date->translatedFormat('l, d F Y')}\nJumlah Jualan: RM ".number_format($summary['totalSales'], 2)."\n\n(Sila lampirkan fail PDF yang telah disimpan)") }}">
+            WhatsApp
+        </a>
     </div>
+    <p class="toolbar-note">
+        Nak hantar PDF ni via WhatsApp? Tekan "Print / Simpan PDF" dulu &rarr; pilih "Save as PDF" &rarr; baru tekan "WhatsApp" dan lampirkan fail tu secara manual.
+    </p>
 
     <div class="page">
         <header class="doc">
