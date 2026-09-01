@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>[SB] Laporan Harian {{ $date->format('d-m-Y') }}</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg: #efece7;
@@ -143,14 +144,70 @@
     <div class="toolbar">
         <a href="{{ route('dashboard') }}">Kembali</a>
         <button type="button" class="primary" onclick="window.print()">Print / Simpan PDF</button>
-        <a class="whatsapp" target="_blank" rel="noopener"
-            href="https://wa.me/?text={{ urlencode("Laporan Tutup Hari - Sajian Baginda\n{$date->translatedFormat('l, d F Y')}\nJumlah Jualan: RM ".number_format($summary['totalSales'], 2)."\n\n(Sila lampirkan fail PDF yang telah disimpan)") }}">
-            WhatsApp
-        </a>
+        <button type="button" class="whatsapp" id="whatsappShareBtn" onclick="sbShareReportToWhatsapp(this)">WhatsApp</button>
     </div>
-    <p class="toolbar-note">
+    <p class="toolbar-note" id="toolbarNote">
         Nak hantar PDF ni via WhatsApp? Tekan "Print / Simpan PDF" dulu &rarr; pilih "Save as PDF" &rarr; baru tekan "WhatsApp" dan lampirkan fail tu secara manual.
     </p>
+
+    <script>
+        const SB_REPORT_FILENAME = @json('[SB] Laporan Harian '.$date->format('d-m-Y').'.pdf');
+        const SB_REPORT_TEXT = @json("Laporan Tutup Hari - Sajian Baginda\n{$date->translatedFormat('l, d F Y')}\nJumlah Jualan: RM ".number_format($summary['totalSales'], 2));
+        const SB_WA_TEXT_ONLY_URL = 'https://wa.me/?text=' + encodeURIComponent(SB_REPORT_TEXT + '\n\n(Sila lampirkan fail PDF yang telah disimpan)');
+
+        function sbCanShareFiles() {
+            return !!(navigator.canShare && navigator.share && window.html2pdf);
+        }
+
+        // On page load: if this device/browser can't share files directly,
+        // fall back straight away to the manual print-then-attach flow, and
+        // update the instructions to match instead of promising a one-tap
+        // share it can't deliver.
+        document.addEventListener('DOMContentLoaded', () => {
+            if (! sbCanShareFiles()) {
+                document.getElementById('toolbarNote').textContent =
+                    'Nak hantar PDF ni via WhatsApp? Tekan "Print / Simpan PDF" dulu → pilih "Save as PDF" → baru tekan "WhatsApp" dan lampirkan fail tu secara manual.';
+            }
+        });
+
+        async function sbShareReportToWhatsapp(button) {
+            if (! sbCanShareFiles()) {
+                window.open(SB_WA_TEXT_ONLY_URL, '_blank');
+                return;
+            }
+
+            const originalLabel = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Menjana PDF...';
+
+            try {
+                const pageEl = document.querySelector('.page');
+                const blob = await html2pdf().set({
+                    margin: 5,
+                    filename: SB_REPORT_FILENAME,
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                }).from(pageEl).outputPdf('blob');
+
+                const file = new File([blob], SB_REPORT_FILENAME, { type: 'application/pdf' });
+
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], text: SB_REPORT_TEXT });
+                } else {
+                    window.open(SB_WA_TEXT_ONLY_URL, '_blank');
+                }
+            } catch (e) {
+                // AbortError = staff simply cancelled the share sheet, not a real failure.
+                if (e.name !== 'AbortError') {
+                    console.error('Kongsi PDF gagal', e);
+                    window.open(SB_WA_TEXT_ONLY_URL, '_blank');
+                }
+            } finally {
+                button.disabled = false;
+                button.textContent = originalLabel;
+            }
+        }
+    </script>
 
     <div class="page">
         <header class="doc">
