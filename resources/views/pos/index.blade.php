@@ -87,7 +87,7 @@
                                     @foreach ($category->products as $product)
                                         @php
                                             $tier = $priceTiers[number_format((float) $product->price, 2)] ?? null;
-                                            $colorClasses = $tier ? $tierClasses[$tier] : 'bg-white';
+                                            $colorClasses = $tier ? ($tierClasses[$tier] ?? 'bg-white') : 'bg-white';
                                             $displayName = $product->name;
                                             $parenPart = null;
                                             if (str_contains($displayName, ' (')) {
