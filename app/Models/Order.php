@@ -32,7 +32,7 @@ class Order extends Model
 
     protected $fillable = [
         'project_id', 'daily_session_id', 'cashier_id', 'order_number',
-        'subtotal', 'discount', 'total', 'payment_method', 'order_type', 'status',
+        'subtotal', 'discount', 'total', 'payment_method', 'cash_received', 'order_type', 'status',
         'void_reason', 'voided_at', 'voided_by',
     ];
 
@@ -40,6 +40,7 @@ class Order extends Model
         'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
+        'cash_received' => 'decimal:2',
         'voided_at' => 'datetime',
     ];
 

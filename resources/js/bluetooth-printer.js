@@ -329,6 +329,10 @@ async function buildReceiptEscPos(data, is58mm, options = {}) {
     text(padLine('Jumlah', `RM ${data.total}`, width) + '\n');
     push([ESC, 0x45, 0x00]);
     text(padLine('Bayaran', data.paymentLabel, width) + '\n');
+    if (data.cashReceived != null) {
+        text(padLine('Tunai Diterima', `RM ${parseFloat(data.cashReceived).toFixed(2)}`, width) + '\n');
+        text(padLine('Baki', `RM ${parseFloat(data.cashChange).toFixed(2)}`, width) + '\n');
+    }
     text('-'.repeat(width) + '\n');
     push([ESC, 0x61, 0x01]);
     text('Terima kasih!\n\n\n');

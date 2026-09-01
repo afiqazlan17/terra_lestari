@@ -288,7 +288,11 @@
                                         <span>Tunai Diterima</span>
                                         <span class="font-medium text-gray-800">RM <span x-text="(cashReceived || 0).toFixed(2)"></span></span>
                                     </div>
-                                    <div class="flex justify-between text-base font-bold mt-1"
+                                    <div class="flex justify-between text-sm text-gray-600">
+                                        <span>(-) Jumlah</span>
+                                        <span class="font-medium text-gray-800">RM <span x-text="total().toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-bold mt-1 border-t border-gray-100 pt-1"
                                         :class="(cashReceived || 0) >= total() ? 'text-green-700' : 'text-red-600'">
                                         <span>Baki</span>
                                         <span>RM <span x-text="cashChange().toFixed(2)"></span></span>
@@ -298,28 +302,29 @@
                                 </div>
                             </template>
 
-                            <div class="mt-2 flex gap-2 font-sans">
-                                <template x-if="! orderResult && paymentMethod === 'cash' && ! cashEntry">
-                                    <button type="button" @click="cashEntry = true"
-                                        class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 rounded-lg">
-                                        Seterusnya
-                                    </button>
-                                </template>
-                                <template x-if="! orderResult && paymentMethod === 'cash' && ! cashEntry">
-                                    <button type="button" @click="confirming = false"
-                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
-                                        Back
-                                    </button>
-                                </template>
+                            <template x-if="paymentMethod === 'cash' && orderResult && orderResult.cashReceived != null">
+                                <div class="font-sans text-sm space-y-1 mb-3">
+                                    <div class="flex justify-between text-gray-600">
+                                        <span>Tunai Diterima</span>
+                                        <span class="font-medium text-gray-800">RM <span x-text="orderResult.cashReceived.toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="flex justify-between font-bold text-green-700">
+                                        <span>Baki</span>
+                                        <span>RM <span x-text="orderResult.cashChange.toFixed(2)"></span></span>
+                                    </div>
+                                    <div class="border-t border-dashed border-gray-300 my-3"></div>
+                                </div>
+                            </template>
 
-                                <template x-if="! orderResult && paymentMethod === 'cash' && cashEntry">
+                            <div class="mt-2 flex gap-2 font-sans">
+                                <template x-if="! orderResult && paymentMethod === 'cash'">
                                     <button type="button" @click="checkout()" :disabled="submitting || (cashReceived || 0) < total()"
                                         class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
                                         <span x-text="submitting ? 'Menghantar...' : 'Sahkan & Selesai'"></span>
                                     </button>
                                 </template>
-                                <template x-if="! orderResult && paymentMethod === 'cash' && cashEntry">
-                                    <button type="button" @click="cashEntry = false" :disabled="submitting"
+                                <template x-if="! orderResult && paymentMethod === 'cash'">
+                                    <button type="button" @click="confirming = false" :disabled="submitting"
                                         class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
                                         Back
                                     </button>
@@ -547,7 +552,7 @@
                     const pad = (n) => String(n).padStart(2, '0');
                     this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
                     this.orderResult = null;
-                    this.cashEntry = false;
+                    this.cashEntry = this.paymentMethod === 'cash';
                     this.cashReceived = 0;
                     this.confirming = true;
                 },
@@ -674,6 +679,7 @@
                         items: this.items.map(i => ({ product_id: i.product_id, qty: i.qty, unit_price: i.price })),
                         discount: this.discount || 0,
                         payment_method: this.paymentMethod,
+                        cash_received: this.paymentMethod === 'cash' ? (this.cashReceived || 0) : null,
                         order_type: this.orderType,
                     };
                 },
@@ -708,7 +714,12 @@
                             const now = new Date();
                             const receiptData = this.buildReceiptData(data.order_number, this.items, payload, now);
                             await this.printViaBluetooth(receiptData, { openDrawer: payload.payment_method === 'cash' });
-                            this.orderResult = { orderNumber: data.order_number, receiptUrl: data.receipt_url };
+                            this.orderResult = {
+                                orderNumber: data.order_number,
+                                receiptUrl: data.receipt_url,
+                                cashReceived: receiptData.cashReceived,
+                                cashChange: receiptData.cashChange,
+                            };
                             this.submitting = false;
 
                             const pad = (n) => String(n).padStart(2, '0');
@@ -795,6 +806,8 @@
                         discount: discount,
                         total: total.toFixed(2),
                         paymentLabel: paymentLabels[payload.payment_method] || payload.payment_method,
+                        cashReceived: payload.payment_method === 'cash' && payload.cash_received != null ? payload.cash_received : null,
+                        cashChange: payload.payment_method === 'cash' && payload.cash_received != null ? Math.max(payload.cash_received - total, 0) : null,
                     };
                 },
 

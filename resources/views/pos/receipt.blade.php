@@ -91,6 +91,10 @@
             @endif
             <tr class="grand"><td>Jumlah</td><td class="right">RM {{ number_format($order->total, 2) }}</td></tr>
             <tr><td class="muted">Bayaran</td><td class="right muted">{{ $order->paymentMethodLabel() }}</td></tr>
+            @if ($order->cash_received !== null)
+                <tr><td class="muted">Tunai Diterima</td><td class="right muted">RM {{ number_format($order->cash_received, 2) }}</td></tr>
+                <tr><td class="muted">Baki</td><td class="right muted">RM {{ number_format(max($order->cash_received - $order->total, 0), 2) }}</td></tr>
+            @endif
         </table>
         <div class="divider"></div>
         <p class="center muted">Terima kasih!</p>
@@ -116,6 +120,8 @@
             discount: {{ $order->discount }},
             total: @json(number_format($order->total, 2)),
             paymentLabel: @json($order->paymentMethodLabel()),
+            cashReceived: @json($order->cash_received !== null ? number_format($order->cash_received, 2) : null),
+            cashChange: @json($order->cash_received !== null ? number_format(max($order->cash_received - $order->total, 0), 2) : null),
         };
 
         async function sbPrintReceipt() {

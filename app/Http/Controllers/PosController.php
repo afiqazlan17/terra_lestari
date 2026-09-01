@@ -64,6 +64,7 @@ class PosController extends Controller
             'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:cash,qr,card'],
+            'cash_received' => ['nullable', 'numeric', 'min:0'],
             'order_type' => ['required', Rule::in(array_keys(Order::TYPES))],
         ]);
 
@@ -105,6 +106,12 @@ class PosController extends Controller
             $discount = $validated['discount'] ?? 0;
             $total = max($subtotal - $discount, 0);
 
+            $cashReceived = null;
+            if ($validated['payment_method'] === Order::PAYMENT_METHOD_CASH) {
+                $cashReceived = (float) ($validated['cash_received'] ?? 0);
+                abort_if($cashReceived < $total, 422, 'Tunai diterima tidak mencukupi.');
+            }
+
             $order = Order::create([
                 'project_id' => $project->id,
                 'daily_session_id' => $session->id,
@@ -114,6 +121,7 @@ class PosController extends Controller
                 'discount' => $discount,
                 'total' => $total,
                 'payment_method' => $validated['payment_method'],
+                'cash_received' => $cashReceived,
                 'order_type' => $validated['order_type'],
                 'status' => Order::STATUS_COMPLETED,
             ]);
