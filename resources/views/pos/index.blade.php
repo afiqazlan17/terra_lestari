@@ -262,6 +262,18 @@
                                     <span>Bayaran</span>
                                     <span x-text="paymentMethod === 'cash' ? 'Cash' : 'QR / DuitNow'"></span>
                                 </div>
+                                <template x-if="paymentMethod === 'cash' && orderResult && orderResult.cashReceived != null">
+                                    <div>
+                                        <div class="flex justify-between text-gray-700">
+                                            <span>Tunai Diterima</span>
+                                            <span>RM <span x-text="orderResult.cashReceived.toFixed(2)"></span></span>
+                                        </div>
+                                        <div class="flex justify-between font-bold text-green-700">
+                                            <span>Baki</span>
+                                            <span>RM <span x-text="orderResult.cashChange.toFixed(2)"></span></span>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
                             <p class="text-center text-xs text-gray-500" x-show="! (paymentMethod === 'cash' && cashEntry && ! orderResult)">Terima kasih!</p>
@@ -298,20 +310,6 @@
                                         <span>RM <span x-text="cashChange().toFixed(2)"></span></span>
                                     </div>
                                     <p class="text-xs text-red-500 mt-1" x-show="(cashReceived || 0) < total()">Tunai diterima tidak mencukupi.</p>
-                                    <div class="border-t border-dashed border-gray-300 my-3"></div>
-                                </div>
-                            </template>
-
-                            <template x-if="paymentMethod === 'cash' && orderResult && orderResult.cashReceived != null">
-                                <div class="font-sans text-sm space-y-1 mb-3">
-                                    <div class="flex justify-between text-gray-600">
-                                        <span>Tunai Diterima</span>
-                                        <span class="font-medium text-gray-800">RM <span x-text="orderResult.cashReceived.toFixed(2)"></span></span>
-                                    </div>
-                                    <div class="flex justify-between font-bold text-green-700">
-                                        <span>Baki</span>
-                                        <span>RM <span x-text="orderResult.cashChange.toFixed(2)"></span></span>
-                                    </div>
                                     <div class="border-t border-dashed border-gray-300 my-3"></div>
                                 </div>
                             </template>
