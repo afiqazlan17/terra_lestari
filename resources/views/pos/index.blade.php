@@ -208,7 +208,7 @@
                             <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[200px] w-full h-auto mb-2">
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
                             <p class="text-sm text-gray-500">
-                                No. Resit: <span class="italic">Belum dijana</span><br>
+                                No. Resit: <span :class="checkoutStep === 'done' ? '' : 'italic'" x-text="checkoutStep === 'done' ? completedOrderNumber : 'Belum dijana'"></span><br>
                                 Tarikh: <span x-text="confirmDateStr"></span>
                             </p>
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
@@ -307,9 +307,23 @@
                                         </button>
                                         <button type="button" @click="checkoutWithMethod('cash')" :disabled="submitting || (cashReceived || 0) < total()"
                                             class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
-                                            <span x-text="submitting ? 'Menghantar...' : 'Print Resit'"></span>
+                                            <span x-text="submitting ? (justPaid ? 'Bayaran Selesai' : 'Menghantar...') : 'Print Resit'"></span>
                                         </button>
                                     </div>
+                                </div>
+                            </template>
+
+                            {{-- Step 3: payment complete --}}
+                            <template x-if="checkoutStep === 'done'">
+                                <div class="font-sans grid grid-cols-2 gap-3">
+                                    <button type="button" @click="reprintReceipt()"
+                                        class="border border-amber-300 text-amber-700 font-semibold py-3 rounded-lg hover:bg-amber-50">
+                                        Print Resit
+                                    </button>
+                                    <button type="button" @click="startNewOrder()"
+                                        class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg">
+                                        Order Baru
+                                    </button>
                                 </div>
                             </template>
                         </div>
@@ -496,6 +510,9 @@
                 checkoutStep: null,
                 confirmDateStr: '',
                 cashReceived: 0,
+                justPaid: false,
+                completedOrderNumber: '',
+                lastReceiptData: null,
 
                 openCheckout() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
@@ -505,7 +522,25 @@
                     const pad = (n) => String(n).padStart(2, '0');
                     this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
                     this.cashReceived = 0;
+                    this.completedOrderNumber = '';
+                    this.lastReceiptData = null;
                     this.checkoutStep = 'choose';
+                },
+
+                reprintReceipt() {
+                    if (! this.lastReceiptData) {
+                        return;
+                    }
+                    this.printViaBluetooth(this.lastReceiptData, { openDrawer: false, forceConnect: true });
+                },
+
+                startNewOrder() {
+                    this.checkoutStep = null;
+                    this.items = [];
+                    this.discount = 0;
+                    this.cashReceived = 0;
+                    this.completedOrderNumber = '';
+                    this.lastReceiptData = null;
                 },
 
                 cashChange() {
@@ -645,10 +680,10 @@
                     return Math.max(this.subtotal() - (this.discount || 0), 0);
                 },
 
-                // Closes the checkout popup and clears the cart immediately - printing
-                // (Bluetooth or the offline fallback) is already fired off separately
-                // and keeps running in the background, so the next order isn't blocked
-                // waiting on it.
+                // Used only for the offline/degraded paths, which already print via
+                // the local fallback and have no real order number yet to show on a
+                // "done" screen - so those close the popup and reset immediately
+                // instead of waiting for staff to tap Order Baru.
                 finishCheckout(method, orderNumber, orderTotal) {
                     this.toastMessage = `Order ${orderNumber} berjaya - RM ${orderTotal.toFixed(2)} (${method === 'cash' ? 'Cash' : 'QR / DuitNow'})`;
                     clearTimeout(this._toastTimer);
@@ -700,8 +735,9 @@
                             const now = new Date();
                             const receiptData = this.buildReceiptData(data.order_number, this.items, payload, now);
                             // Not awaited - printing runs in the background while the
-                            // cart is already reset for the next order.
+                            // receipt stays on screen for staff to review / reprint.
                             this.printViaBluetooth(receiptData, { openDrawer: method === 'cash' });
+                            this.lastReceiptData = receiptData;
 
                             const pad = (n) => String(n).padStart(2, '0');
                             window.dispatchEvent(new CustomEvent('order-created', { detail: {
@@ -720,8 +756,16 @@
                                 items: receiptData.items,
                             } }));
 
+                            this.completedOrderNumber = data.order_number;
+
+                            if (method === 'cash') {
+                                this.justPaid = true;
+                                await new Promise((resolve) => setTimeout(resolve, 600));
+                            }
+
                             this.submitting = false;
-                            this.finishCheckout(method, data.order_number, orderTotal);
+                            this.justPaid = false;
+                            this.checkoutStep = 'done';
                             return;
                         }
 
