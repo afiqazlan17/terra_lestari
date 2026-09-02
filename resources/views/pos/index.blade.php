@@ -114,7 +114,7 @@
                                             :disabled="! hasSession"
                                             @click="{{ $product->is_variable_price ? 'addVariablePriceItem' : 'addItem' }}({{ $product->id }}, '{{ $product->is_variable_price ? addslashes($category->name.': '.$product->name) : addslashes($product->name) }}', {{ $product->price }})"
                                             :class="hasSession ? 'hover:ring-2 hover:ring-amber-400 active:scale-95' : 'opacity-50 cursor-not-allowed'"
-                                            class="{{ $colorClasses }} shadow-sm rounded-lg text-left transition {{ $isSquare ? 'aspect-square p-2 flex flex-col justify-center' : 'p-4' }}">
+                                            class="{{ $colorClasses }} shadow-sm rounded-lg transition {{ $isSquare ? 'aspect-square p-2 flex flex-col items-center justify-center text-center' : 'p-4 text-left' }}">
                                             <p class="font-medium {{ $tier ? '' : 'text-gray-800' }} {{ $isSquare ? 'text-base' : '' }} leading-tight">{{ $displayName }}@if ($parenPart)<br>{{ $parenPart }}@endif</p>
                                             @if ($product->is_variable_price)
                                                 <p class="text-sm text-amber-600 mt-1">Harga berubah</p>
