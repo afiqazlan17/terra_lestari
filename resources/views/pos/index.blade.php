@@ -207,7 +207,10 @@
                         <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 font-mono">
                             <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[200px] w-full h-auto mb-2">
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <p class="text-sm text-gray-500 text-center" x-text="confirmDateStr"></p>
+                            <p class="text-sm text-gray-500">
+                                No. Resit: <span class="italic">Belum dijana</span><br>
+                                Tarikh: <span x-text="confirmDateStr"></span>
+                            </p>
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
 
                             <div class="space-y-2 max-h-52 overflow-y-auto text-base">
@@ -264,6 +267,10 @@
                                 <div class="font-sans">
                                     <p class="text-sm font-medium text-gray-700 mb-2">Tunai Diterima</p>
                                     <div class="grid grid-cols-5 gap-2 mb-2">
+                                        <button type="button" @click="cashReceived = total()"
+                                            class="border border-amber-300 bg-amber-50 rounded-lg py-2 text-sm font-medium text-amber-700 hover:bg-amber-100">
+                                            <span x-text="'RM' + total().toFixed(2)"></span>
+                                        </button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 5"
                                             class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM5</button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 10"
@@ -272,8 +279,6 @@
                                             class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM20</button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 50"
                                             class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM50</button>
-                                        <button type="button" @click="cashReceived = total()"
-                                            class="border border-amber-300 bg-amber-50 rounded-lg py-2 text-sm font-medium text-amber-700 hover:bg-amber-100">Tepat</button>
                                     </div>
                                     <div class="flex gap-2 items-center mb-3">
                                         <input type="text" inputmode="decimal" x-model.number="cashReceived" placeholder="Amaun lain (RM)"

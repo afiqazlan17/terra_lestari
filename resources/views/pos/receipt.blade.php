@@ -101,7 +101,6 @@
         <div class="actions">
             <button onclick="sbPrintReceipt()">Print</button>
             <button class="secondary" onclick="sbGoBack()">Back</button>
-            <a href="{{ route('pos.index') }}">Order Baru</a>
         </div>
     </div>
 
