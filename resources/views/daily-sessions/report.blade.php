@@ -303,37 +303,24 @@
             </table>
         </section>
 
-        <div class="split-cols">
-            <section>
-                <h2>Tunai</h2>
-                @if ($cashTally)
-                    <div class="cash-box">
-                        <div class="cash-row"><span>Tunai Pembukaan</span><span class="amt">RM {{ number_format($cashTally['openingCash'], 2) }}</span></div>
-                        <div class="cash-row"><span>+ Jualan Cash</span><span class="amt">RM {{ number_format($summary['cashSales'], 2) }}</span></div>
-                        <div class="cash-row total"><span>Jangkaan Tunai</span><span class="amt">RM {{ number_format($cashTally['jangkaan'], 2) }}</span></div>
-                        @if ($cashTally['sebenar'] !== null)
-                            <div class="cash-row"><span>Tunai Sebenar</span><span class="amt">RM {{ number_format($cashTally['sebenar'], 2) }}</span></div>
-                            <div class="cash-row variance {{ $cashTally['beza'] == 0 ? 'good' : 'bad' }}">
-                                <span>Beza</span><span class="amt">RM {{ number_format($cashTally['beza'], 2) }}</span>
-                            </div>
-                        @endif
-                    </div>
-                @else
-                    <p class="empty">Tiada sesi dibuka pada tarikh ini.</p>
-                @endif
-            </section>
-
-            <section>
-                <h2>Jenis Order</h2>
-                <table class="report">
-                    <thead><tr><th>Jenis</th><th class="num">Jumlah</th></tr></thead>
-                    <tbody>
-                        <tr><td>Dine In</td><td class="num">RM {{ number_format($summary['dineInSales'], 2) }}</td></tr>
-                        <tr><td>Take Away</td><td class="num">RM {{ number_format($summary['takeawaySales'], 2) }}</td></tr>
-                    </tbody>
-                </table>
-            </section>
-        </div>
+        <section>
+            <h2>Tunai</h2>
+            @if ($cashTally)
+                <div class="cash-box">
+                    <div class="cash-row"><span>Tunai Pembukaan</span><span class="amt">RM {{ number_format($cashTally['openingCash'], 2) }}</span></div>
+                    <div class="cash-row"><span>+ Jualan Cash</span><span class="amt">RM {{ number_format($summary['cashSales'], 2) }}</span></div>
+                    <div class="cash-row total"><span>Jangkaan Tunai</span><span class="amt">RM {{ number_format($cashTally['jangkaan'], 2) }}</span></div>
+                    @if ($cashTally['sebenar'] !== null)
+                        <div class="cash-row"><span>Tunai Sebenar</span><span class="amt">RM {{ number_format($cashTally['sebenar'], 2) }}</span></div>
+                        <div class="cash-row variance {{ $cashTally['beza'] == 0 ? 'good' : 'bad' }}">
+                            <span>Beza</span><span class="amt">RM {{ number_format($cashTally['beza'], 2) }}</span>
+                        </div>
+                    @endif
+                </div>
+            @else
+                <p class="empty">Tiada sesi dibuka pada tarikh ini.</p>
+            @endif
+        </section>
 
         <section>
             <h2>Item Terlaris</h2>

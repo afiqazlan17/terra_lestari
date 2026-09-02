@@ -99,11 +99,6 @@ class FinanceController extends Controller
             ->groupBy('payment_method')
             ->get();
 
-        $salesByOrderType = (clone $orders)
-            ->selectRaw('order_type, COUNT(*) as order_count, SUM(total) as total')
-            ->groupBy('order_type')
-            ->get();
-
         $topProducts = OrderItem::whereHas('order', function ($query) use ($project, $from, $to) {
             $query->where('project_id', $project->id)
                 ->where('status', Order::STATUS_COMPLETED)
@@ -142,7 +137,6 @@ class FinanceController extends Controller
             'orderCount' => $orderCount,
             'averageOrderValue' => $averageOrderValue,
             'salesByPaymentMethod' => $salesByPaymentMethod,
-            'salesByOrderType' => $salesByOrderType,
             'topProducts' => $topProducts,
             'dailyBreakdown' => $dailyBreakdown,
             'recentOrders' => $recentOrders,
@@ -255,7 +249,7 @@ class FinanceController extends Controller
 
         return response()->streamDownload(function () use ($orders) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['No. Resit', 'Tarikh/Masa', 'Item', 'Jenis Order', 'Kaedah Bayaran', 'Subtotal (RM)', 'Diskaun (RM)', 'Jumlah (RM)']);
+            fputcsv($out, ['No. Resit', 'Tarikh/Masa', 'Item', 'Kaedah Bayaran', 'Subtotal (RM)', 'Diskaun (RM)', 'Jumlah (RM)']);
 
             foreach ($orders as $order) {
                 $itemsSummary = $order->items->map(fn ($item) => $item->product_name.' x'.$item->qty)->implode('; ');
@@ -264,7 +258,6 @@ class FinanceController extends Controller
                     $order->order_number,
                     $order->created_at->format('d/m/Y H:i'),
                     $itemsSummary,
-                    $order->typeLabel(),
                     $order->paymentMethodLabel(),
                     number_format($order->subtotal, 2, '.', ''),
                     number_format($order->discount, 2, '.', ''),

@@ -310,7 +310,6 @@ async function buildReceiptEscPos(data, is58mm, options = {}) {
     push([ESC, 0x61, 0x00]); // left align
     text(`No. Resit: ${data.orderNumber}\n`);
     text(`Tarikh: ${data.dateStr}\n`);
-    text(`Jenis: ${data.typeLabel}\n`);
     text('-'.repeat(width) + '\n');
 
     data.items.forEach((item) => {

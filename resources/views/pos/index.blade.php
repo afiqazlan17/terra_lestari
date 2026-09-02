@@ -56,6 +56,9 @@
                 <template x-if="syncMessage">
                     <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-800" x-text="syncMessage"></div>
                 </template>
+                <template x-if="toastMessage">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 text-sm text-green-800 font-medium" x-text="toastMessage"></div>
+                </template>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -175,42 +178,6 @@
                         </div>
                     </div>
 
-                    <div class="mt-4">
-                        <label class="block text-xs text-gray-500 mb-1">Jenis Order</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button type="button" @click="orderType = 'dine_in'" :disabled="! hasSession"
-                                :class="orderType === 'dine_in' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
-                                Dine In
-                            </button>
-                            <button type="button" @click="orderType = 'takeaway'" :disabled="! hasSession"
-                                :class="orderType === 'takeaway' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
-                                Take Away
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <label class="block text-xs text-gray-500 mb-1">Cara Bayar</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <button type="button" @click="paymentMethod = 'qr'" :disabled="! hasSession"
-                                :class="paymentMethod === 'qr' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
-                                QR / DuitNow
-                            </button>
-                            <button type="button" @click="paymentMethod = 'cash'" :disabled="! hasSession"
-                                :class="paymentMethod === 'cash' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600'"
-                                class="rounded-md py-2 text-sm font-medium transition disabled:opacity-50">
-                                Cash
-                            </button>
-                            <button type="button" disabled
-                                class="rounded-md py-2 text-sm font-medium transition bg-gray-100 text-gray-400 opacity-50 cursor-not-allowed">
-                                Kad Debit/Kad Kredit
-                            </button>
-                        </div>
-                    </div>
-
                     <template x-if="window.SBPrinter && window.SBPrinter.isSupported()">
                         <div class="mt-3 flex items-center justify-between text-xs">
                             <span :class="printerConnected ? 'text-green-700' : 'text-gray-400'">
@@ -223,7 +190,7 @@
                         </div>
                     </template>
 
-                    <button type="button" @click="openConfirm()" :disabled="! hasSession || items.length === 0 || submitting"
+                    <button type="button" @click="openCheckout()" :disabled="! hasSession || items.length === 0 || submitting"
                         class="mt-4 w-full bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-3 rounded-lg transition">
                         <span x-text="submitting ? 'Menghantar...' : 'Checkout'"></span>
                     </button>
@@ -234,20 +201,11 @@
                 </div>
                 </div>
 
-                {{-- Receipt preview before the order is actually saved/printed --}}
-                <template x-if="confirming">
+                {{-- Checkout popup: choose payment method, then (for cash) collect tendered amount --}}
+                <template x-if="checkoutStep">
                     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 font-mono">
-                            <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[180px] w-full h-auto mb-2">
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <p class="text-xs text-gray-500">
-                                No. Resit: <span :class="! orderResult && 'italic'" x-text="orderResult ? orderResult.orderNumber : 'Belum dijana'"></span><br>
-                                Tarikh: <span x-text="confirmDateStr"></span><br>
-                                Jenis: <span x-text="orderType === 'dine_in' ? 'Dine In' : 'Take Away'"></span>
-                            </p>
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
-
-                            <div class="space-y-2 max-h-60 overflow-y-auto text-sm">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+                            <div class="space-y-2 max-h-52 overflow-y-auto text-sm border-b border-gray-100 pb-3 mb-3">
                                 <template x-for="item in items" :key="item.product_id">
                                     <div>
                                         <div class="flex justify-between text-gray-800">
@@ -259,8 +217,7 @@
                                 </template>
                             </div>
 
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <div class="text-sm space-y-1">
+                            <div class="text-sm space-y-1 mb-4">
                                 <div class="flex justify-between text-gray-700">
                                     <span>Subtotal</span>
                                     <span>RM <span x-text="subtotal().toFixed(2)"></span></span>
@@ -269,34 +226,37 @@
                                     <span>Diskaun</span>
                                     <span>RM <span x-text="(discount || 0).toFixed(2)"></span></span>
                                 </div>
-                                <div class="flex justify-between font-bold text-gray-900 text-base">
+                                <div class="flex justify-between font-bold text-gray-900 text-lg">
                                     <span>Jumlah</span>
                                     <span>RM <span x-text="total().toFixed(2)"></span></span>
                                 </div>
-                                <div class="flex justify-between text-xs text-gray-500">
-                                    <span>Bayaran</span>
-                                    <span x-text="paymentMethod === 'cash' ? 'Cash' : 'QR / DuitNow'"></span>
-                                </div>
-                                <template x-if="paymentMethod === 'cash' && orderResult && orderResult.cashReceived != null">
-                                    <div>
-                                        <div class="flex justify-between text-gray-700">
-                                            <span>Tunai Diterima</span>
-                                            <span>RM <span x-text="orderResult.cashReceived.toFixed(2)"></span></span>
-                                        </div>
-                                        <div class="flex justify-between font-bold text-green-700">
-                                            <span>Baki</span>
-                                            <span>RM <span x-text="orderResult.cashChange.toFixed(2)"></span></span>
-                                        </div>
-                                    </div>
-                                </template>
                             </div>
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <p class="text-center text-xs text-gray-500" x-show="! (paymentMethod === 'cash' && cashEntry && ! orderResult)">Terima kasih!</p>
 
-                            <template x-if="paymentMethod === 'cash' && cashEntry && ! orderResult">
-                                <div class="font-sans">
+                            {{-- Step 1: choose payment method --}}
+                            <template x-if="checkoutStep === 'choose'">
+                                <div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button type="button" @click="checkoutWithMethod('qr')" :disabled="submitting"
+                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-6 rounded-lg text-lg transition">
+                                            QR / DuitNow
+                                        </button>
+                                        <button type="button" @click="checkoutStep = 'cash'" :disabled="submitting"
+                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-6 rounded-lg text-lg transition">
+                                            Cash
+                                        </button>
+                                    </div>
+                                    <button type="button" @click="checkoutStep = null" :disabled="submitting"
+                                        class="mt-4 w-full border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                        Batal
+                                    </button>
+                                </div>
+                            </template>
+
+                            {{-- Step 2: cash tendered --}}
+                            <template x-if="checkoutStep === 'cash'">
+                                <div>
                                     <p class="text-sm font-medium text-gray-700 mb-2">Tunai Diterima</p>
-                                    <div class="grid grid-cols-4 gap-2 mb-2">
+                                    <div class="grid grid-cols-5 gap-2 mb-2">
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 5"
                                             class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM5</button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 10"
@@ -305,6 +265,8 @@
                                             class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM20</button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 50"
                                             class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM50</button>
+                                        <button type="button" @click="cashReceived = total()"
+                                            class="border border-amber-300 bg-amber-50 rounded-lg py-2 text-sm font-medium text-amber-700 hover:bg-amber-100">Tepat</button>
                                     </div>
                                     <div class="flex gap-2 items-center mb-3">
                                         <input type="text" inputmode="decimal" x-model.number="cashReceived" placeholder="Amaun lain (RM)"
@@ -325,50 +287,19 @@
                                         <span>RM <span x-text="cashChange().toFixed(2)"></span></span>
                                     </div>
                                     <p class="text-xs text-red-500 mt-1" x-show="(cashReceived || 0) < total()">Tunai diterima tidak mencukupi.</p>
-                                    <div class="border-t border-dashed border-gray-300 my-3"></div>
+
+                                    <div class="mt-4 flex gap-2">
+                                        <button type="button" @click="checkoutStep = 'choose'" :disabled="submitting"
+                                            class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                            Kembali
+                                        </button>
+                                        <button type="button" @click="checkoutWithMethod('cash')" :disabled="submitting || (cashReceived || 0) < total()"
+                                            class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
+                                            <span x-text="submitting ? 'Menghantar...' : 'Confirm'"></span>
+                                        </button>
+                                    </div>
                                 </div>
                             </template>
-
-                            <div class="mt-2 flex gap-2 font-sans">
-                                <template x-if="! orderResult && paymentMethod === 'cash'">
-                                    <button type="button" @click="checkout()" :disabled="submitting || (cashReceived || 0) < total()"
-                                        class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
-                                        <span x-text="submitting ? 'Menghantar...' : 'Sahkan & Selesai'"></span>
-                                    </button>
-                                </template>
-                                <template x-if="! orderResult && paymentMethod === 'cash'">
-                                    <button type="button" @click="confirming = false" :disabled="submitting"
-                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                                        Back
-                                    </button>
-                                </template>
-
-                                <template x-if="! orderResult && paymentMethod !== 'cash'">
-                                    <button type="button" @click="checkout()" :disabled="submitting"
-                                        class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
-                                        <span x-text="submitting ? 'Menghantar...' : 'Print'"></span>
-                                    </button>
-                                </template>
-                                <template x-if="! orderResult && paymentMethod !== 'cash'">
-                                    <button type="button" @click="confirming = false" :disabled="submitting"
-                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                                        Back
-                                    </button>
-                                </template>
-
-                                <template x-if="orderResult">
-                                    <button type="button" @click="reprintFromPreview()"
-                                        class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
-                                        Print
-                                    </button>
-                                </template>
-                                <template x-if="orderResult">
-                                    <button type="button" @click="resetAfterPrint()"
-                                        class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 rounded-lg">
-                                        Order Baru
-                                    </button>
-                                </template>
-                            </div>
                         </div>
                     </div>
                 </template>
@@ -543,44 +474,26 @@
                 hasSession: hasSession,
                 items: [],
                 discount: 0,
-                paymentMethod: 'qr',
-                orderType: 'dine_in',
                 pendingOrders: [],
                 syncing: false,
                 submitting: false,
                 syncMessage: '',
+                toastMessage: '',
                 printerConnected: false,
                 printerBusy: false,
-                confirming: false,
-                confirmDateStr: '',
-                orderResult: null,
-                cashEntry: false,
+                checkoutStep: null,
                 cashReceived: 0,
 
-                openConfirm() {
+                openCheckout() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
                         return;
                     }
-                    const now = new Date();
-                    const pad = (n) => String(n).padStart(2, '0');
-                    this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-                    this.orderResult = null;
-                    this.cashEntry = this.paymentMethod === 'cash';
                     this.cashReceived = 0;
-                    this.confirming = true;
+                    this.checkoutStep = 'choose';
                 },
 
                 cashChange() {
                     return Math.max((this.cashReceived || 0) - this.total(), 0);
-                },
-
-                resetAfterPrint() {
-                    this.confirming = false;
-                    this.orderResult = null;
-                    this.cashEntry = false;
-                    this.cashReceived = 0;
-                    this.items = [];
-                    this.discount = 0;
                 },
 
                 init() {
@@ -687,25 +600,40 @@
                     return Math.max(this.subtotal() - (this.discount || 0), 0);
                 },
 
-                buildPayload() {
-                    return {
-                        items: this.items.map(i => ({ product_id: i.product_id, qty: i.qty, unit_price: i.price })),
-                        discount: this.discount || 0,
-                        payment_method: this.paymentMethod,
-                        cash_received: this.paymentMethod === 'cash' ? (this.cashReceived || 0) : null,
-                        order_type: this.orderType,
-                    };
+                // Closes the checkout popup and clears the cart immediately - printing
+                // (Bluetooth or the offline fallback) is already fired off separately
+                // and keeps running in the background, so the next order isn't blocked
+                // waiting on it.
+                finishCheckout(method, orderNumber, orderTotal) {
+                    this.toastMessage = `Order ${orderNumber} berjaya - RM ${orderTotal.toFixed(2)} (${method === 'cash' ? 'Cash' : 'QR / DuitNow'})`;
+                    clearTimeout(this._toastTimer);
+                    this._toastTimer = setTimeout(() => { this.toastMessage = ''; }, 4000);
+
+                    this.checkoutStep = null;
+                    this.items = [];
+                    this.discount = 0;
+                    this.cashReceived = 0;
                 },
 
-                async checkout() {
+                async checkoutWithMethod(method) {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
                         return;
                     }
+                    if (method === 'cash' && (this.cashReceived || 0) < this.total()) {
+                        return;
+                    }
 
-                    const payload = this.buildPayload();
+                    const orderTotal = this.total();
+                    const payload = {
+                        items: this.items.map(i => ({ product_id: i.product_id, qty: i.qty, unit_price: i.price })),
+                        discount: this.discount || 0,
+                        payment_method: method,
+                        cash_received: method === 'cash' ? (this.cashReceived || 0) : null,
+                    };
 
                     if (! this.$store.connectivity.online) {
                         this.queueOffline(payload);
+                        this.finishCheckout(method, 'Menunggu Sync', orderTotal);
                         return;
                     }
 
@@ -726,33 +654,29 @@
                             const data = await res.json();
                             const now = new Date();
                             const receiptData = this.buildReceiptData(data.order_number, this.items, payload, now);
-                            await this.printViaBluetooth(receiptData, { openDrawer: payload.payment_method === 'cash' });
-                            this.orderResult = {
-                                orderNumber: data.order_number,
-                                receiptUrl: data.receipt_url,
-                                cashReceived: receiptData.cashReceived,
-                                cashChange: receiptData.cashChange,
-                            };
-                            this.submitting = false;
+                            // Not awaited - printing runs in the background while the
+                            // cart is already reset for the next order.
+                            this.printViaBluetooth(receiptData, { openDrawer: method === 'cash' });
 
                             const pad = (n) => String(n).padStart(2, '0');
                             window.dispatchEvent(new CustomEvent('order-created', { detail: {
                                 id: data.order_id,
                                 orderNumber: data.order_number,
-                                total: this.total(),
+                                total: orderTotal,
                                 date: `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`,
                                 time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
                                 status: 'completed',
                                 voidReason: null,
                                 voidedAt: null,
                                 receiptUrl: data.receipt_url,
-                                typeLabel: receiptData.typeLabel,
                                 paymentLabel: receiptData.paymentLabel,
                                 subtotal: receiptData.subtotal,
                                 discount: receiptData.discount,
                                 items: receiptData.items,
                             } }));
 
+                            this.submitting = false;
+                            this.finishCheckout(method, data.order_number, orderTotal);
                             return;
                         }
 
@@ -769,18 +693,7 @@
                         this.$store.connectivity.online = false;
                         this.submitting = false;
                         this.queueOffline(payload);
-                    }
-                },
-
-                async reprintFromPreview() {
-                    if (! this.orderResult) {
-                        return;
-                    }
-                    const payload = this.buildPayload();
-                    const data = this.buildReceiptData(this.orderResult.orderNumber, this.items, payload, new Date());
-                    const printed = await this.printViaBluetooth(data, { forceConnect: true, openDrawer: payload.payment_method === 'cash' });
-                    if (! printed && window.SBPrinter && window.SBPrinter.isSupported()) {
-                        alert('Printer tidak connect. Sila cuba lagi.');
+                        this.finishCheckout(method, 'Menunggu Sync', orderTotal);
                     }
                 },
 
@@ -794,21 +707,18 @@
                     this.pendingOrders.push(pending);
                     this.savePending();
                     this.printLocalReceipt(pending);
-                    this.orderResult = { orderNumber: 'Menunggu Sync', receiptUrl: null, offline: true };
                 },
 
                 buildReceiptData(orderNumber, itemsList, payload, when) {
                     const subtotal = itemsList.reduce((s, i) => s + i.price * i.qty, 0);
                     const discount = payload.discount || 0;
                     const total = Math.max(subtotal - discount, 0);
-                    const typeLabels = { dine_in: 'Dine In', takeaway: 'Take Away' };
                     const paymentLabels = { cash: 'Cash', qr: 'QR / DuitNow', card: 'Kad Debit/Kad Kredit' };
                     const pad = (n) => String(n).padStart(2, '0');
 
                     return {
                         orderNumber: orderNumber,
                         dateStr: `${pad(when.getDate())}/${pad(when.getMonth() + 1)}/${when.getFullYear()} ${pad(when.getHours())}:${pad(when.getMinutes())}`,
-                        typeLabel: typeLabels[payload.order_type] || payload.order_type,
                         items: itemsList.map(i => ({
                             name: i.name,
                             qty: i.qty,
@@ -884,8 +794,7 @@
                             <div class="divider"></div>
                             <p class="muted">
                                 No. Resit: Menunggu Sync<br>
-                                Tarikh: ${data.dateStr}<br>
-                                Jenis: ${data.typeLabel}
+                                Tarikh: ${data.dateStr}
                             </p>
                             <div class="divider"></div>
                             <table>${itemsHtml}</table>

@@ -93,29 +93,6 @@
                         </div>
                     @endif
                 </div>
-
-                <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
-                    <div class="px-6 py-3 bg-gray-50 text-sm font-semibold text-gray-600">Ikut Jenis Order</div>
-                    @if ($salesByOrderType->isEmpty())
-                        <p class="p-6 text-sm text-gray-400">Tiada jualan dalam tempoh ini.</p>
-                    @else
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-100 text-sm">
-                                <tbody class="divide-y divide-gray-100">
-                                    @foreach ($salesByOrderType as $row)
-                                        <tr>
-                                            <td class="px-6 py-3 text-gray-700 whitespace-nowrap">
-                                                {{ \App\Models\Order::TYPES[$row->order_type] ?? $row->order_type }}
-                                                <span class="text-gray-400">({{ $row->order_count }} order)</span>
-                                            </td>
-                                            <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($row->total, 2) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    @endif
-                </div>
             </div>
 
             <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
@@ -163,7 +140,6 @@
                                     <th class="px-6 py-2 whitespace-nowrap">No. Resit</th>
                                     <th class="px-6 py-2 whitespace-nowrap">Tarikh/Masa</th>
                                     <th class="px-6 py-2">Item</th>
-                                    <th class="px-6 py-2 whitespace-nowrap">Jenis</th>
                                     <th class="px-6 py-2 whitespace-nowrap">Bayaran</th>
                                     <th class="px-6 py-2 text-right whitespace-nowrap">Jumlah</th>
                                     <th class="px-6 py-2 text-right whitespace-nowrap no-print">Resit</th>
@@ -181,7 +157,6 @@
                                                 @endforeach
                                             </ul>
                                         </td>
-                                        <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->typeLabel() }}</td>
                                         <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $order->paymentMethodLabel() }}</td>
                                         <td class="px-6 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($order->total, 2) }}</td>
                                         <td class="px-6 py-3 text-right whitespace-nowrap no-print">

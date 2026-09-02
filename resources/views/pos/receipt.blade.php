@@ -71,8 +71,7 @@
         <div class="divider"></div>
         <p class="muted">
             No. Resit: {{ $order->order_number }}<br>
-            Tarikh: {{ $order->created_at->format('d/m/Y H:i') }}<br>
-            Jenis: {{ $order->typeLabel() }}
+            Tarikh: {{ $order->created_at->format('d/m/Y H:i') }}
         </p>
         <div class="divider"></div>
         <table>
@@ -110,7 +109,6 @@
         const RECEIPT_DATA = {
             orderNumber: @json($order->order_number),
             dateStr: @json($order->created_at->format('d/m/Y H:i')),
-            typeLabel: @json($order->typeLabel()),
             items: [
                 @foreach ($order->items as $item)
                 { name: @json($item->product_name), qty: {{ $item->qty }}, price: @json(number_format($item->unit_price, 2)), lineTotal: @json(number_format($item->subtotal, 2)) },

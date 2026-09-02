@@ -30,12 +30,6 @@ class SalesSummaryService
             ->pluck('total', 'payment_method')
             ->map(fn ($v) => (float) $v);
 
-        $byOrderType = $baseQuery()
-            ->selectRaw('order_type, SUM(total) as total')
-            ->groupBy('order_type')
-            ->pluck('total', 'order_type')
-            ->map(fn ($v) => (float) $v);
-
         $orderIds = $baseQuery()->pluck('id');
 
         $itemCount = (int) OrderItem::whereIn('order_id', $orderIds)->sum('qty');
@@ -85,8 +79,6 @@ class SalesSummaryService
             'cashSales' => (float) ($byPaymentMethod[Order::PAYMENT_METHOD_CASH] ?? 0),
             'qrSales' => (float) ($byPaymentMethod[Order::PAYMENT_METHOD_QR] ?? 0),
             'cardSales' => (float) ($byPaymentMethod[Order::PAYMENT_METHOD_CARD] ?? 0),
-            'dineInSales' => (float) ($byOrderType[Order::TYPE_DINE_IN] ?? 0),
-            'takeawaySales' => (float) ($byOrderType[Order::TYPE_TAKEAWAY] ?? 0),
             'sbSales' => $totalSales - $nbkSales,
             'nbkSales' => $nbkSales,
             'topItems' => $topItems,

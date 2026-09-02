@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 @if ($cashTally)
                     <div class="bg-white shadow-sm sm:rounded-lg p-6">
                         <p class="text-sm font-medium text-gray-700 mb-3">Tunai</p>
@@ -157,14 +157,6 @@
                         </p>
                     </div>
                 @endif
-
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
-                    <p class="text-sm font-medium text-gray-700 mb-3">Jenis Order</p>
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-600">Dine In</span><span class="font-medium">RM {{ number_format($rangeSummary['dineInSales'], 2) }}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Take Away</span><span class="font-medium">RM {{ number_format($rangeSummary['takeawaySales'], 2) }}</span></div>
-                    </div>
-                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -9,7 +9,6 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PosController extends Controller
@@ -65,7 +64,6 @@ class PosController extends Controller
             'discount' => ['nullable', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:cash,qr,card'],
             'cash_received' => ['nullable', 'numeric', 'min:0'],
-            'order_type' => ['required', Rule::in(array_keys(Order::TYPES))],
         ]);
 
         $order = $this->createOrderWithRetry(function () use ($validated, $project, $session, $request) {
@@ -122,7 +120,6 @@ class PosController extends Controller
                 'total' => $total,
                 'payment_method' => $validated['payment_method'],
                 'cash_received' => $cashReceived,
-                'order_type' => $validated['order_type'],
                 'status' => Order::STATUS_COMPLETED,
             ]);
 
