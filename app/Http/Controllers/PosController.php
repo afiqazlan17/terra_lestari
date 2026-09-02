@@ -68,7 +68,7 @@ class PosController extends Controller
             'order_type' => ['required', Rule::in(array_keys(Order::TYPES))],
         ]);
 
-        $order = DB::transaction(function () use ($validated, $project, $session, $request) {
+        $order = $this->createOrderWithRetry(function () use ($validated, $project, $session, $request) {
             $subtotal = 0;
             $lineItems = [];
 
@@ -173,10 +173,43 @@ class PosController extends Controller
 
     private function generateOrderNumber(int $projectId): string
     {
-        $countToday = Order::where('project_id', $projectId)
-            ->whereDate('created_at', now()->toDateString())
-            ->count();
+        // order_number is unique across the whole project (not scoped per
+        // day), so the sequence must keep climbing across days too -
+        // resetting to "today's count" would collide with an earlier day's
+        // SB001 the moment more than one calendar day of orders exists.
+        // Read the highest existing suffix (not a row count) so a deleted
+        // test order never reopens a number that's still in use above it.
+        $maxNumber = Order::where('project_id', $projectId)
+            ->where('order_number', 'like', 'SB%')
+            ->pluck('order_number')
+            ->map(fn ($number) => (int) substr($number, 2))
+            ->max();
 
-        return sprintf('SB%03d', $countToday + 1);
+        return sprintf('SB%03d', ($maxNumber ?? 0) + 1);
+    }
+
+    /**
+     * Two checkouts landing at the same instant can both read the same
+     * highest order_number and generate the same next one, so the second
+     * insert hits the unique constraint. Retry a few times on that
+     * specific collision - each retry re-reads the max and gets a fresh
+     * number - instead of surfacing a 500 to the cashier.
+     */
+    private function createOrderWithRetry(\Closure $callback, int $maxAttempts = 5): Order
+    {
+        $attempt = 0;
+
+        while (true) {
+            try {
+                return DB::transaction($callback);
+            } catch (\Illuminate\Database\QueryException $e) {
+                $attempt++;
+                $isOrderNumberCollision = str_contains($e->getMessage(), 'orders_order_number_unique');
+
+                if (! $isOrderNumberCollision || $attempt >= $maxAttempts) {
+                    throw $e;
+                }
+            }
+        }
     }
 }
