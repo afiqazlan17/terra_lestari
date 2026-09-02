@@ -204,8 +204,13 @@
                 {{-- Checkout popup: choose payment method, then (for cash) collect tendered amount --}}
                 <template x-if="checkoutStep">
                     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-                            <div class="space-y-2 max-h-52 overflow-y-auto text-sm border-b border-gray-100 pb-3 mb-3">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 font-mono">
+                            <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[200px] w-full h-auto mb-2">
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+                            <p class="text-sm text-gray-500 text-center" x-text="confirmDateStr"></p>
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+
+                            <div class="space-y-2 max-h-52 overflow-y-auto text-base">
                                 <template x-for="item in items" :key="item.product_id">
                                     <div>
                                         <div class="flex justify-between text-gray-800">
@@ -217,7 +222,8 @@
                                 </template>
                             </div>
 
-                            <div class="text-sm space-y-1 mb-4">
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+                            <div class="text-base space-y-1">
                                 <div class="flex justify-between text-gray-700">
                                     <span>Subtotal</span>
                                     <span>RM <span x-text="subtotal().toFixed(2)"></span></span>
@@ -231,10 +237,11 @@
                                     <span>RM <span x-text="total().toFixed(2)"></span></span>
                                 </div>
                             </div>
+                            <div class="border-t border-dashed border-gray-300 my-3"></div>
 
                             {{-- Step 1: choose payment method --}}
                             <template x-if="checkoutStep === 'choose'">
-                                <div>
+                                <div class="font-sans">
                                     <div class="grid grid-cols-2 gap-3">
                                         <button type="button" @click="checkoutWithMethod('qr')" :disabled="submitting"
                                             class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-6 rounded-lg text-lg transition">
@@ -254,7 +261,7 @@
 
                             {{-- Step 2: cash tendered --}}
                             <template x-if="checkoutStep === 'cash'">
-                                <div>
+                                <div class="font-sans">
                                     <p class="text-sm font-medium text-gray-700 mb-2">Tunai Diterima</p>
                                     <div class="grid grid-cols-5 gap-2 mb-2">
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 5"
@@ -482,12 +489,16 @@
                 printerConnected: false,
                 printerBusy: false,
                 checkoutStep: null,
+                confirmDateStr: '',
                 cashReceived: 0,
 
                 openCheckout() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
                         return;
                     }
+                    const now = new Date();
+                    const pad = (n) => String(n).padStart(2, '0');
+                    this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
                     this.cashReceived = 0;
                     this.checkoutStep = 'choose';
                 },
