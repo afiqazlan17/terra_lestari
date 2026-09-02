@@ -44,33 +44,7 @@
         </div>
     </form>
 
-    <div class="mt-6 text-center" x-data x-show="typeof Passkeys !== 'undefined' && Passkeys.isSupported()" x-cloak>
-        <button type="button" id="passkey-login-button"
-            class="w-full inline-flex justify-center items-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Log Masuk guna Face ID / Passkey
-        </button>
-        <p id="passkey-login-error" class="text-sm text-red-600 mt-2" x-cloak></p>
-    </div>
-
     <div class="text-center mt-6">
         <a href="{{ route('cashier-login') }}" class="text-sm text-gray-500 hover:underline">Log masuk guna PIN</a>
     </div>
-
-    <script>
-        document.getElementById('passkey-login-button')?.addEventListener('click', async (event) => {
-            const button = event.currentTarget;
-            const errorEl = document.getElementById('passkey-login-error');
-            errorEl.textContent = '';
-            button.disabled = true;
-
-            try {
-                const { redirect } = await Passkeys.verify();
-                window.location.href = redirect || '/';
-            } catch (e) {
-                console.error('Passkey login error:', e);
-                errorEl.textContent = 'Log masuk gagal: ' + (e?.message || e?.name || String(e));
-                button.disabled = false;
-            }
-        });
-    </script>
 </x-guest-layout>
