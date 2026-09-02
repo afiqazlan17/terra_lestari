@@ -60,6 +60,24 @@ class SalesSummaryService
             ->whereDate('created_at', '<=', $to->toDateString())
             ->get();
 
+        // Estimated margin - only over line items that resolve to a product
+        // with a cost set. Items sold with no linked product (e.g. Add-On,
+        // or a manual sales adjustment) are excluded rather than assumed to
+        // have zero cost, so the figure never overstates margin. Kuih items
+        // sold through the generic price-tier tiles use that tier's average
+        // cost across the real dishes at that price, so this is always an
+        // approximation for Kuih - never exact per-dish profit.
+        $marginRow = OrderItem::whereIn('order_id', $orderIds)
+            ->whereNotNull('product_id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->whereNotNull('products.cost')
+            ->selectRaw('SUM(order_items.subtotal) as revenue, SUM(products.cost * order_items.qty) as cost')
+            ->first();
+
+        $estimatedMargin = $marginRow && $marginRow->revenue !== null
+            ? (float) $marginRow->revenue - (float) $marginRow->cost
+            : null;
+
         return [
             'totalSales' => $totalSales,
             'orderCount' => $orderCount,
@@ -73,6 +91,7 @@ class SalesSummaryService
             'nbkSales' => $nbkSales,
             'topItems' => $topItems,
             'voidOrders' => $voidOrders,
+            'estimatedMargin' => $estimatedMargin,
         ];
     }
 

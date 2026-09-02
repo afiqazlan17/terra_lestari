@@ -85,7 +85,7 @@
             </div>
 
             {{-- Stat tiles (range-scoped) --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <p class="text-sm text-gray-500">Jumlah Jualan</p>
                     <p class="mt-1 text-2xl font-semibold text-gray-900">RM {{ number_format($rangeSummary['totalSales'], 2) }}</p>
@@ -97,6 +97,13 @@
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <p class="text-sm text-gray-500">Item Terjual</p>
                     <p class="mt-1 text-2xl font-semibold text-gray-900">{{ $rangeSummary['itemCount'] }}</p>
+                </div>
+                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                    <p class="text-sm text-gray-500">Anggaran Margin</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">
+                        {{ $rangeSummary['estimatedMargin'] !== null ? 'RM '.number_format($rangeSummary['estimatedMargin'], 2) : '-' }}
+                    </p>
+                    <p class="text-xs text-gray-400 mt-1">Anggaran sahaja (Kuih guna kos purata ikut tier harga)</p>
                 </div>
             </div>
 

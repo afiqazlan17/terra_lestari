@@ -67,6 +67,20 @@
                             2 => 'border bg-emerald-50 border-emerald-200 text-emerald-900',
                             3 => 'border bg-amber-50 border-amber-200 text-amber-900',
                             4 => 'border bg-pink-50 border-pink-200 text-pink-900',
+                            5 => 'border bg-purple-50 border-purple-200 text-purple-900',
+                            6 => 'border bg-cyan-50 border-cyan-200 text-cyan-900',
+                            7 => 'border bg-orange-50 border-orange-200 text-orange-900',
+                        ];
+                        // sm: column count is data-driven per category, but Tailwind's
+                        // build scanner only picks up classes it can see literally in
+                        // this file - so map to an explicit literal per count rather
+                        // than interpolating "sm:grid-cols-{$n}" (which it can't see).
+                        $smColsClasses = [
+                            2 => 'sm:grid-cols-2',
+                            3 => 'sm:grid-cols-3',
+                            4 => 'sm:grid-cols-4',
+                            5 => 'sm:grid-cols-5',
+                            6 => 'sm:grid-cols-6',
                         ];
                     @endphp
                     @forelse ($categories as $category)
@@ -80,13 +94,14 @@
                                         $priceTiers[number_format($tierPrice, 2)] = $tierIndex + 1;
                                     }
                                 }
+                                $smCols = $smColsClasses[$category->grid_columns] ?? ($isSquare ? 'sm:grid-cols-5' : 'sm:grid-cols-3');
                             @endphp
                             <div>
                                 <h3 class="text-sm font-semibold text-gray-500 uppercase mb-2">{{ $category->name }}</h3>
-                                <div class="grid {{ $isSquare ? 'grid-cols-3 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3' }} gap-3">
+                                <div class="grid {{ $isSquare ? 'grid-cols-3' : 'grid-cols-2' }} {{ $smCols }} gap-3">
                                     @foreach ($category->products as $product)
                                         @php
-                                            $tier = $priceTiers[number_format((float) $product->price, 2)] ?? null;
+                                            $tier = $product->color_tier ?? ($priceTiers[number_format((float) $product->price, 2)] ?? null);
                                             $colorClasses = $tier ? ($tierClasses[$tier] ?? 'bg-white') : 'bg-white';
                                             $displayName = $product->name;
                                             $parenPart = null;
