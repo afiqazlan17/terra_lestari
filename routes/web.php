@@ -89,10 +89,14 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
         // NBK vendor order calculator + memo
+        Route::get('/nbk', [NbkOrderController::class, 'landing'])->name('nbk.index');
+
         Route::get('/nbk/products', [NbkProductController::class, 'index'])->name('nbk.products.index');
         Route::post('/nbk/products', [NbkProductController::class, 'store'])->name('nbk.products.store');
         Route::patch('/nbk/products/{nbkProduct}', [NbkProductController::class, 'update'])->name('nbk.products.update');
         Route::delete('/nbk/products/{nbkProduct}', [NbkProductController::class, 'destroy'])->name('nbk.products.destroy');
+
+        Route::post('/nbk/invoices/extract', [NbkOrderController::class, 'extractInvoice'])->name('nbk.invoices.extract');
 
         Route::get('/nbk/orders', [NbkOrderController::class, 'index'])->name('nbk.orders.index');
         Route::get('/nbk/orders/create', [NbkOrderController::class, 'create'])->name('nbk.orders.create');

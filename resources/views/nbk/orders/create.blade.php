@@ -11,6 +11,9 @@
                 <a href="{{ route('nbk.orders.index') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
                     Sejarah Order
                 </a>
+                <a href="{{ route('nbk.index') }}" class="text-gray-500 hover:text-gray-700 text-sm px-2">
+                    &larr; Kembali
+                </a>
             </div>
         </div>
     </x-slot>
@@ -28,6 +31,22 @@
                     @if ($order)
                         @method('PATCH')
                     @endif
+
+                    @unless ($order)
+                        <div id="invois-upload" class="bg-white shadow-sm sm:rounded-lg p-4 mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Upload Invois NBK (pilihan)</label>
+                            <p class="text-xs text-gray-500 mb-2">Snap/upload invois pembelian NBK - kuantiti akan diisi automatik ke jadual bawah untuk semakan.</p>
+                            <div class="flex items-center gap-3">
+                                <input type="file" accept="image/*,.pdf" x-ref="invoiceFile" @change="uploadInvoice($event)" class="text-sm">
+                                <span x-show="invoiceStatus" x-text="invoiceStatus" class="text-xs text-gray-500"></span>
+                            </div>
+                            <template x-if="invoiceUnmatched.length > 0">
+                                <p class="text-xs text-amber-600 mt-2">
+                                    Tidak dapat padan dengan katalog, sila isi manual: <span x-text="invoiceUnmatched.map(i => i.name + ' (' + i.qty + ')').join(', ')"></span>
+                                </p>
+                            </template>
+                        </div>
+                    @endunless
 
                     <div class="bg-white shadow-sm sm:rounded-lg p-4 mb-4 flex items-center gap-3">
                         <label class="text-sm text-gray-600">Tarikh Order:</label>
@@ -129,6 +148,50 @@
 
             return {
                 qty: Object.fromEntries(products.map(p => [p.id, initialQty[p.id] ?? 0])),
+                invoiceStatus: '',
+                invoiceUnmatched: [],
+                async uploadInvoice(event) {
+                    const file = event.target.files[0];
+                    if (! file) return;
+
+                    this.invoiceStatus = 'Membaca invois...';
+                    this.invoiceUnmatched = [];
+
+                    try {
+                        const formData = new FormData();
+                        formData.append('invoice', file);
+
+                        const res = await fetch('{{ route('nbk.invoices.extract') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            },
+                            body: formData,
+                        });
+
+                        const data = await res.json();
+
+                        if (! res.ok) {
+                            this.invoiceStatus = data.error || 'Gagal baca invois. Sila isi manual.';
+                            return;
+                        }
+
+                        (data.matched || []).forEach((item) => {
+                            if (item.nbk_product_id in this.qty) {
+                                this.qty[item.nbk_product_id] = item.qty;
+                            }
+                        });
+                        this.invoiceUnmatched = data.unmatched || [];
+
+                        const matchedCount = (data.matched || []).length;
+                        this.invoiceStatus = matchedCount > 0
+                            ? `${matchedCount} produk diisi automatik - sila semak sebelum hantar.`
+                            : 'Tiada produk dikesan. Sila isi manual.';
+                    } catch (err) {
+                        this.invoiceStatus = 'Gagal baca invois. Sila isi manual.';
+                    }
+                },
                 belowMinimum(id) {
                     const q = this.qty[id] || 0;
                     return q > 0 && q < byId[id].min_qty;

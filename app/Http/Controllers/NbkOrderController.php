@@ -8,14 +8,22 @@ use App\Models\NbkProduct;
 use App\Models\Project;
 use App\Models\Purchase;
 use App\Rules\ValidReceiptFile;
+use App\Services\NbkInvoiceExtractionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class NbkOrderController extends Controller
 {
     use StoresReceipts;
+
+    public function landing(): View
+    {
+        return view('nbk.index');
+    }
 
     public function index(Request $request): View
     {
@@ -183,6 +191,79 @@ class NbkOrderController extends Controller
         });
 
         return back()->with('success', 'Order ditandai dibayar dan direkodkan dalam Belian.');
+    }
+
+    public function extractInvoice(Request $request, NbkInvoiceExtractionService $service): JsonResponse
+    {
+        $request->validate([
+            'invoice' => ['required', 'file', 'max:8192', new ValidReceiptFile],
+        ]);
+
+        $project = $request->user()->currentProject();
+
+        $products = $project->nbkProducts()
+            ->where('status', NbkProduct::STATUS_ACTIVE)
+            ->get();
+
+        try {
+            $lines = $service->extract($request->file('invoice'));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json(['error' => 'Gagal baca invois. Sila isi manual.'], 422);
+        }
+
+        $matched = [];
+        $unmatched = [];
+
+        foreach ($lines as $line) {
+            $name = trim((string) ($line['name'] ?? ''));
+            $qty = (int) ($line['qty'] ?? 0);
+
+            if ($name === '' || $qty <= 0) {
+                continue;
+            }
+
+            $product = $this->matchProduct($name, $products);
+
+            if ($product) {
+                $matched[] = ['nbk_product_id' => $product->id, 'name' => $product->name, 'qty' => $qty];
+            } else {
+                $unmatched[] = ['name' => $name, 'qty' => $qty];
+            }
+        }
+
+        return response()->json(['matched' => $matched, 'unmatched' => $unmatched]);
+    }
+
+    /**
+     * Fuzzy-match an invoice line's printed name against the active NBK
+     * catalog, so small AI misreads (or the invoice using an abbreviated
+     * name) still land on the right product - same spirit as the supplier
+     * "did you mean" matching used for Belian/Perbelanjaan.
+     */
+    private function matchProduct(string $name, Collection $products): ?NbkProduct
+    {
+        $normalize = fn (string $s) => strtolower(trim(preg_replace('/[^a-z0-9\s]/i', '', $s)));
+        $target = $normalize($name);
+
+        if ($target === '') {
+            return null;
+        }
+
+        $best = null;
+        $bestScore = 0;
+
+        foreach ($products as $product) {
+            similar_text($target, $normalize($product->name), $percent);
+
+            if ($percent > $bestScore) {
+                $bestScore = $percent;
+                $best = $product;
+            }
+        }
+
+        return $bestScore >= 55 ? $best : null;
     }
 
     /** @return array{order_date: string, items: array} */

@@ -25,7 +25,7 @@
                         <x-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
                             {{ __('Belian') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('nbk.orders.create')" :active="request()->routeIs('nbk.*')">
+                        <x-nav-link :href="route('nbk.index')" :active="request()->routeIs('nbk.*')">
                             {{ __('NBK') }}
                         </x-nav-link>
                         <x-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
@@ -111,7 +111,7 @@
                 <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
                     {{ __('Belian') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('nbk.orders.create')" :active="request()->routeIs('nbk.*')">
+                <x-responsive-nav-link :href="route('nbk.index')" :active="request()->routeIs('nbk.*')">
                     {{ __('NBK') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
