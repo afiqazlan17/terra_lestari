@@ -165,7 +165,11 @@
                 }
 
                 if (data.purchase_date) document.getElementById('purchase_date').value = data.purchase_date;
-                if (data.amount) document.getElementById('amount').value = data.amount;
+                if (data.amount) {
+                    const amountInput = document.getElementById('amount');
+                    amountInput.value = data.amount;
+                    amountInput.dispatchEvent(new Event('input'));
+                }
                 if (data.supplier_name) {
                     const supplierInput = document.getElementById('supplier_name');
                     supplierInput.value = data.supplier_name;

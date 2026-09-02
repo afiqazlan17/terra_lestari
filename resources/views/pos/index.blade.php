@@ -281,8 +281,8 @@
                                             class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM50</button>
                                     </div>
                                     <div class="flex gap-2 items-center mb-3">
-                                        <input type="text" inputmode="decimal" x-model.number="cashReceived" placeholder="Amaun lain (RM)"
-                                            class="flex-1 rounded-md border-gray-300 text-sm">
+                                        <input type="text" inputmode="decimal" :value="cashDisplay()" @beforeinput="cashBeforeInput($event)" @paste="cashPaste($event)" placeholder="Amaun lain (RM)"
+                                            class="flex-1 rounded-md border-gray-300 text-sm text-right">
                                         <button type="button" @click="cashReceived = 0" class="text-xs text-red-600 border border-red-300 rounded-md px-3 py-2 hover:bg-red-50 shrink-0">Reset</button>
                                     </div>
                                     <div class="flex justify-between text-sm text-gray-600">
@@ -510,6 +510,35 @@
 
                 cashChange() {
                     return Math.max((this.cashReceived || 0) - this.total(), 0);
+                },
+
+                cashDisplay() {
+                    return (this.cashReceived || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                },
+
+                // Bank-style entry: each digit shifts in from the cents place,
+                // same pattern as the site-wide data-money-input fields.
+                cashBeforeInput(event) {
+                    if (event.inputType === 'insertText' && /^[0-9]$/.test(event.data || '')) {
+                        event.preventDefault();
+                        this.cashReceived = (Math.round((this.cashReceived || 0) * 100) * 10 + Number(event.data)) / 100;
+                    } else if (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward') {
+                        event.preventDefault();
+                        this.cashReceived = Math.floor(Math.round((this.cashReceived || 0) * 100) / 10) / 100;
+                    } else {
+                        event.preventDefault();
+                    }
+                    this.$nextTick(() => {
+                        const end = event.target.value.length;
+                        event.target.setSelectionRange?.(end, end);
+                    });
+                },
+
+                cashPaste(event) {
+                    event.preventDefault();
+                    const text = (event.clipboardData || window.clipboardData)?.getData('text') || '';
+                    const num = parseFloat(String(text).replace(/,/g, ''));
+                    this.cashReceived = isNaN(num) ? 0 : Math.round(num * 100) / 100;
                 },
 
                 init() {

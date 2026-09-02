@@ -29,7 +29,7 @@
                     </div>
                     <div>
                         <x-input-label for="unit_cost" value="Harga Beli / Unit (RM)" />
-                        <x-text-input id="unit_cost" name="unit_cost" type="number" step="0.01" min="0" class="mt-1 block w-full" required />
+                        <x-text-input id="unit_cost" name="unit_cost" type="text" inputmode="decimal" data-money-input class="mt-1 block w-full" required />
                     </div>
                     <div>
                         <x-input-label for="min_qty" value="Kuantiti Minimum" />
@@ -37,7 +37,7 @@
                     </div>
                     <div>
                         <x-input-label for="sell_price" value="Harga Jual / Unit (RM)" />
-                        <x-text-input id="sell_price" name="sell_price" type="number" step="0.01" min="0" class="mt-1 block w-full" />
+                        <x-text-input id="sell_price" name="sell_price" type="text" inputmode="decimal" data-money-input class="mt-1 block w-full" />
                     </div>
                     <div class="sm:col-span-5">
                         <x-input-error :messages="$errors->all()" class="mt-1" />
@@ -104,7 +104,7 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs text-gray-500 mb-1">Harga Beli (RM)</label>
-                                                    <input type="number" step="0.01" min="0" name="unit_cost" value="{{ $product->unit_cost }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                    <input type="text" inputmode="decimal" data-money-input name="unit_cost" value="{{ number_format($product->unit_cost, 2, '.', '') }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs text-gray-500 mb-1">Kuantiti Minimum</label>
@@ -112,7 +112,7 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs text-gray-500 mb-1">Harga Jual (RM)</label>
-                                                    <input type="number" step="0.01" min="0" name="sell_price" value="{{ $product->sell_price }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                    <input type="text" inputmode="decimal" data-money-input name="sell_price" value="{{ $product->sell_price !== null ? number_format($product->sell_price, 2, '.', '') : '' }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                 </div>
                                                 <div class="sm:col-span-5 flex items-center justify-between pt-1">
                                                     <div class="flex items-center gap-2">
