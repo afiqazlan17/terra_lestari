@@ -207,7 +207,7 @@
                         <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 font-mono">
                             <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[200px] w-full h-auto mb-2">
                             <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <p class="text-sm text-red-600 border border-red-300 rounded-md p-2">
+                            <p class="text-sm text-gray-500">
                                 No. Resit: <span class="italic">Belum dijana</span><br>
                                 Tarikh: <span x-text="confirmDateStr"></span>
                             </p>
@@ -283,7 +283,7 @@
                                     <div class="flex gap-2 items-center mb-3">
                                         <input type="text" inputmode="decimal" x-model.number="cashReceived" placeholder="Amaun lain (RM)"
                                             class="flex-1 rounded-md border-gray-300 text-sm">
-                                        <button type="button" @click="cashReceived = 0" class="text-xs text-gray-500 hover:underline shrink-0">Reset</button>
+                                        <button type="button" @click="cashReceived = 0" class="text-xs text-red-600 border border-red-300 rounded-md px-3 py-2 hover:bg-red-50 shrink-0">Reset</button>
                                     </div>
                                     <div class="flex justify-between text-sm text-gray-600">
                                         <span>Tunai Diterima</span>
