@@ -58,8 +58,8 @@
 
                         <div>
                             <x-input-label for="supplier_name" value="Pembekal/Penerima (Jika ada)" />
-                            <x-text-input id="supplier_name" name="supplier_name" type="text" class="mt-1 block w-full"
-                                :value="old('supplier_name')" />
+                            <x-supplier-input id="supplier_name" name="supplier_name" class="mt-1"
+                                :value="old('supplier_name')" :suppliers="$supplierNames" />
                             <x-input-error :messages="$errors->get('supplier_name')" class="mt-1" />
                         </div>
 
@@ -166,7 +166,11 @@
 
                 if (data.purchase_date) document.getElementById('purchase_date').value = data.purchase_date;
                 if (data.amount) document.getElementById('amount').value = data.amount;
-                if (data.supplier_name) document.getElementById('supplier_name').value = data.supplier_name;
+                if (data.supplier_name) {
+                    const supplierInput = document.getElementById('supplier_name');
+                    supplierInput.value = data.supplier_name;
+                    supplierInput.dispatchEvent(new Event('input'));
+                }
                 if (data.description) document.getElementById('description').value = data.description;
                 if (data.category) {
                     const categorySelect = document.getElementById('category');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\StoresReceipts;
 use App\Http\Controllers\Concerns\SyncsDriveBackupFolder;
 use App\Models\Purchase;
+use App\Models\Supplier;
 use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,13 +31,17 @@ class ExpenseController extends Controller
         return view('expenses.index', [
             'project' => $project,
             'expenses' => $expenses,
+            'supplierNames' => Supplier::namesFor($project),
         ]);
     }
 
     public function create(Request $request): View
     {
+        $project = $request->user()->currentProject();
+
         return view('expenses.create', [
-            'project' => $request->user()->currentProject(),
+            'project' => $project,
+            'supplierNames' => Supplier::namesFor($project),
         ]);
     }
 
@@ -70,6 +75,8 @@ class ExpenseController extends Controller
             'receipt_path' => $receiptPath,
             'notes' => $validated['notes'] ?? null,
         ]);
+
+        Supplier::remember($project, $validated['supplier_name'] ?? null);
 
         return redirect()->route('expenses.index')->with('success', 'Perbelanjaan berjaya direkodkan.');
     }
@@ -141,6 +148,7 @@ class ExpenseController extends Controller
             ]);
 
             $driveWarning = $this->syncDriveFileAfterEdit($expense, $dateChanged);
+            Supplier::remember($expense->project, $validated['supplier_name'] ?? null);
         }
 
         $redirect = back()->with('success', 'Perbelanjaan dikemaskini.');

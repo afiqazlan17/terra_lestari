@@ -119,7 +119,8 @@
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Pembekal/Penerima</label>
-                                                        <input type="text" name="supplier_name" value="{{ $expense->supplier_name }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                        <x-supplier-input id="supplier_name_{{ $expense->id }}" name="supplier_name"
+                                                            :value="$expense->supplier_name" :suppliers="$supplierNames" class="text-sm" />
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Jumlah (RM)</label>
