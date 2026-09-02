@@ -307,7 +307,7 @@
                                         </button>
                                         <button type="button" @click="checkoutWithMethod('cash')" :disabled="submitting || (cashReceived || 0) < total()"
                                             class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
-                                            <span x-text="submitting ? (justPaid ? 'Bayaran Selesai' : 'Menghantar...') : 'Print Resit'"></span>
+                                            <span x-text="submitting ? 'Menghantar...' : 'Selesai Bayaran'"></span>
                                         </button>
                                     </div>
                                 </div>
@@ -315,20 +315,14 @@
 
                             {{-- Step 3: payment complete --}}
                             <template x-if="checkoutStep === 'done'">
-                                <div class="font-sans">
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <button type="button" @click="reprintReceipt()"
-                                            class="border border-amber-300 text-amber-700 font-semibold py-3 rounded-lg hover:bg-amber-50">
-                                            Print Resit
-                                        </button>
-                                        <button type="button" @click="startNewOrder()"
-                                            class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg">
-                                            Order Baru
-                                        </button>
-                                    </div>
+                                <div class="font-sans grid grid-cols-2 gap-3">
+                                    <button type="button" @click="reprintReceipt()"
+                                        class="border border-amber-300 text-amber-700 font-semibold py-3 rounded-lg hover:bg-amber-50">
+                                        Print Resit
+                                    </button>
                                     <button type="button" @click="startNewOrder()"
-                                        class="mt-3 w-full border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50">
-                                        Kembali
+                                        class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg">
+                                        Order Baru
                                     </button>
                                 </div>
                             </template>
@@ -516,7 +510,6 @@
                 checkoutStep: null,
                 confirmDateStr: '',
                 cashReceived: 0,
-                justPaid: false,
                 completedOrderNumber: '',
                 lastReceiptData: null,
 
@@ -763,14 +756,7 @@
                             } }));
 
                             this.completedOrderNumber = data.order_number;
-
-                            if (method === 'cash') {
-                                this.justPaid = true;
-                                await new Promise((resolve) => setTimeout(resolve, 900));
-                            }
-
                             this.submitting = false;
-                            this.justPaid = false;
                             this.checkoutStep = 'done';
                             return;
                         }
