@@ -144,25 +144,33 @@
         /* Applied via JS right before html2pdf renders the page, so the
            generated PDF gets the same compact spacing as the native
            print stylesheet above (html2canvas does not honour @media
-           print on its own). Removed again immediately after. */
-        body.pdf-mode { font-size: 12px; }
-        body.pdf-mode .page { padding: 24px 28px; }
-        body.pdf-mode header.doc { padding-bottom: 8px; margin-bottom: 10px; }
-        body.pdf-mode header.doc .brand { font-size: 16px; }
-        body.pdf-mode header.doc .doc-title strong { font-size: 12.5px; }
-        body.pdf-mode .session-line { margin-bottom: 10px; }
-        body.pdf-mode .stat-row { margin-bottom: 10px; gap: 8px; }
-        body.pdf-mode .stat { padding: 7px 12px; }
-        body.pdf-mode .stat .value { font-size: 18px; }
-        body.pdf-mode section { margin-bottom: 7px; }
-        body.pdf-mode section h2 { margin-bottom: 4px; padding-bottom: 3px; }
-        body.pdf-mode table.report td, body.pdf-mode table.report th { padding: 2px 0; }
-        body.pdf-mode table.report tfoot td { padding-top: 4px; }
-        body.pdf-mode .cash-row { padding: 4px 12px; }
-        body.pdf-mode .pill-list { gap: 3px; }
-        body.pdf-mode .pill-row { padding: 3px 10px; }
-        body.pdf-mode .void-note { padding: 5px 12px; font-size: 11px; margin-bottom: 3px; }
-        body.pdf-mode footer.doc { margin-top: 5px; padding-top: 4px; }
+           print on its own). Removed again immediately after.
+
+           Deliberately tighter than the @media print values above: this
+           path renders through html2canvas + jsPDF page-slicing by pixel
+           height rather than real pagination, so it has proven less
+           predictable in practice (font-metric/line-height differences
+           can eat the margin that native print has to spare) and needs
+           more headroom to reliably land on one page. */
+        body.pdf-mode { font-size: 11.5px; }
+        body.pdf-mode .page { padding: 16px 20px; }
+        body.pdf-mode header.doc { padding-bottom: 6px; margin-bottom: 8px; }
+        body.pdf-mode header.doc .brand { font-size: 15px; }
+        body.pdf-mode header.doc .doc-title strong { font-size: 12px; }
+        body.pdf-mode .session-line { margin-bottom: 8px; }
+        body.pdf-mode .stat-row { margin-bottom: 8px; gap: 8px; }
+        body.pdf-mode .stat { padding: 6px 12px; }
+        body.pdf-mode .stat .value { font-size: 17px; }
+        body.pdf-mode section { margin-bottom: 6px; }
+        body.pdf-mode section h2 { margin-bottom: 3px; padding-bottom: 2px; }
+        body.pdf-mode table.report td, body.pdf-mode table.report th { padding: 1.5px 0; }
+        body.pdf-mode table.report tfoot td { padding-top: 3px; }
+        body.pdf-mode .cash-row { padding: 3px 12px; }
+        body.pdf-mode .pill-list { gap: 2px; }
+        body.pdf-mode .pill-row { padding: 2px 10px; }
+        body.pdf-mode .void-note { padding: 4px 12px; font-size: 10.5px; margin-bottom: 2px; }
+        body.pdf-mode footer.doc { margin-top: 4px; padding-top: 3px; }
+        body.pdf-mode svg { max-height: 72px !important; }
     </style>
 </head>
 <body>
@@ -204,6 +212,18 @@
             const originalLabel = button.textContent;
             button.disabled = true;
             button.textContent = 'Menjana PDF...';
+
+            // If the Figtree webfont hasn't finished loading yet, html2canvas
+            // rasterizes with the fallback system font instead - a different
+            // (usually taller) line-height on every line of text, which can
+            // push the whole report onto a second page. document.fonts.ready
+            // resolves once web fonts are loaded; race it against a timeout
+            // so a font that never loads (offline, blocked) can't hang this.
+            await Promise.race([
+                document.fonts.ready,
+                new Promise((resolve) => setTimeout(resolve, 1500)),
+            ]);
+
             document.body.classList.add('pdf-mode');
 
             try {
