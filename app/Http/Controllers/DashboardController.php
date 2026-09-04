@@ -31,17 +31,23 @@ class DashboardController extends Controller
             ? $summaryService->cashTallyFor($project, $from, $rangeSummary['cashSales'])
             : null;
 
-        $dailyTrend = Order::where('project_id', $project->id)
+        $salesByDay = Order::where('project_id', $project->id)
             ->where('status', Order::STATUS_COMPLETED)
             ->whereDate('created_at', '>=', now()->subDays(6)->toDateString())
             ->selectRaw('DATE(created_at) as day, SUM(total) as total')
             ->groupBy('day')
-            ->orderBy('day')
-            ->get()
-            ->map(fn ($row) => [
-                'day' => Carbon::parse($row->day)->translatedFormat('D'),
-                'total' => (float) $row->total,
-            ]);
+            ->pluck('total', 'day');
+
+        // Zero-fill every day in the range (not just days with a sale), so the
+        // trend line stays continuous instead of skipping gaps.
+        $dailyTrend = collect(range(6, 0))->map(function ($daysAgo) use ($salesByDay) {
+            $date = now()->subDays($daysAgo);
+
+            return [
+                'day' => $date->translatedFormat('l'),
+                'total' => (float) ($salesByDay[$date->toDateString()] ?? 0),
+            ];
+        });
 
         $currentSession = DailySession::where('project_id', $project->id)
             ->where('status', 'open')

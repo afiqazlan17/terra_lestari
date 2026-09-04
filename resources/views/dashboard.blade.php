@@ -110,20 +110,18 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <p class="text-sm font-medium text-gray-700 mb-3">Jualan ikut Kaedah Bayaran</p>
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-600">Cash</span><span class="font-medium">RM {{ number_format($rangeSummary['cashSales'], 2) }}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">QR / DuitNow</span><span class="font-medium">RM {{ number_format($rangeSummary['qrSales'], 2) }}</span></div>
-                        @if ($rangeSummary['cardSales'] > 0)
-                            <div class="flex justify-between"><span class="text-gray-600">Kad</span><span class="font-medium">RM {{ number_format($rangeSummary['cardSales'], 2) }}</span></div>
-                        @endif
-                    </div>
+                    <x-donut-chart :slices="collect([
+                        ['label' => 'Cash', 'value' => (float) $rangeSummary['cashSales']],
+                        ['label' => 'QR / DuitNow', 'value' => (float) $rangeSummary['qrSales']],
+                        $rangeSummary['cardSales'] > 0 ? ['label' => 'Kad', 'value' => (float) $rangeSummary['cardSales']] : null,
+                    ])->filter()->values()->all()" />
                 </div>
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <p class="text-sm font-medium text-gray-700 mb-3">Jualan ikut Sumber</p>
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between"><span class="text-gray-600">Sajian Baginda (SB)</span><span class="font-medium">RM {{ number_format($rangeSummary['sbSales'], 2) }}</span></div>
-                        <div class="flex justify-between"><span class="text-gray-600">Fresh From Kelantan (NBK)</span><span class="font-medium">RM {{ number_format($rangeSummary['nbkSales'], 2) }}</span></div>
-                    </div>
+                    <x-donut-chart :slices="[
+                        ['label' => 'Sajian Baginda (SB)', 'value' => (float) $rangeSummary['sbSales']],
+                        ['label' => 'Fresh From Kelantan (NBK)', 'value' => (float) $rangeSummary['nbkSales']],
+                    ]" />
                 </div>
             </div>
 
@@ -199,19 +197,45 @@
             {{-- Trend chart --}}
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 <p class="text-sm font-medium text-gray-700 mb-4">Trend Jualan 7 Hari</p>
-                @if ($dailyTrend->isEmpty())
+                @if ($dailyTrend->sum('total') == 0)
                     <p class="text-sm text-gray-400">Tiada jualan lagi.</p>
                 @else
-                    @php $max = max($dailyTrend->max('total'), 1); @endphp
-                    <div class="flex items-end gap-3 h-40">
-                        @foreach ($dailyTrend as $point)
-                            <div class="flex-1 flex flex-col items-center justify-end h-full">
-                                <div class="text-xs text-gray-500 mb-1">RM {{ number_format($point['total'], 0) }}</div>
-                                <div class="w-full bg-amber-400 rounded-t-md" style="height: {{ max(($point['total'] / $max) * 100, 3) }}%"></div>
-                                <div class="text-xs text-gray-400 mt-1">{{ $point['day'] }}</div>
-                            </div>
+                    @php
+                        $padX = 30; $padTop = 26; $padBottom = 26;
+                        $width = 700; $height = 200;
+                        $plotWidth = $width - 2 * $padX;
+                        $baselineY = $height - $padBottom;
+                        $max = max($dailyTrend->max('total') * 1.15, 1);
+                        $n = $dailyTrend->count();
+                        $step = $n > 1 ? $plotWidth / ($n - 1) : 0;
+
+                        $points = $dailyTrend->values()->map(function ($point, $i) use ($padX, $step, $baselineY, $padTop, $max) {
+                            $y = $baselineY - ($point['total'] / $max) * ($baselineY - $padTop);
+
+                            return ['x' => $padX + $i * $step, 'y' => $y, 'total' => $point['total'], 'day' => $point['day']];
+                        });
+
+                        $linePoints = $points->map(fn ($p) => "{$p['x']},{$p['y']}")->implode(' ');
+                        $areaPath = 'M '.$points->first()['x'].','.$baselineY
+                            .' L '.$points->map(fn ($p) => "{$p['x']},{$p['y']}")->implode(' L ')
+                            .' L '.$points->last()['x'].','.$baselineY.' Z';
+                    @endphp
+                    <svg viewBox="0 0 {{ $width }} {{ $height }}" class="w-full" style="max-height: 220px;">
+                        <defs>
+                            <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.28" />
+                                <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
+                            </linearGradient>
+                        </defs>
+                        <line x1="{{ $padX }}" y1="{{ $baselineY }}" x2="{{ $width - $padX }}" y2="{{ $baselineY }}" stroke="#e5e7eb" stroke-width="1" />
+                        <path d="{{ $areaPath }}" fill="url(#trendFill)" />
+                        <polyline points="{{ $linePoints }}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+                        @foreach ($points as $p)
+                            <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="4" fill="#fff" stroke="#f59e0b" stroke-width="2.5" />
+                            <text x="{{ $p['x'] }}" y="{{ max($p['y'] - 10, 12) }}" text-anchor="middle" class="fill-gray-500" style="font-size: 11px;">RM {{ number_format($p['total'], 0) }}</text>
+                            <text x="{{ $p['x'] }}" y="{{ $height - 6 }}" text-anchor="middle" class="fill-gray-400" style="font-size: 11px;">{{ $p['day'] }}</text>
                         @endforeach
-                    </div>
+                    </svg>
                 @endif
             </div>
 
