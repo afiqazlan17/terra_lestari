@@ -123,21 +123,22 @@
             .toolbar, .toolbar-note { display: none; }
             .page { max-width: none; width: 190mm; margin: 0 auto; padding: 0; border: none; box-shadow: none; border-radius: 0; }
             @page { size: A4; margin: 10mm; }
-            header.doc { padding-bottom: 12px; margin-bottom: 14px; }
+            header.doc { padding-bottom: 8px; margin-bottom: 10px; }
             header.doc .brand { font-size: 16px; }
             header.doc .doc-title strong { font-size: 12.5px; }
-            .session-line { margin-bottom: 16px; }
-            .stat-row { margin-bottom: 16px; gap: 8px; }
-            .stat { padding: 10px 12px; }
+            .session-line { margin-bottom: 10px; }
+            .stat-row { margin-bottom: 10px; gap: 8px; }
+            .stat { padding: 7px 12px; }
             .stat .value { font-size: 18px; }
-            section { margin-bottom: 12px; }
-            section h2 { margin-bottom: 6px; padding-bottom: 4px; }
-            table.report td, table.report th { padding: 3px 0; }
-            table.report tfoot td { padding-top: 5px; }
-            .cash-row { padding: 5px 12px; }
-            .pill-list { gap: 4px; }
-            .pill-row { padding: 4px 10px; }
-            footer.doc { margin-top: 8px; padding-top: 6px; }
+            section { margin-bottom: 7px; }
+            section h2 { margin-bottom: 4px; padding-bottom: 3px; }
+            table.report td, table.report th { padding: 2px 0; }
+            table.report tfoot td { padding-top: 4px; }
+            .cash-row { padding: 4px 12px; }
+            .pill-list { gap: 3px; }
+            .pill-row { padding: 3px 10px; }
+            .void-note { padding: 5px 12px; font-size: 11px; margin-bottom: 3px; }
+            footer.doc { margin-top: 5px; padding-top: 4px; }
         }
 
         /* Applied via JS right before html2pdf renders the page, so the
@@ -146,21 +147,22 @@
            print on its own). Removed again immediately after. */
         body.pdf-mode { font-size: 12px; }
         body.pdf-mode .page { padding: 24px 28px; }
-        body.pdf-mode header.doc { padding-bottom: 12px; margin-bottom: 14px; }
+        body.pdf-mode header.doc { padding-bottom: 8px; margin-bottom: 10px; }
         body.pdf-mode header.doc .brand { font-size: 16px; }
         body.pdf-mode header.doc .doc-title strong { font-size: 12.5px; }
-        body.pdf-mode .session-line { margin-bottom: 16px; }
-        body.pdf-mode .stat-row { margin-bottom: 16px; gap: 8px; }
-        body.pdf-mode .stat { padding: 10px 12px; }
+        body.pdf-mode .session-line { margin-bottom: 10px; }
+        body.pdf-mode .stat-row { margin-bottom: 10px; gap: 8px; }
+        body.pdf-mode .stat { padding: 7px 12px; }
         body.pdf-mode .stat .value { font-size: 18px; }
-        body.pdf-mode section { margin-bottom: 12px; }
-        body.pdf-mode section h2 { margin-bottom: 6px; padding-bottom: 4px; }
-        body.pdf-mode table.report td, body.pdf-mode table.report th { padding: 3px 0; }
-        body.pdf-mode table.report tfoot td { padding-top: 5px; }
-        body.pdf-mode .cash-row { padding: 5px 12px; }
-        body.pdf-mode .pill-list { gap: 4px; }
-        body.pdf-mode .pill-row { padding: 4px 10px; }
-        body.pdf-mode footer.doc { margin-top: 8px; padding-top: 6px; }
+        body.pdf-mode section { margin-bottom: 7px; }
+        body.pdf-mode section h2 { margin-bottom: 4px; padding-bottom: 3px; }
+        body.pdf-mode table.report td, body.pdf-mode table.report th { padding: 2px 0; }
+        body.pdf-mode table.report tfoot td { padding-top: 4px; }
+        body.pdf-mode .cash-row { padding: 4px 12px; }
+        body.pdf-mode .pill-list { gap: 3px; }
+        body.pdf-mode .pill-row { padding: 3px 10px; }
+        body.pdf-mode .void-note { padding: 5px 12px; font-size: 11px; margin-bottom: 3px; }
+        body.pdf-mode footer.doc { margin-top: 5px; padding-top: 4px; }
     </style>
 </head>
 <body>
@@ -304,6 +306,23 @@
         </section>
 
         <section>
+            <h2>Jualan ikut Kategori</h2>
+            @if ($categoryBreakdown->isEmpty())
+                <p class="empty">Tiada jualan hari ini.</p>
+            @else
+                <table class="report">
+                    <thead><tr><th>Kategori</th><th class="num">Jumlah</th></tr></thead>
+                    <tbody>
+                        @foreach ($categoryBreakdown as $row)
+                            <tr><td>{{ $row->category }}</td><td class="num">RM {{ number_format($row->total, 2) }}</td></tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot><tr><td>Jumlah</td><td class="num">RM {{ number_format($categoryBreakdown->sum('total'), 2) }}</td></tr></tfoot>
+                </table>
+            @endif
+        </section>
+
+        <section>
             <h2>Tunai</h2>
             @if ($cashTally)
                 <div class="cash-box">
@@ -336,6 +355,56 @@
                         </div>
                     @endforeach
                 </div>
+            @endif
+        </section>
+
+        <section>
+            <h2>Trend 7 Hari</h2>
+            @if ($weekTrend->sum('total') == 0)
+                <p class="empty">Tiada jualan lagi.</p>
+            @else
+                @php
+                    $trendPeak = $weekTrend->sortByDesc('total')->first();
+                @endphp
+                <p style="font-size: 11.5px; color: var(--ink-muted); margin: 0 0 8px;">
+                    Purata RM {{ number_format($weekTrend->avg('total'), 2) }}/hari &middot;
+                    Tertinggi <strong style="color: var(--ink);">RM {{ number_format($trendPeak['total'], 2) }}</strong> ({{ $trendPeak['day'] }})
+                </p>
+                @php
+                    $padX = 16; $padTop = 8; $padBottom = 16;
+                    $svgWidth = 664; $svgHeight = 76;
+                    $plotWidth = $svgWidth - 2 * $padX;
+                    $baselineY = $svgHeight - $padBottom;
+                    $trendMax = max($weekTrend->max('total') * 1.1, 1);
+                    $n = $weekTrend->count();
+                    $step = $n > 1 ? $plotWidth / ($n - 1) : 0;
+
+                    $trendPoints = $weekTrend->values()->map(function ($point, $i) use ($padX, $step, $baselineY, $padTop, $trendMax) {
+                        $y = $baselineY - ($point['total'] / $trendMax) * ($baselineY - $padTop);
+
+                        return ['x' => $padX + $i * $step, 'y' => $y, 'total' => $point['total'], 'day' => $point['day']];
+                    });
+
+                    $trendLine = $trendPoints->map(fn ($p) => "{$p['x']},{$p['y']}")->implode(' ');
+                    $trendArea = 'M '.$trendPoints->first()['x'].','.$baselineY
+                        .' L '.$trendPoints->map(fn ($p) => "{$p['x']},{$p['y']}")->implode(' L ')
+                        .' L '.$trendPoints->last()['x'].','.$baselineY.' Z';
+                @endphp
+                <svg viewBox="0 0 {{ $svgWidth }} {{ $svgHeight }}" style="width: 100%; max-height: 90px; display: block;">
+                    <defs>
+                        <linearGradient id="reportTrendFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#8a2e28" stop-opacity="0.22" />
+                            <stop offset="100%" stop-color="#8a2e28" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+                    <line x1="{{ $padX }}" y1="{{ $baselineY }}" x2="{{ $svgWidth - $padX }}" y2="{{ $baselineY }}" stroke="#e3dbd0" stroke-width="1" />
+                    <path d="{{ $trendArea }}" fill="url(#reportTrendFill)" />
+                    <polyline points="{{ $trendLine }}" fill="none" stroke="#8a2e28" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+                    @foreach ($trendPoints as $p)
+                        <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="2.5" fill="#fffdfa" stroke="#8a2e28" stroke-width="2" />
+                        <text x="{{ $p['x'] }}" y="{{ $svgHeight - 3 }}" text-anchor="middle" fill="#a3958a" style="font-size: 9px;">{{ mb_substr($p['day'], 0, 3) }}</text>
+                    @endforeach
+                </svg>
             @endif
         </section>
 

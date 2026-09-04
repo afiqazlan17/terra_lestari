@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailySession;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Project;
 use App\Services\DailySalesReportService;
 use App\Services\SalesSummaryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class DailySessionController extends Controller
 {
@@ -78,7 +82,52 @@ class DailySessionController extends Controller
             'date' => $date,
             'summary' => $summary,
             'cashTally' => $cashTally,
+            'weekTrend' => $this->weekTrendEnding($dailySession->project, $date),
+            'categoryBreakdown' => $this->categoryBreakdownFor($dailySession->project, $date),
         ]);
+    }
+
+    /**
+     * Sales for the 7 days ending on $date (not "today") - a report is a
+     * fixed historical record, so reopening one from last week must still
+     * show the 7 days leading up to that day, not shift with whenever it
+     * happens to be viewed.
+     */
+    private function weekTrendEnding(Project $project, Carbon $date)
+    {
+        $salesByDay = Order::where('project_id', $project->id)
+            ->where('status', Order::STATUS_COMPLETED)
+            ->whereDate('created_at', '>=', $date->copy()->subDays(6)->toDateString())
+            ->whereDate('created_at', '<=', $date->toDateString())
+            ->selectRaw('DATE(created_at) as day, SUM(total) as total')
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
+        return collect(range(6, 0))->map(function ($daysAgo) use ($date, $salesByDay) {
+            $day = $date->copy()->subDays($daysAgo);
+
+            return [
+                'day' => $day->translatedFormat('l'),
+                'total' => (float) ($salesByDay[$day->toDateString()] ?? 0),
+            ];
+        });
+    }
+
+    /** Sales that single day, grouped by product category. */
+    private function categoryBreakdownFor(Project $project, Carbon $date)
+    {
+        $orderIds = Order::where('project_id', $project->id)
+            ->where('status', Order::STATUS_COMPLETED)
+            ->whereDate('created_at', $date->toDateString())
+            ->pluck('id');
+
+        return OrderItem::whereIn('order_id', $orderIds)
+            ->leftJoin('products', 'order_items.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->selectRaw("COALESCE(categories.name, 'Lain-lain') as category, SUM(order_items.subtotal) as total")
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->get();
     }
 
     public function reportsIndex(Request $request): View
