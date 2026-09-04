@@ -125,6 +125,48 @@
                 </div>
             </div>
 
+            {{-- Peak hours heatmap --}}
+            <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <p class="text-sm font-medium text-gray-700 mb-1">Jam Puncak</p>
+                @if ($peakHours->isEmpty())
+                    <p class="text-sm text-gray-400">Tiada jualan lagi.</p>
+                @else
+                    @php
+                        $amberSteps = ['bg-amber-100', 'bg-amber-200', 'bg-amber-300', 'bg-amber-400', 'bg-amber-500', 'bg-amber-600'];
+                        $maxHourTotal = $peakHours->max('total');
+                        $peakHour = $peakHours->sortByDesc('total')->first();
+                        $fmtHour = fn ($h) => str_pad($h, 2, '0', STR_PAD_LEFT).':00';
+                    @endphp
+                    <p class="text-xs text-gray-400 mb-3">
+                        Puncak: <span class="font-medium text-gray-600">{{ $fmtHour($peakHour['hour']) }}&ndash;{{ $fmtHour(($peakHour['hour'] + 1) % 24) }}</span>
+                        &middot; RM {{ number_format($peakHour['total'], 2) }}
+                    </p>
+                    <div class="flex gap-1">
+                        @foreach ($peakHours as $h)
+                            @php
+                                $intensity = $maxHourTotal > 0 ? $h['total'] / $maxHourTotal : 0;
+                                $stepIndex = $intensity > 0 ? min(5, (int) ceil($intensity * 6) - 1) : null;
+                            @endphp
+                            <div class="flex-1 flex flex-col items-center gap-1 min-w-0">
+                                <div class="w-full h-10 rounded {{ $stepIndex !== null ? $amberSteps[$stepIndex] : 'bg-gray-100' }}"
+                                    title="{{ $fmtHour($h['hour']) }} - RM {{ number_format($h['total'], 2) }} ({{ $h['count'] }} order)"></div>
+                                <span class="text-[10px] text-gray-400">{{ $h['hour'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="flex items-center gap-2 mt-3 text-xs text-gray-400">
+                        <span>Kurang</span>
+                        <div class="flex gap-0.5">
+                            <div class="w-4 h-2 rounded-sm bg-gray-100"></div>
+                            @foreach ($amberSteps as $step)
+                                <div class="w-4 h-2 rounded-sm {{ $step }}"></div>
+                            @endforeach
+                        </div>
+                        <span>Lebih</span>
+                    </div>
+                @endif
+            </div>
+
             <div class="grid grid-cols-1 gap-4">
                 @if ($cashTally)
                     <div class="bg-white shadow-sm sm:rounded-lg p-6">
