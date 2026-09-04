@@ -316,7 +316,7 @@
                             {{-- Step 3: payment complete --}}
                             <template x-if="checkoutStep === 'done'">
                                 <div class="font-sans grid grid-cols-2 gap-3">
-                                    <button type="button" @click="reprintReceipt()"
+                                    <button type="button" @click="printReceipt()"
                                         class="border border-amber-300 text-amber-700 font-semibold py-3 rounded-lg hover:bg-amber-50">
                                         Print Resit
                                     </button>
@@ -512,6 +512,8 @@
                 cashReceived: 0,
                 completedOrderNumber: '',
                 lastReceiptData: null,
+                lastReceiptMethod: null,
+                receiptPrinted: false,
 
                 openCheckout() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
@@ -523,14 +525,21 @@
                     this.cashReceived = 0;
                     this.completedOrderNumber = '';
                     this.lastReceiptData = null;
+                    this.lastReceiptMethod = null;
+                    this.receiptPrinted = false;
                     this.checkoutStep = 'choose';
                 },
 
-                reprintReceipt() {
+                // The actual print trigger for a just-completed order - staff taps
+                // "Print Resit" on the done screen. Only opens the cash drawer on
+                // the first print of a cash order, not on a later manual reprint.
+                printReceipt() {
                     if (! this.lastReceiptData) {
                         return;
                     }
-                    this.printViaBluetooth(this.lastReceiptData, { openDrawer: false, forceConnect: true });
+                    const openDrawer = this.lastReceiptMethod === 'cash' && ! this.receiptPrinted;
+                    this.printViaBluetooth(this.lastReceiptData, { openDrawer, forceConnect: true });
+                    this.receiptPrinted = true;
                 },
 
                 startNewOrder() {
@@ -540,6 +549,8 @@
                     this.cashReceived = 0;
                     this.completedOrderNumber = '';
                     this.lastReceiptData = null;
+                    this.lastReceiptMethod = null;
+                    this.receiptPrinted = false;
                 },
 
                 cashChange() {
@@ -733,10 +744,11 @@
                             const data = await res.json();
                             const now = new Date();
                             const receiptData = this.buildReceiptData(data.order_number, this.items, payload, now);
-                            // Not awaited - printing runs in the background while the
-                            // receipt stays on screen for staff to review / reprint.
-                            this.printViaBluetooth(receiptData, { openDrawer: method === 'cash' });
+                            // Not printed automatically - staff triggers the actual
+                            // print by tapping "Print Resit" on the done screen.
                             this.lastReceiptData = receiptData;
+                            this.lastReceiptMethod = method;
+                            this.receiptPrinted = false;
 
                             const pad = (n) => String(n).padStart(2, '0');
                             window.dispatchEvent(new CustomEvent('order-created', { detail: {
