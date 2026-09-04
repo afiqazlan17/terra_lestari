@@ -315,15 +315,18 @@
 
                             {{-- Step 3: payment complete --}}
                             <template x-if="checkoutStep === 'done'">
-                                <div class="font-sans grid grid-cols-2 gap-3">
-                                    <button type="button" @click="printReceipt()"
-                                        class="border border-amber-300 text-amber-700 font-semibold py-3 rounded-lg hover:bg-amber-50">
-                                        Print Resit
-                                    </button>
-                                    <button type="button" @click="startNewOrder()"
-                                        class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg">
-                                        Order Baru
-                                    </button>
+                                <div class="font-sans">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button type="button" @click="printReceipt()" :disabled="printing"
+                                            class="border border-amber-300 text-amber-700 font-semibold py-3 rounded-lg hover:bg-amber-50 disabled:opacity-50">
+                                            <span x-text="printing ? 'Mencetak...' : 'Print Resit'"></span>
+                                        </button>
+                                        <button type="button" @click="startNewOrder()"
+                                            class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg">
+                                            Order Baru
+                                        </button>
+                                    </div>
+                                    <p class="text-sm text-red-600 mt-2" x-show="printMessage" x-text="printMessage"></p>
                                 </div>
                             </template>
                         </div>
@@ -417,13 +420,25 @@
         const ORDERS_BASE_URL = '{{ url('/orders') }}';
         const LOGO_URL = '{{ asset('images/logo.png') }}';
 
+        // navigator.bluetooth.requestDevice() (inside SBPrinter.connect()) only
+        // resolves when the OS device picker is dismissed - if that picker
+        // never surfaces properly (locked-down WebView, Bluetooth off, no
+        // device in range), the await hangs forever with zero feedback to
+        // staff. Races it against a timeout so the UI can always recover.
+        function sbWithTimeout(promise, ms, timeoutMessage) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error(timeoutMessage)), ms)),
+            ]);
+        }
+
         // Shared by posCart and orderHistory - prints via whatever Bluetooth
         // printer is already connected in this page's live session, forcing
         // a fresh device pick (the OS Bluetooth chooser) when nothing is
         // connected and forceConnect is true.
         async function sbSendReceipt(data, { forceConnect = false, openDrawer = false } = {}) {
             if (! (window.SBPrinter && window.SBPrinter.isSupported())) {
-                return false;
+                return { printed: false, error: 'Peranti ini tidak menyokong Bluetooth.' };
             }
 
             if (! window.SBPrinter.isConnected()) {
@@ -432,23 +447,27 @@
 
             if (! window.SBPrinter.isConnected() && forceConnect) {
                 try {
-                    await window.SBPrinter.connect();
+                    await sbWithTimeout(window.SBPrinter.connect(), 15000, 'Sambungan printer mengambil masa terlalu lama.');
                 } catch (e) {
                     console.error('Bluetooth connect gagal', e);
+
+                    return { printed: false, error: 'Gagal sambung printer: '.concat(e.message || 'ralat tidak diketahui') };
                 }
             }
 
             if (! window.SBPrinter.isConnected()) {
-                return false;
+                return { printed: false, error: 'Printer tidak connect. Sila sambung printer dahulu.' };
             }
 
             try {
-                const bytes = await window.buildReceiptEscPos(data, PAPER_58MM, { openDrawer });
-                await window.SBPrinter.write(bytes);
-                return true;
+                const bytes = await sbWithTimeout(window.buildReceiptEscPos(data, PAPER_58MM, { openDrawer }), 8000, 'Jana resit mengambil masa terlalu lama.');
+                await sbWithTimeout(window.SBPrinter.write(bytes), 8000, 'Hantar ke printer mengambil masa terlalu lama.');
+
+                return { printed: true, error: null };
             } catch (e) {
                 console.error('Bluetooth print gagal', e);
-                return false;
+
+                return { printed: false, error: 'Gagal cetak: '.concat(e.message || 'ralat tidak diketahui') };
             }
         }
 
@@ -514,6 +533,8 @@
                 lastReceiptData: null,
                 lastReceiptMethod: null,
                 receiptPrinted: false,
+                printing: false,
+                printMessage: '',
 
                 openCheckout() {
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
@@ -527,19 +548,32 @@
                     this.lastReceiptData = null;
                     this.lastReceiptMethod = null;
                     this.receiptPrinted = false;
+                    this.printMessage = '';
                     this.checkoutStep = 'choose';
                 },
 
                 // The actual print trigger for a just-completed order - staff taps
                 // "Print Resit" on the done screen. Only opens the cash drawer on
                 // the first print of a cash order, not on a later manual reprint.
-                printReceipt() {
-                    if (! this.lastReceiptData) {
+                // Awaited (unlike the old fire-and-forget version) so staff get a
+                // "Mencetak..." state and a clear error instead of the screen just
+                // sitting there with no feedback while a stuck Bluetooth connect
+                // attempt runs in the background.
+                async printReceipt() {
+                    if (! this.lastReceiptData || this.printing) {
                         return;
                     }
+                    this.printing = true;
+                    this.printMessage = '';
                     const openDrawer = this.lastReceiptMethod === 'cash' && ! this.receiptPrinted;
-                    this.printViaBluetooth(this.lastReceiptData, { openDrawer, forceConnect: true });
-                    this.receiptPrinted = true;
+                    const result = await this.printViaBluetooth(this.lastReceiptData, { openDrawer, forceConnect: true });
+                    this.printing = false;
+                    if (result.printed) {
+                        this.receiptPrinted = true;
+                        this.printMessage = '';
+                    } else {
+                        this.printMessage = result.error || 'Gagal cetak resit.';
+                    }
                 },
 
                 startNewOrder() {
@@ -551,6 +585,7 @@
                     this.lastReceiptData = null;
                     this.lastReceiptMethod = null;
                     this.receiptPrinted = false;
+                    this.printMessage = '';
                 },
 
                 cashChange() {
@@ -843,13 +878,13 @@
                 async printLocalReceipt(pending) {
                     const data = this.buildReceiptData('Menunggu Sync', pending.items, pending.payload, new Date(pending.createdAt));
 
-                    const printed = await this.printViaBluetooth(data, { forceConnect: true, openDrawer: pending.payload.payment_method === 'cash' });
-                    if (printed) {
+                    const result = await this.printViaBluetooth(data, { forceConnect: true, openDrawer: pending.payload.payment_method === 'cash' });
+                    if (result.printed) {
                         return;
                     }
 
                     if (window.SBPrinter && window.SBPrinter.isSupported()) {
-                        alert('Printer tidak connect. Order tetap disimpan — sila sambung printer di Settings > Printer Resit (Bluetooth).');
+                        alert(result.error || 'Printer tidak connect. Order tetap disimpan — sila sambung printer di Settings > Printer Resit (Bluetooth).');
                         return;
                     }
 
