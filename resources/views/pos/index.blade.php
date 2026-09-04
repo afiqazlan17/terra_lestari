@@ -204,7 +204,7 @@
                 {{-- Checkout popup: choose payment method, then (for cash) collect tendered amount --}}
                 <template x-if="checkoutStep">
                     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-lg shadow-lg w-full max-w-[460px] p-8 font-mono">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-[460px] max-h-[90vh] overflow-y-auto p-8 font-mono">
                             <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[240px] w-full h-auto mb-2">
                             <div class="border-t border-dashed border-gray-300 my-4"></div>
                             <p class="text-base text-gray-500">
