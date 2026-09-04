@@ -558,7 +558,10 @@
                 // Awaited (unlike the old fire-and-forget version) so staff get a
                 // "Mencetak..." state and a clear error instead of the screen just
                 // sitting there with no feedback while a stuck Bluetooth connect
-                // attempt runs in the background.
+                // attempt runs in the background. On success, moves straight to a
+                // new order - staff shouldn't need a second tap after a good print.
+                // On failure the popup stays open (with the error shown) so they
+                // can retry instead of losing the receipt data.
                 async printReceipt() {
                     if (! this.lastReceiptData || this.printing) {
                         return;
@@ -569,8 +572,7 @@
                     const result = await this.printViaBluetooth(this.lastReceiptData, { openDrawer, forceConnect: true });
                     this.printing = false;
                     if (result.printed) {
-                        this.receiptPrinted = true;
-                        this.printMessage = '';
+                        this.startNewOrder();
                     } else {
                         this.printMessage = result.error || 'Gagal cetak resit.';
                     }
