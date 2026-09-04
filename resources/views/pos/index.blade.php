@@ -204,29 +204,29 @@
                 {{-- Checkout popup: choose payment method, then (for cash) collect tendered amount --}}
                 <template x-if="checkoutStep">
                     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 font-mono">
-                            <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[200px] w-full h-auto mb-2">
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <p class="text-sm text-gray-500">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-[460px] p-8 font-mono">
+                            <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[240px] w-full h-auto mb-2">
+                            <div class="border-t border-dashed border-gray-300 my-4"></div>
+                            <p class="text-base text-gray-500">
                                 No. Resit: <span :class="checkoutStep === 'done' ? '' : 'italic'" x-text="checkoutStep === 'done' ? completedOrderNumber : 'Belum dijana'"></span><br>
                                 Tarikh: <span x-text="confirmDateStr"></span>
                             </p>
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+                            <div class="border-t border-dashed border-gray-300 my-4"></div>
 
-                            <div class="space-y-2 max-h-52 overflow-y-auto text-base">
+                            <div class="space-y-3 max-h-52 overflow-y-auto text-lg">
                                 <template x-for="item in items" :key="item.product_id">
                                     <div>
                                         <div class="flex justify-between text-gray-800">
                                             <span x-text="item.name"></span>
                                             <span>RM <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
                                         </div>
-                                        <p class="text-xs text-gray-400" x-text="item.qty + ' x RM ' + item.price.toFixed(2)"></p>
+                                        <p class="text-sm text-gray-400" x-text="item.qty + ' x RM ' + item.price.toFixed(2)"></p>
                                     </div>
                                 </template>
                             </div>
 
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
-                            <div class="text-base space-y-1">
+                            <div class="border-t border-dashed border-gray-300 my-4"></div>
+                            <div class="text-base space-y-1.5">
                                 <div class="flex justify-between text-gray-700">
                                     <span>Subtotal</span>
                                     <span>RM <span x-text="subtotal().toFixed(2)"></span></span>
@@ -235,28 +235,28 @@
                                     <span>Diskaun</span>
                                     <span>RM <span x-text="(discount || 0).toFixed(2)"></span></span>
                                 </div>
-                                <div class="flex justify-between font-bold text-gray-900 text-lg">
+                                <div class="flex justify-between font-bold text-gray-900 text-xl">
                                     <span>Jumlah</span>
                                     <span>RM <span x-text="total().toFixed(2)"></span></span>
                                 </div>
                             </div>
-                            <div class="border-t border-dashed border-gray-300 my-3"></div>
+                            <div class="border-t border-dashed border-gray-300 my-4"></div>
 
                             {{-- Step 1: choose payment method --}}
                             <template x-if="checkoutStep === 'choose'">
                                 <div class="font-sans">
-                                    <div class="grid grid-cols-2 gap-3">
+                                    <div class="grid grid-cols-2 gap-3.5">
                                         <button type="button" @click="checkoutWithMethod('qr')" :disabled="submitting"
-                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-6 rounded-lg text-lg transition">
+                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
                                             QR / DuitNow
                                         </button>
                                         <button type="button" @click="checkoutStep = 'cash'" :disabled="submitting"
-                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-6 rounded-lg text-lg transition">
+                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
                                             Cash
                                         </button>
                                     </div>
                                     <button type="button" @click="checkoutStep = null" :disabled="submitting"
-                                        class="mt-4 w-full border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                        class="mt-4 w-full border border-gray-300 text-gray-600 font-medium py-3 text-base rounded-lg hover:bg-gray-50 disabled:opacity-50">
                                         Batal
                                     </button>
                                 </div>
@@ -265,48 +265,48 @@
                             {{-- Step 2: cash tendered --}}
                             <template x-if="checkoutStep === 'cash'">
                                 <div class="font-sans">
-                                    <p class="text-sm font-medium text-gray-700 mb-2">Tunai Diterima</p>
-                                    <div class="grid grid-cols-5 gap-2 mb-2">
+                                    <p class="text-base font-bold text-gray-800 mb-3">Tunai Diterima (RM)</p>
+                                    <div class="grid grid-cols-5 gap-2.5 mb-3">
                                         <button type="button" @click="cashReceived = total()"
-                                            class="border border-amber-300 bg-amber-50 rounded-lg py-2 text-sm font-medium text-amber-700 hover:bg-amber-100">
-                                            <span x-text="'RM' + total().toFixed(2)"></span>
+                                            class="aspect-square flex items-center justify-center border border-amber-300 bg-amber-50 rounded-xl text-lg font-bold text-amber-700 hover:bg-amber-100">
+                                            <span x-text="total().toFixed(2)"></span>
                                         </button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 5"
-                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM5</button>
+                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">5.00</button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 10"
-                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM10</button>
+                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">10.00</button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 20"
-                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM20</button>
+                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">20.00</button>
                                         <button type="button" @click="cashReceived = (cashReceived || 0) + 50"
-                                            class="border border-gray-300 rounded-lg py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">RM50</button>
+                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">50.00</button>
                                     </div>
-                                    <div class="flex gap-2 items-center mb-3">
+                                    <div class="flex gap-3 items-center mb-4">
                                         <input type="text" inputmode="decimal" :value="cashDisplay()" @beforeinput="cashBeforeInput($event)" @paste="cashPaste($event)" placeholder="Amaun lain (RM)"
-                                            class="flex-1 rounded-md border-gray-300 text-sm text-right">
-                                        <button type="button" @click="cashReceived = 0" class="text-xs text-red-600 border border-red-300 rounded-md px-3 py-2 hover:bg-red-50 shrink-0">Reset</button>
+                                            class="flex-1 rounded-xl border-gray-300 text-xl font-semibold text-right py-3">
+                                        <button type="button" @click="cashReceived = 0" class="text-base font-semibold text-red-600 border border-red-300 rounded-xl px-5 py-3 hover:bg-red-50 shrink-0">Reset</button>
                                     </div>
-                                    <div class="flex justify-between text-sm text-gray-600">
+                                    <div class="flex justify-between text-base text-gray-600">
                                         <span>Tunai Diterima</span>
                                         <span class="font-medium text-gray-800">RM <span x-text="(cashReceived || 0).toFixed(2)"></span></span>
                                     </div>
-                                    <div class="flex justify-between text-sm text-gray-600">
+                                    <div class="flex justify-between text-base text-gray-600">
                                         <span>(-) Jumlah</span>
                                         <span class="font-medium text-gray-800">RM <span x-text="total().toFixed(2)"></span></span>
                                     </div>
-                                    <div class="flex justify-between text-base font-bold mt-1 border-t border-gray-100 pt-1"
+                                    <div class="flex justify-between text-2xl font-extrabold mt-2 border-t border-gray-100 pt-2"
                                         :class="(cashReceived || 0) >= total() ? 'text-green-700' : 'text-red-600'">
                                         <span>Baki</span>
                                         <span>RM <span x-text="cashChange().toFixed(2)"></span></span>
                                     </div>
-                                    <p class="text-xs text-red-500 mt-1" x-show="(cashReceived || 0) < total()">Tunai diterima tidak mencukupi.</p>
+                                    <p class="text-sm text-red-500 mt-1" x-show="(cashReceived || 0) < total()">Tunai diterima tidak mencukupi.</p>
 
-                                    <div class="mt-4 flex gap-2">
+                                    <div class="mt-5 flex gap-3">
                                         <button type="button" @click="checkoutStep = 'choose'" :disabled="submitting"
-                                            class="flex-1 border border-gray-300 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                            class="flex-1 border border-gray-300 text-gray-600 font-medium py-3 text-base rounded-lg hover:bg-gray-50 disabled:opacity-50">
                                             Kembali
                                         </button>
                                         <button type="button" @click="checkoutWithMethod('cash')" :disabled="submitting || (cashReceived || 0) < total()"
-                                            class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-2 rounded-lg">
+                                            class="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-3 text-base rounded-lg">
                                             <span x-text="submitting ? 'Menghantar...' : 'Selesai Bayaran'"></span>
                                         </button>
                                     </div>
