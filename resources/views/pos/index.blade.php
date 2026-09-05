@@ -205,64 +205,61 @@
                 <template x-if="checkoutStep">
                     <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                         <div class="bg-white rounded-lg shadow-lg w-full max-w-[460px] max-h-[90vh] overflow-y-auto p-8 font-mono">
-                            <img src="{{ asset('images/logo.png') }}" alt="Sajian Baginda" class="block mx-auto max-w-[240px] w-full h-auto mb-2">
-                            <div class="border-t border-dashed border-gray-300 my-4"></div>
-                            <p class="text-base text-gray-500">
-                                No. Resit: <span :class="checkoutStep === 'done' ? '' : 'italic'" x-text="checkoutStep === 'done' ? completedOrderNumber : 'Belum dijana'"></span><br>
-                                Tarikh: <span x-text="confirmDateStr"></span>
-                            </p>
-                            <div class="border-t border-dashed border-gray-300 my-4"></div>
-
-                            <div class="space-y-3 max-h-52 overflow-y-auto text-lg">
-                                <template x-for="item in items" :key="item.product_id">
-                                    <div>
-                                        <div class="flex justify-between text-gray-800">
-                                            <span x-text="item.name"></span>
-                                            <span>RM <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
-                                        </div>
-                                        <p class="text-sm text-gray-400" x-text="item.qty + ' x RM ' + item.price.toFixed(2)"></p>
-                                    </div>
-                                </template>
-                            </div>
-
-                            <div class="border-t border-dashed border-gray-300 my-4"></div>
-                            <div class="text-base space-y-1.5">
-                                <div class="flex justify-between text-gray-700">
-                                    <span>Subtotal</span>
-                                    <span>RM <span x-text="subtotal().toFixed(2)"></span></span>
-                                </div>
-                                <div class="flex justify-between text-gray-700" x-show="discount > 0">
-                                    <span>Diskaun</span>
-                                    <span>RM <span x-text="(discount || 0).toFixed(2)"></span></span>
-                                </div>
-                                <div class="flex justify-between font-bold text-gray-900 text-xl">
-                                    <span>Jumlah</span>
-                                    <span>RM <span x-text="total().toFixed(2)"></span></span>
-                                </div>
-                            </div>
-                            <div class="border-t border-dashed border-gray-300 my-4"></div>
-
-                            {{-- Step 1: choose payment method --}}
+                            {{-- Step 1: confirm order + choose payment method --}}
                             <template x-if="checkoutStep === 'choose'">
-                                <div class="font-sans">
-                                    <div class="grid grid-cols-2 gap-3.5">
-                                        <button type="button" @click="checkoutWithMethod('qr')" :disabled="submitting"
-                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
-                                            QR / DuitNow
-                                        </button>
-                                        <button type="button" @click="checkoutStep = 'cash'" :disabled="submitting"
-                                            class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
-                                            Cash
+                                <div>
+                                    <p class="text-center text-2xl font-extrabold text-red-600 font-sans tracking-wide py-1">CONFIRM ORDER</p>
+                                    <div class="border-t border-dashed border-gray-300 my-4"></div>
+
+                                    <div class="space-y-3 max-h-52 overflow-y-auto text-lg">
+                                        <template x-for="item in items" :key="item.product_id">
+                                            <div>
+                                                <div class="flex justify-between text-gray-800">
+                                                    <span x-text="item.name"></span>
+                                                    <span>RM <span x-text="(item.price * item.qty).toFixed(2)"></span></span>
+                                                </div>
+                                                <p class="text-sm text-gray-400" x-text="item.qty + ' x RM ' + item.price.toFixed(2)"></p>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <div class="border-t border-dashed border-gray-300 my-4"></div>
+                                    <div class="text-base space-y-1.5">
+                                        <div class="flex justify-between text-gray-700">
+                                            <span>Subtotal</span>
+                                            <span>RM <span x-text="subtotal().toFixed(2)"></span></span>
+                                        </div>
+                                        <div class="flex justify-between text-gray-700" x-show="discount > 0">
+                                            <span>Diskaun</span>
+                                            <span>RM <span x-text="(discount || 0).toFixed(2)"></span></span>
+                                        </div>
+                                        <div class="flex justify-between font-bold text-gray-900 text-xl">
+                                            <span>Jumlah</span>
+                                            <span>RM <span x-text="total().toFixed(2)"></span></span>
+                                        </div>
+                                    </div>
+                                    <div class="border-t border-dashed border-gray-300 my-4"></div>
+
+                                    <div class="font-sans">
+                                        <div class="grid grid-cols-2 gap-3.5">
+                                            <button type="button" @click="checkoutWithMethod('qr')" :disabled="submitting"
+                                                class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
+                                                QR / DuitNow
+                                            </button>
+                                            <button type="button" @click="checkoutStep = 'cash'" :disabled="submitting"
+                                                class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
+                                                Cash
+                                            </button>
+                                        </div>
+                                        <button type="button" @click="checkoutStep = null" :disabled="submitting"
+                                            class="mt-4 w-full border border-gray-300 text-gray-600 font-medium py-3 text-base rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                            Batal
                                         </button>
                                     </div>
-                                    <button type="button" @click="checkoutStep = null" :disabled="submitting"
-                                        class="mt-4 w-full border border-gray-300 text-gray-600 font-medium py-3 text-base rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                                        Batal
-                                    </button>
                                 </div>
                             </template>
 
-                            {{-- Step 2: cash tendered --}}
+                            {{-- Step 2: cash tendered - standalone, no receipt recap above it --}}
                             <template x-if="checkoutStep === 'cash'">
                                 <div class="font-sans">
                                     <p class="text-base font-bold text-gray-800 mb-3">Tunai Diterima (RM)</p>
@@ -527,9 +524,7 @@
                 printerConnected: false,
                 printerBusy: false,
                 checkoutStep: null,
-                confirmDateStr: '',
                 cashReceived: 0,
-                completedOrderNumber: '',
                 lastReceiptData: null,
                 lastReceiptMethod: null,
                 receiptPrinted: false,
@@ -540,11 +535,7 @@
                     if (! this.hasSession || this.items.length === 0 || this.submitting) {
                         return;
                     }
-                    const now = new Date();
-                    const pad = (n) => String(n).padStart(2, '0');
-                    this.confirmDateStr = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
                     this.cashReceived = 0;
-                    this.completedOrderNumber = '';
                     this.lastReceiptData = null;
                     this.lastReceiptMethod = null;
                     this.receiptPrinted = false;
@@ -583,7 +574,6 @@
                     this.items = [];
                     this.discount = 0;
                     this.cashReceived = 0;
-                    this.completedOrderNumber = '';
                     this.lastReceiptData = null;
                     this.lastReceiptMethod = null;
                     this.receiptPrinted = false;
@@ -804,7 +794,6 @@
                                 items: receiptData.items,
                             } }));
 
-                            this.completedOrderNumber = data.order_number;
                             this.submitting = false;
                             this.checkoutStep = 'done';
                             return;
