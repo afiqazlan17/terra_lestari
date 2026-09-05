@@ -112,17 +112,26 @@
                                                 [$displayName, $rest] = explode(' (', $displayName, 2);
                                                 $parenPart = '('.$rest;
                                             }
+                                            // A square-tile product named after its own category (e.g. every
+                                            // "Nasi Campur" product literally named "Nasi Campur") is a
+                                            // price-point button - the price alone tells them apart, so show
+                                            // just the price, big, instead of repeating the name on every tile.
+                                            $priceOnlyTile = $isSquare && trim($product->name) === trim($category->name);
                                         @endphp
                                         <button type="button"
                                             :disabled="! hasSession"
                                             @click="{{ $product->is_variable_price ? 'addVariablePriceItem' : 'addItem' }}({{ $product->id }}, '{{ $product->is_variable_price ? addslashes($category->name.': '.$product->name) : addslashes($product->name) }}', {{ $product->price }})"
                                             :class="hasSession ? 'hover:ring-2 hover:ring-amber-400 active:scale-95' : 'opacity-50 cursor-not-allowed'"
                                             class="{{ $colorClasses }} shadow-sm rounded-lg transition {{ $isSquare ? 'aspect-square p-2 flex flex-col items-center justify-center text-center' : 'p-4 text-left' }}">
-                                            <p class="font-medium {{ $tier ? '' : 'text-gray-800' }} {{ $isSquare ? 'text-base' : '' }} leading-tight">{{ $displayName }}@if ($parenPart)<br>{{ $parenPart }}@endif</p>
-                                            @if ($product->is_variable_price)
-                                                <p class="text-sm text-amber-600 mt-1">Harga berubah</p>
+                                            @if ($priceOnlyTile)
+                                                <p class="font-bold text-gray-800 text-xl leading-tight">RM {{ number_format($product->price, 2) }}</p>
                                             @else
-                                                <p class="{{ $isSquare ? 'text-sm' : 'text-sm' }} {{ $tier ? 'opacity-80' : 'text-gray-500' }} mt-1">RM {{ number_format($product->price, 2) }}</p>
+                                                <p class="font-medium {{ $tier ? '' : 'text-gray-800' }} {{ $isSquare ? 'text-base' : '' }} leading-tight">{{ $displayName }}@if ($parenPart)<br>{{ $parenPart }}@endif</p>
+                                                @if ($product->is_variable_price)
+                                                    <p class="text-sm text-amber-600 mt-1">Harga berubah</p>
+                                                @else
+                                                    <p class="{{ $isSquare ? 'text-sm' : 'text-sm' }} {{ $tier ? 'opacity-80' : 'text-gray-500' }} mt-1">RM {{ number_format($product->price, 2) }}</p>
+                                                @endif
                                             @endif
                                         </button>
                                     @endforeach
