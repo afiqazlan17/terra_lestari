@@ -246,7 +246,7 @@
                                                 class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
                                                 QR / DuitNow
                                             </button>
-                                            <button type="button" @click="checkoutStep = 'cash'" :disabled="submitting"
+                                            <button type="button" @click="checkoutStep = 'cash'; cashReceived = total()" :disabled="submitting"
                                                 class="bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-semibold py-8 rounded-lg text-xl transition">
                                                 Cash
                                             </button>
@@ -264,18 +264,13 @@
                                 <div class="font-sans">
                                     <p class="text-base font-bold text-gray-800 mb-3">Tunai Diterima (RM)</p>
                                     <div class="grid grid-cols-5 gap-2.5 mb-3">
-                                        <button type="button" @click="cashReceived = total()"
-                                            class="aspect-square flex items-center justify-center border border-amber-300 bg-amber-50 rounded-xl text-lg font-bold text-amber-700 hover:bg-amber-100">
-                                            <span x-text="total().toFixed(2)"></span>
-                                        </button>
-                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 5"
-                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">5.00</button>
-                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 10"
-                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">10.00</button>
-                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 20"
-                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">20.00</button>
-                                        <button type="button" @click="cashReceived = (cashReceived || 0) + 50"
-                                            class="aspect-square flex items-center justify-center border border-gray-300 rounded-xl text-lg font-bold text-gray-700 hover:bg-gray-50">50.00</button>
+                                        <template x-for="amt in quickCashAmounts()" :key="amt">
+                                            <button type="button" @click="cashReceived = amt"
+                                                :class="Math.abs((cashReceived || 0) - amt) < 0.001 ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-gray-300 text-gray-700 hover:bg-gray-50'"
+                                                class="aspect-square flex items-center justify-center border rounded-xl text-lg font-bold">
+                                                <span x-text="amt.toFixed(2)"></span>
+                                            </button>
+                                        </template>
                                     </div>
                                     <div class="flex gap-3 items-center mb-4">
                                         <input type="text" inputmode="decimal" :value="cashDisplay()" @beforeinput="cashBeforeInput($event)" @paste="cashPaste($event)" placeholder="Amaun lain (RM)"
@@ -582,6 +577,33 @@
 
                 cashChange() {
                     return Math.max((this.cashReceived || 0) - this.total(), 0);
+                },
+
+                // Quick-select amounts scale with the order total: the exact total
+                // (pre-selected on entering this step), then round-number amounts
+                // above it, so no button ever falls short of what's owed.
+                quickCashAmounts() {
+                    const total = Math.round((this.total() || 0) * 100) / 100;
+                    const denoms = [1, 5, 10, 20, 50, 100];
+                    const amounts = [total];
+                    const ceilWhole = Math.ceil(total - 1e-9);
+                    if (ceilWhole > total) {
+                        amounts.push(ceilWhole);
+                    }
+                    for (const d of denoms) {
+                        if (amounts.length >= 5) break;
+                        if (d > amounts[amounts.length - 1] + 1e-9) {
+                            amounts.push(d);
+                        }
+                    }
+                    const step = 50;
+                    while (amounts.length < 5) {
+                        const last = amounts[amounts.length - 1];
+                        let next = Math.ceil((last + 0.01) / step) * step;
+                        if (next <= last) next += step;
+                        amounts.push(next);
+                    }
+                    return amounts.slice(0, 5).map((n) => Math.round(n * 100) / 100);
                 },
 
                 cashDisplay() {
