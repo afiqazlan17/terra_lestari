@@ -61,6 +61,7 @@
                         </div>
 
                         <input type="hidden" name="invoice_date" :value="invoiceDate">
+                        <input type="hidden" name="invoice_path" :value="invoicePath">
                     @endunless
 
                     @if ($order)
@@ -186,6 +187,7 @@
                 invoiceUnmatched: [],
                 showTable: isEdit,
                 invoiceDate: todayIso(),
+                invoicePath: '',
                 orderDateLabel: '',
                 init() {
                     this.orderDateLabel = formatLabel(addDayIso(this.invoiceDate));
@@ -199,6 +201,7 @@
                     this.showTable = false;
                     this.invoiceStatus = '';
                     this.invoiceUnmatched = [];
+                    this.invoicePath = '';
                     this.qty = Object.fromEntries(products.map(p => [p.id, 0]));
                     this.priceUpdated = Object.fromEntries(products.map(p => [p.id, false]));
                     if (this.$refs.invoiceFile) {
@@ -246,6 +249,9 @@
                         if (data.invoice_date) {
                             this.invoiceDate = data.invoice_date;
                             this.orderDateLabel = formatLabel(addDayIso(this.invoiceDate));
+                        }
+                        if (data.invoice_path) {
+                            this.invoicePath = data.invoice_path;
                         }
 
                         const matchedCount = (data.matched || []).length;

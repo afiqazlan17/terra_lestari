@@ -73,6 +73,9 @@
                         <p>Memo #{{ $order->displayNumber() }}</p>
                         <p>Tarikh Order: {{ $order->invoiceDate()->format('d F Y') }}</p>
                         <p>Dijana oleh: {{ $order->createdBy->name }}</p>
+                        @if ($order->invoice_path)
+                            <p><a href="{{ Storage::url($order->invoice_path) }}" target="_blank" class="text-amber-600 hover:underline font-medium">Lihat Invois NBK</a></p>
+                        @endif
                     </div>
                 </div>
 

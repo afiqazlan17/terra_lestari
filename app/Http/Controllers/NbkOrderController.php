@@ -74,9 +74,19 @@ class NbkOrderController extends Controller
 
             abort_if(empty($lineItems), 422, 'Tiada produk dengan kuantiti order.');
 
+            $invoicePath = $validated['invoice_path'] ?? null;
+
+            // The path is client-supplied (set by our own JS from the earlier
+            // extract-invoice response), so only trust it if it actually
+            // points at this project's own invoice folder.
+            if ($invoicePath !== null && ! str_starts_with($invoicePath, 'nbk-invoices/'.$project->id.'/')) {
+                $invoicePath = null;
+            }
+
             $order = $project->nbkOrders()->create([
                 'created_by' => $request->user()->id,
                 'order_date' => Carbon::parse($validated['invoice_date'])->addDay()->toDateString(),
+                'invoice_path' => $invoicePath,
                 'total_buy' => $totalBuy,
                 'total_sell' => $totalSell,
                 'total_profit' => $totalSell - $totalBuy,
@@ -222,6 +232,10 @@ class NbkOrderController extends Controller
             return response()->json(['error' => 'Gagal baca invois. Sila isi manual.'], 422);
         }
 
+        // Keep the invoice file itself attached to the order, so staff can
+        // pull it up later without digging through their phone/WhatsApp.
+        $invoicePath = $this->storeReceipt($request->file('invoice'), 'nbk-invoices/'.$project->id);
+
         $matched = [];
         $unmatched = [];
         $priceUpdates = 0;
@@ -264,6 +278,7 @@ class NbkOrderController extends Controller
             'invoice_date' => $invoiceDate->toDateString(),
             'order_date' => $orderDate->toDateString(),
             'price_updates' => $priceUpdates,
+            'invoice_path' => $invoicePath,
         ]);
     }
 
@@ -310,11 +325,12 @@ class NbkOrderController extends Controller
         return $bestScore >= 55 ? $best : null;
     }
 
-    /** @return array{invoice_date: string, items: array} */
+    /** @return array{invoice_date: string, invoice_path: ?string, items: array} */
     private function validateItems(Request $request): array
     {
         return $request->validate([
             'invoice_date' => ['required', 'date'],
+            'invoice_path' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.nbk_product_id' => ['required', 'exists:nbk_products,id'],
             'items.*.qty_ordered' => ['required', 'integer', 'min:0'],

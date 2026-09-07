@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class NbkOrder extends Model
 {
     protected $fillable = [
-        'project_id', 'created_by', 'order_date', 'total_buy', 'total_sell', 'total_profit',
+        'project_id', 'created_by', 'order_date', 'invoice_path', 'total_buy', 'total_sell', 'total_profit',
         'paid_at', 'paid_by', 'purchase_id',
     ];
 
