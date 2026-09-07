@@ -34,7 +34,7 @@
                             <tbody class="divide-y divide-gray-100">
                                 @foreach ($orders as $order)
                                     <tr>
-                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $order->order_date->format('d F Y') }}</td>
+                                        <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $order->invoiceDate()->format('d F Y') }}</td>
                                         <td class="px-4 py-3 text-gray-600 whitespace-nowrap">{{ $order->createdBy->name }}</td>
                                         <td class="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">RM {{ number_format($order->total_buy, 2) }}</td>
                                         <td class="px-4 py-3 text-right tabular-nums whitespace-nowrap {{ $order->total_profit < 0 ? 'text-red-500' : 'text-green-600' }}">RM {{ number_format($order->total_profit, 2) }}</td>

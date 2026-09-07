@@ -76,7 +76,7 @@ class NbkOrderController extends Controller
 
             $order = $project->nbkOrders()->create([
                 'created_by' => $request->user()->id,
-                'order_date' => $validated['order_date'],
+                'order_date' => Carbon::parse($validated['invoice_date'])->addDay()->toDateString(),
                 'total_buy' => $totalBuy,
                 'total_sell' => $totalSell,
                 'total_profit' => $totalSell - $totalBuy,
@@ -140,7 +140,7 @@ class NbkOrderController extends Controller
             $nbkOrder->items()->createMany($lineItems);
 
             $nbkOrder->update([
-                'order_date' => $validated['order_date'],
+                'order_date' => Carbon::parse($validated['invoice_date'])->addDay()->toDateString(),
                 'total_buy' => $totalBuy,
                 'total_sell' => $totalSell,
                 'total_profit' => $totalSell - $totalBuy,
@@ -310,11 +310,11 @@ class NbkOrderController extends Controller
         return $bestScore >= 55 ? $best : null;
     }
 
-    /** @return array{order_date: string, items: array} */
+    /** @return array{invoice_date: string, items: array} */
     private function validateItems(Request $request): array
     {
         return $request->validate([
-            'order_date' => ['required', 'date'],
+            'invoice_date' => ['required', 'date'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.nbk_product_id' => ['required', 'exists:nbk_products,id'],
             'items.*.qty_ordered' => ['required', 'integer', 'min:0'],

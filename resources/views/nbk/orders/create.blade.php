@@ -60,13 +60,13 @@
                             </button>
                         </div>
 
-                        <input type="hidden" name="order_date" :value="orderDate">
+                        <input type="hidden" name="invoice_date" :value="invoiceDate">
                     @endunless
 
                     @if ($order)
                         <div class="bg-white shadow-sm sm:rounded-lg p-4 mb-4 flex items-center gap-3">
                             <label class="text-sm text-gray-600">Tarikh Order:</label>
-                            <input type="date" name="order_date" value="{{ $order->order_date->toDateString() }}" required class="rounded-md border-gray-300 shadow-sm text-sm">
+                            <input type="date" name="invoice_date" value="{{ $order->invoiceDate()->toDateString() }}" required class="rounded-md border-gray-300 shadow-sm text-sm">
                         </div>
                     @endif
 
@@ -164,8 +164,10 @@
             const byId = {};
             products.forEach(p => { byId[p.id] = p; });
 
-            const tomorrowIso = () => {
-                const d = new Date();
+            const todayIso = () => new Date().toISOString().slice(0, 10);
+
+            const addDayIso = (iso) => {
+                const d = new Date(iso + 'T00:00:00');
                 d.setDate(d.getDate() + 1);
                 return d.toISOString().slice(0, 10);
             };
@@ -183,15 +185,15 @@
                 invoiceStatus: '',
                 invoiceUnmatched: [],
                 showTable: isEdit,
-                orderDate: tomorrowIso(),
+                invoiceDate: todayIso(),
                 orderDateLabel: '',
                 init() {
-                    this.orderDateLabel = formatLabel(this.orderDate);
+                    this.orderDateLabel = formatLabel(addDayIso(this.invoiceDate));
                 },
                 openManual() {
                     this.showTable = true;
-                    this.orderDate = tomorrowIso();
-                    this.orderDateLabel = formatLabel(this.orderDate);
+                    this.invoiceDate = todayIso();
+                    this.orderDateLabel = formatLabel(addDayIso(this.invoiceDate));
                 },
                 reset() {
                     this.showTable = false;
@@ -241,9 +243,9 @@
                         });
                         this.invoiceUnmatched = data.unmatched || [];
 
-                        if (data.order_date) {
-                            this.orderDate = data.order_date;
-                            this.orderDateLabel = formatLabel(this.orderDate);
+                        if (data.invoice_date) {
+                            this.invoiceDate = data.invoice_date;
+                            this.orderDateLabel = formatLabel(addDayIso(this.invoiceDate));
                         }
 
                         const matchedCount = (data.matched || []).length;

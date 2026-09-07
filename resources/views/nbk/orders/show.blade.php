@@ -71,7 +71,7 @@
                     </div>
                     <div class="text-right text-sm text-gray-500">
                         <p>Memo #{{ $order->displayNumber() }}</p>
-                        <p>Tarikh Order: {{ $order->order_date->format('d F Y') }}</p>
+                        <p>Tarikh Order: {{ $order->invoiceDate()->format('d F Y') }}</p>
                         <p>Dijana oleh: {{ $order->createdBy->name }}</p>
                     </div>
                 </div>

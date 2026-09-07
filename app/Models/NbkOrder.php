@@ -52,6 +52,16 @@ class NbkOrder extends Model
     }
 
     /**
+     * order_date stores the stock/selling day (invoice date + 1), but staff
+     * think of "Tarikh Order" as the invoice's own date - the day NBK was
+     * actually ordered from.
+     */
+    public function invoiceDate(): \Illuminate\Support\Carbon
+    {
+        return $this->order_date->copy()->subDay();
+    }
+
+    /**
      * The order's position among all orders currently existing for its
      * project - unlike the raw database id, this has no gaps left behind
      * by deleted draft memos.
