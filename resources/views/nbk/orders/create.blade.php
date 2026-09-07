@@ -50,6 +50,7 @@
                         <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-center justify-between" x-show="showTable">
                             <div>
                                 <p class="text-sm font-medium text-amber-800">Order untuk stok: <span x-text="orderDateLabel"></span></p>
+                                <p class="text-xs text-amber-700 mt-0.5" x-show="invoiceStatus" x-text="invoiceStatus"></p>
                                 <p class="text-xs text-amber-700 mt-0.5" x-show="invoiceUnmatched.length > 0">
                                     Tidak dapat padan dengan katalog, sila isi manual: <span x-text="invoiceUnmatched.map(i => i.name + ' (' + i.qty + ')').join(', ')"></span>
                                 </p>
@@ -97,7 +98,8 @@
                                             </td>
                                             <td class="px-3 py-2 text-right text-gray-600 tabular-nums whitespace-nowrap">
                                                 @if ($product->isOrderable())
-                                                    RM {{ number_format($product->unit_cost, 2) }}
+                                                    RM <span x-text="prices[{{ $product->id }}].toFixed(2)"></span>
+                                                    <span x-show="priceUpdated[{{ $product->id }}]" x-cloak class="text-amber-600 text-xs ml-1" title="Dikemaskini dari invois">&#9998;</span>
                                                 @else
                                                     &mdash;
                                                 @endif
@@ -176,6 +178,8 @@
 
             return {
                 qty: Object.fromEntries(products.map(p => [p.id, initialQty[p.id] ?? 0])),
+                prices: Object.fromEntries(products.map(p => [p.id, p.unit_cost])),
+                priceUpdated: Object.fromEntries(products.map(p => [p.id, false])),
                 invoiceStatus: '',
                 invoiceUnmatched: [],
                 showTable: isEdit,
@@ -194,6 +198,7 @@
                     this.invoiceStatus = '';
                     this.invoiceUnmatched = [];
                     this.qty = Object.fromEntries(products.map(p => [p.id, 0]));
+                    this.priceUpdated = Object.fromEntries(products.map(p => [p.id, false]));
                     if (this.$refs.invoiceFile) {
                         this.$refs.invoiceFile.value = '';
                     }
@@ -228,6 +233,10 @@
                         (data.matched || []).forEach((item) => {
                             if (item.nbk_product_id in this.qty) {
                                 this.qty[item.nbk_product_id] = item.qty;
+                                if (typeof item.unit_cost === 'number' && item.unit_cost !== this.prices[item.nbk_product_id]) {
+                                    this.prices[item.nbk_product_id] = item.unit_cost;
+                                    this.priceUpdated[item.nbk_product_id] = true;
+                                }
                             }
                         });
                         this.invoiceUnmatched = data.unmatched || [];
@@ -238,8 +247,10 @@
                         }
 
                         const matchedCount = (data.matched || []).length;
+                        const priceUpdates = data.price_updates || 0;
                         this.invoiceStatus = matchedCount > 0
                             ? `${matchedCount} produk diisi automatik - sila semak sebelum hantar.`
+                                + (priceUpdates > 0 ? ` ${priceUpdates} harga katalog dikemaskini ikut invois.` : '')
                             : 'Tiada produk dikesan. Sila isi manual.';
                         this.showTable = true;
                     } catch (err) {
@@ -251,7 +262,7 @@
                     return q > 0 && q < byId[id].min_qty;
                 },
                 buyTotal(id) {
-                    return (this.qty[id] || 0) * byId[id].unit_cost;
+                    return (this.qty[id] || 0) * this.prices[id];
                 },
                 sellTotal(id) {
                     return (this.qty[id] || 0) * byId[id].sell_price;

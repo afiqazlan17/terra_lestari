@@ -7,12 +7,13 @@ use Illuminate\Http\UploadedFile;
 use RuntimeException;
 
 /**
- * Uses Claude vision to pull line items (product name + quantity only - no
- * prices, since order totals are always calculated from our own NBK
- * catalog prices, not whatever the invoice prints) and the invoice's own
- * date off a photographed or scanned NBK vendor invoice, so staff can
- * snap/upload the invoice instead of typing every quantity - and the order
- * date - into the order form by hand.
+ * Uses Claude vision to pull line items (product name, quantity, and
+ * per-unit price) and the invoice's own date off a photographed or scanned
+ * NBK vendor invoice, so staff can snap/upload the invoice instead of
+ * typing every quantity - and the order date - into the order form by
+ * hand. The invoice is the source of truth for price: the caller syncs our
+ * NBK catalog's cost to whatever's printed here, since NBK's own prices
+ * are what actually got paid, not our (possibly stale) catalog record.
  */
 class NbkInvoiceExtractionService
 {
@@ -37,10 +38,14 @@ class NbkInvoiceExtractionService
           Do not translate or rename it - use exactly what's on the invoice.
         - qty: the quantity/unit count for that line, as a whole number. If a unit is
           printed (pkt, bungkus, kg, etc.) just use the numeric count, ignore the unit.
+        - price: the PER-UNIT price for that line (not the subtotal/line total), as a
+          number. Most invoices print a "Harga (RM)" column - use that value directly.
+          If only a line subtotal is printed with no per-unit price, divide subtotal by
+          qty. If no price is readable for a line, return null for that line's price.
 
-        Ignore prices, subtotals, totals, and any non-item lines (headers, addresses,
-        signatures, terms). If the image has no readable line items at all, return an
-        empty items array.
+        Ignore invoice-level subtotals/totals and any non-item lines (headers,
+        addresses, signatures, terms). If the image has no readable line items at all,
+        return an empty items array.
 
         Also find the invoice's own date field (printed as "Tarikh" on these invoices,
         usually DD-MM-YYYY). Return it as invoice_date in ISO format (YYYY-MM-DD). If no
@@ -95,8 +100,9 @@ class NbkInvoiceExtractionService
                                     'properties' => [
                                         'name' => ['type' => 'string'],
                                         'qty' => ['type' => 'integer'],
+                                        'price' => ['type' => ['number', 'null']],
                                     ],
-                                    'required' => ['name', 'qty'],
+                                    'required' => ['name', 'qty', 'price'],
                                     'additionalProperties' => false,
                                 ],
                             ],

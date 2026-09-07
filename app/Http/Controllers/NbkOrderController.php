@@ -224,10 +224,12 @@ class NbkOrderController extends Controller
 
         $matched = [];
         $unmatched = [];
+        $priceUpdates = 0;
 
         foreach ($result['items'] as $line) {
             $name = trim((string) ($line['name'] ?? ''));
             $qty = (int) ($line['qty'] ?? 0);
+            $invoicePrice = is_numeric($line['price'] ?? null) ? round((float) $line['price'], 2) : null;
 
             if ($name === '' || $qty <= 0) {
                 continue;
@@ -236,7 +238,15 @@ class NbkOrderController extends Controller
             $product = $this->matchProduct($name, $products);
 
             if ($product) {
-                $matched[] = ['nbk_product_id' => $product->id, 'name' => $product->name, 'qty' => $qty];
+                // The invoice is the source of truth for price - NBK's own
+                // prices change over time and our catalog can drift stale,
+                // so sync it to whatever this invoice actually printed.
+                if ($invoicePrice !== null && $invoicePrice > 0 && round((float) $product->unit_cost, 2) !== $invoicePrice) {
+                    $product->update(['unit_cost' => $invoicePrice]);
+                    $priceUpdates++;
+                }
+
+                $matched[] = ['nbk_product_id' => $product->id, 'name' => $product->name, 'qty' => $qty, 'unit_cost' => (float) $product->unit_cost];
             } else {
                 $unmatched[] = ['name' => $name, 'qty' => $qty];
             }
@@ -253,6 +263,7 @@ class NbkOrderController extends Controller
             'unmatched' => $unmatched,
             'invoice_date' => $invoiceDate->toDateString(),
             'order_date' => $orderDate->toDateString(),
+            'price_updates' => $priceUpdates,
         ]);
     }
 
