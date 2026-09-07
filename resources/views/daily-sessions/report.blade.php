@@ -102,8 +102,9 @@
         table.report tfoot td { padding-top: 10px; font-weight: 700; border-top: 2px solid var(--ink); }
         .split-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .cash-box { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
-        .cash-row { display: flex; justify-content: space-between; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--rule); }
-        .cash-row .amt { font-variant-numeric: tabular-nums; font-weight: 600; }
+        .cash-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--rule); }
+        .cash-row span:first-child { min-width: 0; }
+        .cash-row .amt { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; flex: none; }
         .cash-row.total { background: var(--accent-soft); font-weight: 700; }
         .cash-row.variance.good { background: var(--good-soft); color: var(--good); }
         .cash-row.variance.bad { background: var(--bad-soft); color: var(--bad); }
@@ -353,6 +354,23 @@
                         <div class="cash-row"><span>Tunai Sebenar</span><span class="amt">RM {{ number_format($cashTally['sebenar'], 2) }}</span></div>
                         <div class="cash-row variance {{ $cashTally['beza'] == 0 ? 'good' : 'bad' }}">
                             <span>Beza</span><span class="amt">RM {{ number_format($cashTally['beza'], 2) }}</span>
+                        </div>
+                    @endif
+                </div>
+            @else
+                <p class="empty">Tiada sesi dibuka pada tarikh ini.</p>
+            @endif
+        </section>
+
+        <section>
+            <h2>QR / DuitNow</h2>
+            @if ($qrTally)
+                <div class="cash-box">
+                    <div class="cash-row total"><span>Jangkaan (Jualan QR)</span><span class="amt">RM {{ number_format($qrTally['jangkaan'], 2) }}</span></div>
+                    @if ($qrTally['sebenar'] !== null)
+                        <div class="cash-row"><span>QR/DuitNow Sebenar</span><span class="amt">RM {{ number_format($qrTally['sebenar'], 2) }}</span></div>
+                        <div class="cash-row variance {{ $qrTally['beza'] == 0 ? 'good' : 'bad' }}">
+                            <span>Beza</span><span class="amt">RM {{ number_format($qrTally['beza'], 2) }}</span>
                         </div>
                     @endif
                 </div>

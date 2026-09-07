@@ -36,11 +36,16 @@
                         </div>
                         <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-col items-start gap-2" onsubmit="return sbConfirmCloseWithPendingCheck()">
                             @csrf
-                            <p class="text-xs text-amber-700">Sila kira tunai di tangan sekarang dah input di ruang ini</p>
+                            <p class="text-xs text-amber-700">Sebelum Tutup Hari: kira tunai di tangan dan semak baki QR/DuitNow, isi kedua-dua ruang di bawah.</p>
                             <div class="flex flex-wrap items-end gap-2">
                                 <div>
                                     <label class="block text-xs text-gray-500 mb-1">Tunai Akhir (RM)</label>
                                     <input type="text" inputmode="decimal" data-money-input name="closing_cash" required
+                                        class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">QR/DuitNow Diterima (RM)</label>
+                                    <input type="text" inputmode="decimal" data-money-input name="closing_qr" required
                                         class="rounded-md border-gray-300 shadow-sm text-sm w-32">
                                 </div>
                                 <x-danger-button type="submit">Tutup Hari</x-danger-button>

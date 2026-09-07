@@ -115,4 +115,29 @@ class SalesSummaryService
             'beza' => $allClosed ? (float) $closedSessions->sum('closing_cash') - $jangkaan : null,
         ];
     }
+
+    /**
+     * QR/DuitNow tally for a single calendar date: QR sales recorded by the
+     * system that date, compared against what the session(s) reported as
+     * actually received once closed. Unlike cash, there's no opening float.
+     */
+    public function qrTallyFor(Project $project, Carbon $date, float $qrSales): ?array
+    {
+        $sessions = \App\Models\DailySession::where('project_id', $project->id)
+            ->whereDate('opened_at', $date->toDateString())
+            ->get();
+
+        if ($sessions->isEmpty()) {
+            return null;
+        }
+
+        $closedSessions = $sessions->where('status', 'closed');
+        $allClosed = $closedSessions->count() === $sessions->count();
+
+        return [
+            'jangkaan' => $qrSales,
+            'sebenar' => $allClosed ? (float) $closedSessions->sum('closing_qr') : null,
+            'beza' => $allClosed ? (float) $closedSessions->sum('closing_qr') - $qrSales : null,
+        ];
+    }
 }

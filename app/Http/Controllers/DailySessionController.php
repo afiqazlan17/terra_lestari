@@ -51,6 +51,7 @@ class DailySessionController extends Controller
 
         $validated = $request->validate([
             'closing_cash' => ['required', 'numeric', 'min:0'],
+            'closing_qr' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
@@ -58,6 +59,7 @@ class DailySessionController extends Controller
             'closed_by' => $request->user()->id,
             'closed_at' => now(),
             'closing_cash' => $validated['closing_cash'],
+            'closing_qr' => $validated['closing_qr'],
             'notes' => $validated['notes'] ?? null,
             'status' => 'closed',
         ]);
@@ -76,12 +78,14 @@ class DailySessionController extends Controller
         $date = $dailySession->opened_at->copy()->startOfDay();
         $summary = $summaryService->summaryFor($dailySession->project, $date, $date);
         $cashTally = $summaryService->cashTallyFor($dailySession->project, $date, $summary['cashSales']);
+        $qrTally = $summaryService->qrTallyFor($dailySession->project, $date, $summary['qrSales']);
 
         return view('daily-sessions.report', [
             'session' => $dailySession,
             'date' => $date,
             'summary' => $summary,
             'cashTally' => $cashTally,
+            'qrTally' => $qrTally,
             'weekTrend' => $this->weekTrendEnding($dailySession->project, $date),
             'categoryBreakdown' => $this->categoryBreakdownFor($dailySession->project, $date),
         ]);

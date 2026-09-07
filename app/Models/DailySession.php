@@ -10,7 +10,7 @@ class DailySession extends Model
 {
     protected $fillable = [
         'project_id', 'opened_by', 'opened_at', 'opening_cash',
-        'closed_by', 'closed_at', 'closing_cash', 'status', 'notes',
+        'closed_by', 'closed_at', 'closing_cash', 'closing_qr', 'status', 'notes',
         'report_sent_at',
     ];
 
@@ -19,6 +19,7 @@ class DailySession extends Model
         'closed_at' => 'datetime',
         'opening_cash' => 'decimal:2',
         'closing_cash' => 'decimal:2',
+        'closing_qr' => 'decimal:2',
         'report_sent_at' => 'datetime',
     ];
 
