@@ -54,6 +54,9 @@
                                 <p class="text-xs text-amber-700 mt-0.5" x-show="invoiceUnmatched.length > 0">
                                     Tidak dapat padan dengan katalog, sila isi manual: <span x-text="invoiceUnmatched.map(i => i.name + ' (' + i.qty + ')').join(', ')"></span>
                                 </p>
+                                <button type="button" x-show="onlyMatched" x-cloak @click="onlyMatched = false" class="text-xs text-amber-800 underline mt-1">
+                                    Tunjuk semua produk (untuk tambah manual)
+                                </button>
                             </div>
                             <button type="button" @click="reset()" class="text-xs text-gray-500 hover:text-gray-700 hover:underline shrink-0 ml-3">
                                 &larr; Upload lain / mula semula
@@ -88,7 +91,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     @foreach ($products as $index => $product)
-                                        <tr class="{{ ! $product->isOrderable() ? 'bg-gray-50' : '' }}">
+                                        <tr class="{{ ! $product->isOrderable() ? 'bg-gray-50' : '' }}" x-show="! onlyMatched || (qty[{{ $product->id }}] || 0) > 0">
                                             <td class="px-3 py-2 text-gray-400">{{ $index + 1 }}</td>
                                             <td class="px-3 py-2 {{ $product->isOrderable() ? 'text-gray-800' : 'text-gray-400' }}">
                                                 {{ $product->name }}
@@ -189,11 +192,13 @@
                 invoiceDate: todayIso(),
                 invoicePath: '',
                 orderDateLabel: '',
+                onlyMatched: false,
                 init() {
                     this.orderDateLabel = formatLabel(addDayIso(this.invoiceDate));
                 },
                 openManual() {
                     this.showTable = true;
+                    this.onlyMatched = false;
                     this.invoiceDate = todayIso();
                     this.orderDateLabel = formatLabel(addDayIso(this.invoiceDate));
                 },
@@ -202,6 +207,7 @@
                     this.invoiceStatus = '';
                     this.invoiceUnmatched = [];
                     this.invoicePath = '';
+                    this.onlyMatched = false;
                     this.qty = Object.fromEntries(products.map(p => [p.id, 0]));
                     this.priceUpdated = Object.fromEntries(products.map(p => [p.id, false]));
                     if (this.$refs.invoiceFile) {
@@ -260,6 +266,7 @@
                             ? `${matchedCount} produk diisi automatik - sila semak sebelum hantar.`
                                 + (priceUpdates > 0 ? ` ${priceUpdates} harga katalog dikemaskini ikut invois.` : '')
                             : 'Tiada produk dikesan. Sila isi manual.';
+                        this.onlyMatched = matchedCount > 0;
                         this.showTable = true;
                     } catch (err) {
                         this.invoiceStatus = 'Gagal baca invois. Sila isi manual.';

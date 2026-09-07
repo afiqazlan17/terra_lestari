@@ -50,6 +50,20 @@
                 @if ($products->isEmpty())
                     <p class="p-6 text-sm text-gray-400">Belum ada produk NBK.</p>
                 @else
+                    @php $inactiveCount = $products->where('status', '!=', \App\Models\NbkProduct::STATUS_ACTIVE)->count(); @endphp
+                    @if ($inactiveCount > 0)
+                        <div class="px-4 py-3 bg-amber-50 border-b border-amber-200 flex items-center justify-between gap-3">
+                            <p class="text-xs text-amber-800">
+                                {{ $inactiveCount }} produk bukan Aktif - line invois untuk produk ni akan terlepas (tak dikira) bila scan invois, sebab padanan hanya cari dalam produk Aktif.
+                            </p>
+                            <form method="POST" action="{{ route('nbk.products.activate-all') }}" onsubmit="return confirm('Tukar semua produk NBK ke status Aktif?')">
+                                @csrf
+                                <button type="submit" class="text-xs bg-amber-500 hover:bg-amber-600 text-white font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap">
+                                    Aktifkan Semua
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                     <div class="overflow-x-auto" x-data="{ editingId: null }">
                         <table class="min-w-full table-fixed divide-y divide-gray-100 text-sm">
                             <thead class="bg-gray-50">

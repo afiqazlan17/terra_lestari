@@ -47,6 +47,24 @@ class NbkProductController extends Controller
         return back()->with('success', 'Produk NBK ditambah.');
     }
 
+    /**
+     * Invoice-matching only considers "active" products, so a catalog entry
+     * left as "Tiada Stok"/"Excluded" silently drops that line off any
+     * scanned invoice instead of matching it - this is the bulk fix for
+     * when the catalog has drifted out of sync with what's actually
+     * orderable.
+     */
+    public function activateAll(Request $request): RedirectResponse
+    {
+        $project = $request->user()->currentProject();
+
+        $count = $project->nbkProducts()
+            ->where('status', '!=', NbkProduct::STATUS_ACTIVE)
+            ->update(['status' => NbkProduct::STATUS_ACTIVE]);
+
+        return back()->with('success', "{$count} produk NBK ditukar ke status Aktif.");
+    }
+
     public function update(Request $request, NbkProduct $nbkProduct): RedirectResponse
     {
         abort_unless($nbkProduct->project_id === $request->user()->currentProject()?->id, 403);

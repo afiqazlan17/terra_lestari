@@ -93,6 +93,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
 
         Route::get('/nbk/products', [NbkProductController::class, 'index'])->name('nbk.products.index');
         Route::post('/nbk/products', [NbkProductController::class, 'store'])->name('nbk.products.store');
+        Route::post('/nbk/products/activate-all', [NbkProductController::class, 'activateAll'])->name('nbk.products.activate-all');
         Route::patch('/nbk/products/{nbkProduct}', [NbkProductController::class, 'update'])->name('nbk.products.update');
         Route::delete('/nbk/products/{nbkProduct}', [NbkProductController::class, 'destroy'])->name('nbk.products.destroy');
 
