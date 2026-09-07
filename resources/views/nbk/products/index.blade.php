@@ -4,10 +4,10 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Katalog Produk NBK</h2>
             <div class="flex items-center gap-2">
                 <a href="{{ route('nbk.orders.create') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
-                    Buat Order
+                    Upload Invoice
                 </a>
                 <a href="{{ route('nbk.orders.index') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
-                    Sejarah Order
+                    Senarai Order
                 </a>
                 <a href="{{ route('nbk.index') }}" class="text-gray-500 hover:text-gray-700 text-sm px-2">
                     &larr; Kembali

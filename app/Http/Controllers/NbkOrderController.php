@@ -177,11 +177,14 @@ class NbkOrderController extends Controller
         }
 
         DB::transaction(function () use ($nbkOrder, $request, $receiptPath) {
+            // order_date is the day AFTER the invoice (stock ordered today
+            // sells tomorrow) - the Belian record should reflect the
+            // invoice's own date, so step back a day to recover it.
             $purchase = Purchase::create([
                 'project_id' => $nbkOrder->project_id,
                 'recorded_by' => $request->user()->id,
                 'category' => Purchase::CATEGORY_BAHAN_MENTAH,
-                'purchase_date' => now()->toDateString(),
+                'purchase_date' => $nbkOrder->order_date->copy()->subDay()->toDateString(),
                 'supplier_name' => 'NBK - Nasi Berlauk Kelantan',
                 'description' => 'Belian NBK (Memo #'.$nbkOrder->displayNumber().')',
                 'amount' => $nbkOrder->total_buy,
@@ -212,7 +215,7 @@ class NbkOrderController extends Controller
             ->get();
 
         try {
-            $lines = $service->extract($request->file('invoice'));
+            $result = $service->extract($request->file('invoice'));
         } catch (\Throwable $e) {
             report($e);
 
@@ -222,7 +225,7 @@ class NbkOrderController extends Controller
         $matched = [];
         $unmatched = [];
 
-        foreach ($lines as $line) {
+        foreach ($result['items'] as $line) {
             $name = trim((string) ($line['name'] ?? ''));
             $qty = (int) ($line['qty'] ?? 0);
 
@@ -239,7 +242,31 @@ class NbkOrderController extends Controller
             }
         }
 
-        return response()->json(['matched' => $matched, 'unmatched' => $unmatched]);
+        // The invoice's own date tells us when NBK was ordered; the stock it
+        // carries is for the day after (staff receive/sell it the next day).
+        // Fall back to today's date if the AI couldn't read one off the image.
+        $invoiceDate = $this->parseInvoiceDate($result['invoice_date']) ?? now()->startOfDay();
+        $orderDate = $invoiceDate->copy()->addDay();
+
+        return response()->json([
+            'matched' => $matched,
+            'unmatched' => $unmatched,
+            'invoice_date' => $invoiceDate->toDateString(),
+            'order_date' => $orderDate->toDateString(),
+        ]);
+    }
+
+    private function parseInvoiceDate(?string $value): ?\Illuminate\Support\Carbon
+    {
+        if (! $value) {
+            return null;
+        }
+
+        try {
+            return \Illuminate\Support\Carbon::parse($value)->startOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

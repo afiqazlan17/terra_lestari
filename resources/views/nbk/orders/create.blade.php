@@ -2,14 +2,14 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ $order ? 'Edit Order NBK #'.$order->displayNumber() : 'Kalkulator Order NBK' }}
+                {{ $order ? 'Edit Order NBK #'.$order->displayNumber() : 'Upload Invoice NBK' }}
             </h2>
             <div class="flex items-center gap-2">
                 <a href="{{ route('nbk.products.index') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
                     Urus Katalog
                 </a>
                 <a href="{{ route('nbk.orders.index') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
-                    Sejarah Order
+                    Senarai Order
                 </a>
                 <a href="{{ route('nbk.index') }}" class="text-gray-500 hover:text-gray-700 text-sm px-2">
                     &larr; Kembali
@@ -26,34 +26,50 @@
                 </div>
             @else
                 <form method="POST" action="{{ $order ? route('nbk.orders.update', $order) : route('nbk.orders.store') }}"
-                    x-data="nbkCalculator(@js($products->map(fn ($p) => ['id' => $p->id, 'unit_cost' => (float) $p->unit_cost, 'sell_price' => (float) ($p->sell_price ?? 0), 'min_qty' => $p->min_qty, 'orderable' => $p->isOrderable()])), @js($qtyByProductId))">
+                    x-data="nbkCalculator(@js($products->map(fn ($p) => ['id' => $p->id, 'unit_cost' => (float) $p->unit_cost, 'sell_price' => (float) ($p->sell_price ?? 0), 'min_qty' => $p->min_qty, 'orderable' => $p->isOrderable()])), @js($qtyByProductId), {{ $order ? 'true' : 'false' }})">
                     @csrf
                     @if ($order)
                         @method('PATCH')
                     @endif
 
                     @unless ($order)
-                        <div id="invois-upload" class="bg-white shadow-sm sm:rounded-lg p-4 mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Upload Invois NBK (pilihan)</label>
-                            <p class="text-xs text-gray-500 mb-2">Snap/upload invois pembelian NBK - kuantiti akan diisi automatik ke jadual bawah untuk semakan.</p>
-                            <div class="flex items-center gap-3">
+                        <div id="invois-upload" class="bg-white shadow-sm sm:rounded-lg p-4 mb-4" x-show="! showTable">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Upload Invois NBK</label>
+                            <p class="text-xs text-gray-500 mb-3">Snap/upload invois pembelian NBK - produk, kuantiti dan tarikh akan dikesan automatik untuk semakan.</p>
+                            <div class="flex items-center gap-3 flex-wrap">
                                 <input type="file" accept="image/*,.pdf" x-ref="invoiceFile" @change="uploadInvoice($event)" class="text-sm">
                                 <span x-show="invoiceStatus" x-text="invoiceStatus" class="text-xs text-gray-500"></span>
                             </div>
-                            <template x-if="invoiceUnmatched.length > 0">
-                                <p class="text-xs text-amber-600 mt-2">
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <button type="button" @click="openManual()" class="text-sm text-gray-600 hover:text-gray-800 font-medium hover:underline">
+                                    Atau isi manual (tanpa upload) &rarr;
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex items-center justify-between" x-show="showTable">
+                            <div>
+                                <p class="text-sm font-medium text-amber-800">Order untuk stok: <span x-text="orderDateLabel"></span></p>
+                                <p class="text-xs text-amber-700 mt-0.5" x-show="invoiceUnmatched.length > 0">
                                     Tidak dapat padan dengan katalog, sila isi manual: <span x-text="invoiceUnmatched.map(i => i.name + ' (' + i.qty + ')').join(', ')"></span>
                                 </p>
-                            </template>
+                            </div>
+                            <button type="button" @click="reset()" class="text-xs text-gray-500 hover:text-gray-700 hover:underline shrink-0 ml-3">
+                                &larr; Upload lain / mula semula
+                            </button>
                         </div>
+
+                        <input type="hidden" name="order_date" :value="orderDate">
                     @endunless
 
-                    <div class="bg-white shadow-sm sm:rounded-lg p-4 mb-4 flex items-center gap-3">
-                        <label class="text-sm text-gray-600">Tarikh Order:</label>
-                        <input type="date" name="order_date" value="{{ ($order->order_date ?? now())->toDateString() }}" required class="rounded-md border-gray-300 shadow-sm text-sm">
-                    </div>
+                    @if ($order)
+                        <div class="bg-white shadow-sm sm:rounded-lg p-4 mb-4 flex items-center gap-3">
+                            <label class="text-sm text-gray-600">Tarikh Order:</label>
+                            <input type="date" name="order_date" value="{{ $order->order_date->toDateString() }}" required class="rounded-md border-gray-300 shadow-sm text-sm">
+                        </div>
+                    @endif
 
-                    <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
+                    <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden" x-show="showTable" @if(! $order) x-cloak @endif>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-100 text-sm">
                                 <thead class="bg-gray-50">
@@ -111,7 +127,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-white shadow-sm sm:rounded-lg p-4 mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                    <div class="bg-white shadow-sm sm:rounded-lg p-4 mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm" x-show="showTable" @if(! $order) x-cloak @endif>
                         <div>
                             <p class="text-xs text-gray-500 uppercase">Jumlah Kuantiti Order</p>
                             <p class="text-lg font-semibold text-gray-800" x-text="totalQty()"></p>
@@ -130,8 +146,8 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 flex items-center gap-3">
-                        <x-primary-button type="submit">{{ $order ? 'Kemaskini Memo' : 'Jana Memo Pembayaran' }}</x-primary-button>
+                    <div class="mt-4 flex items-center gap-3" x-show="showTable" @if(! $order) x-cloak @endif>
+                        <x-primary-button type="submit">{{ $order ? 'Kemaskini Memo' : 'Confirm' }}</x-primary-button>
                         @if ($order)
                             <a href="{{ route('nbk.orders.show', $order) }}" class="text-sm text-gray-500 hover:underline">Batal</a>
                         @endif
@@ -142,14 +158,46 @@
     </div>
 
     <script>
-        function nbkCalculator(products, initialQty) {
+        function nbkCalculator(products, initialQty, isEdit) {
             const byId = {};
             products.forEach(p => { byId[p.id] = p; });
+
+            const tomorrowIso = () => {
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
+                return d.toISOString().slice(0, 10);
+            };
+
+            const formatLabel = (iso) => {
+                if (! iso) return '';
+                const d = new Date(iso + 'T00:00:00');
+                return new Intl.DateTimeFormat('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+            };
 
             return {
                 qty: Object.fromEntries(products.map(p => [p.id, initialQty[p.id] ?? 0])),
                 invoiceStatus: '',
                 invoiceUnmatched: [],
+                showTable: isEdit,
+                orderDate: tomorrowIso(),
+                orderDateLabel: '',
+                init() {
+                    this.orderDateLabel = formatLabel(this.orderDate);
+                },
+                openManual() {
+                    this.showTable = true;
+                    this.orderDate = tomorrowIso();
+                    this.orderDateLabel = formatLabel(this.orderDate);
+                },
+                reset() {
+                    this.showTable = false;
+                    this.invoiceStatus = '';
+                    this.invoiceUnmatched = [];
+                    this.qty = Object.fromEntries(products.map(p => [p.id, 0]));
+                    if (this.$refs.invoiceFile) {
+                        this.$refs.invoiceFile.value = '';
+                    }
+                },
                 async uploadInvoice(event) {
                     const file = event.target.files[0];
                     if (! file) return;
@@ -184,10 +232,16 @@
                         });
                         this.invoiceUnmatched = data.unmatched || [];
 
+                        if (data.order_date) {
+                            this.orderDate = data.order_date;
+                            this.orderDateLabel = formatLabel(this.orderDate);
+                        }
+
                         const matchedCount = (data.matched || []).length;
                         this.invoiceStatus = matchedCount > 0
                             ? `${matchedCount} produk diisi automatik - sila semak sebelum hantar.`
                             : 'Tiada produk dikesan. Sila isi manual.';
+                        this.showTable = true;
                     } catch (err) {
                         this.invoiceStatus = 'Gagal baca invois. Sila isi manual.';
                     }

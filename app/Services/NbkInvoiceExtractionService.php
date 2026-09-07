@@ -9,9 +9,10 @@ use RuntimeException;
 /**
  * Uses Claude vision to pull line items (product name + quantity only - no
  * prices, since order totals are always calculated from our own NBK
- * catalog prices, not whatever the invoice prints) off a photographed or
- * scanned NBK vendor invoice, so staff can snap/upload the invoice instead
- * of typing every quantity into the order calculator by hand.
+ * catalog prices, not whatever the invoice prints) and the invoice's own
+ * date off a photographed or scanned NBK vendor invoice, so staff can
+ * snap/upload the invoice instead of typing every quantity - and the order
+ * date - into the order form by hand.
  */
 class NbkInvoiceExtractionService
 {
@@ -40,8 +41,13 @@ class NbkInvoiceExtractionService
         Ignore prices, subtotals, totals, and any non-item lines (headers, addresses,
         signatures, terms). If the image has no readable line items at all, return an
         empty items array.
+
+        Also find the invoice's own date field (printed as "Tarikh" on these invoices,
+        usually DD-MM-YYYY). Return it as invoice_date in ISO format (YYYY-MM-DD). If no
+        date is printed or readable, return null for invoice_date - do not guess it.
         TEXT;
 
+    /** @return array{items: array, invoice_date: ?string} */
     public function extract(UploadedFile $file): array
     {
         $apiKey = config('services.anthropic.api_key');
@@ -94,8 +100,9 @@ class NbkInvoiceExtractionService
                                     'additionalProperties' => false,
                                 ],
                             ],
+                            'invoice_date' => ['type' => ['string', 'null']],
                         ],
-                        'required' => ['items'],
+                        'required' => ['items', 'invoice_date'],
                         'additionalProperties' => false,
                     ],
                 ],
@@ -106,10 +113,13 @@ class NbkInvoiceExtractionService
             if ($block->type === 'text') {
                 $decoded = json_decode($block->text, true);
 
-                return is_array($decoded['items'] ?? null) ? $decoded['items'] : [];
+                return [
+                    'items' => is_array($decoded['items'] ?? null) ? $decoded['items'] : [],
+                    'invoice_date' => is_string($decoded['invoice_date'] ?? null) ? $decoded['invoice_date'] : null,
+                ];
             }
         }
 
-        return [];
+        return ['items' => [], 'invoice_date' => null];
     }
 }
