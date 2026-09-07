@@ -31,6 +31,10 @@ class ReceiptExtractionService
           shows both an issue date and a payment due date, use the issue date, not the due
           date. If no year is printed, assume the current year. If truly no date is visible,
           use an empty string.
+          IMPORTANT: Malaysian receipts print dates day-first (DD/MM/YYYY or DD-MM-YYYY), never
+          the US month-first format - e.g. "03/09/2026" means 3 September 2026, not March 9.
+          Today's date is {today} (Malaysia time) - if a date is genuinely ambiguous, prefer
+          whichever reading is closer to today rather than one many months away.
         - amount: the final total amount paid, as a plain number with no currency symbol or
           commas (e.g. 45.50). Use the grand total, not a subtotal. If unreadable, use 0.
         - supplier_name: the name of the shop/vendor/supplier printed on the receipt. Empty
@@ -52,6 +56,11 @@ class ReceiptExtractionService
           Default to "bahan_mentah" if genuinely unclear and it looks food-related, otherwise
           "lain_lain".
         TEXT;
+
+    private function prompt(): string
+    {
+        return str_replace('{today}', now()->translatedFormat('d F Y'), self::PROMPT);
+    }
 
     public function extract(UploadedFile $file): array
     {
@@ -85,7 +94,7 @@ class ReceiptExtractionService
             maxTokens: 1024,
             messages: [[
                 'role' => 'user',
-                'content' => [$contentBlock, ['type' => 'text', 'text' => self::PROMPT]],
+                'content' => [$contentBlock, ['type' => 'text', 'text' => $this->prompt()]],
             ]],
             outputConfig: [
                 'format' => [

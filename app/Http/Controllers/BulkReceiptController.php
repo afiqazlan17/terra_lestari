@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\StoresReceipts;
 use App\Models\Purchase;
+use App\Models\Supplier;
 use App\Rules\ValidReceiptFile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,8 +17,11 @@ class BulkReceiptController extends Controller
 
     public function create(Request $request): View
     {
+        $project = $request->user()->currentProject();
+
         return view('receipts.bulk', [
-            'project' => $request->user()->currentProject(),
+            'project' => $project,
+            'supplierNames' => Supplier::namesFor($project),
         ]);
     }
 
@@ -82,6 +86,8 @@ class BulkReceiptController extends Controller
                 'receipt_path' => $receiptPath,
                 'notes' => $validated['notes'] ?? null,
             ]);
+
+            Supplier::remember($project, $validated['supplier_name'] ?? null);
 
             $created++;
         }

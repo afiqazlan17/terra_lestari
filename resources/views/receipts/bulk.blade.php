@@ -43,6 +43,22 @@
         </div>
     </div>
 
+    <datalist id="bulk-supplier-list">
+        @foreach ($supplierNames as $name)
+            <option value="{{ $name }}">
+        @endforeach
+    </datalist>
+
+    <div id="bulk-preview-modal" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onclick="closePreview(event)">
+        <div class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] flex flex-col" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                <p id="bulk-preview-title" class="text-sm text-gray-600 truncate"></p>
+                <button type="button" onclick="closePreview()" class="text-gray-400 hover:text-gray-600 text-xl leading-none px-2">&times;</button>
+            </div>
+            <div id="bulk-preview-body" class="overflow-auto p-2 flex-1"></div>
+        </div>
+    </div>
+
     <script>
         const EXTRACT_URL = '{{ route('receipts.extract') }}';
         const BULK_STORE_URL = '{{ route('receipts.bulk.store') }}';
@@ -111,17 +127,56 @@
         }
 
         function removeRow(index) {
+            if (rows[index].previewUrl) {
+                URL.revokeObjectURL(rows[index].previewUrl);
+            }
             rows.splice(index, 1);
             renderTable();
         }
 
-        function fieldInput(type, value, onInput, extraClass = '') {
+        function fieldInput(type, value, onInput, extraClass = '', listId = null) {
             const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
             if (type !== 'textarea') input.type = type;
             input.value = value ?? '';
             input.className = 'rounded-md border-gray-300 shadow-sm text-xs w-full ' + extraClass;
+            if (listId) input.setAttribute('list', listId);
             input.addEventListener('input', (e) => onInput(e.target.value));
             return input;
+        }
+
+        function previewUrlFor(row) {
+            if (!row.previewUrl) {
+                row.previewUrl = URL.createObjectURL(row.file);
+            }
+            return row.previewUrl;
+        }
+
+        function openPreview(row) {
+            const title = document.getElementById('bulk-preview-title');
+            const body = document.getElementById('bulk-preview-body');
+            title.textContent = row.file.name;
+            body.innerHTML = '';
+
+            const url = previewUrlFor(row);
+            if (row.file.type === 'application/pdf') {
+                const embed = document.createElement('embed');
+                embed.src = url;
+                embed.type = 'application/pdf';
+                embed.className = 'w-full h-[75vh]';
+                body.appendChild(embed);
+            } else {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'max-w-full mx-auto';
+                body.appendChild(img);
+            }
+
+            document.getElementById('bulk-preview-modal').classList.remove('hidden');
+        }
+
+        function closePreview(event) {
+            if (event && event.target.id !== 'bulk-preview-modal') return;
+            document.getElementById('bulk-preview-modal').classList.add('hidden');
         }
 
         function renderTable() {
@@ -138,6 +193,12 @@
                 fileName.className = 'text-xs text-gray-500 max-w-[10rem] truncate';
                 fileName.textContent = row.file.name;
                 tdFile.appendChild(fileName);
+                const viewBtn = document.createElement('button');
+                viewBtn.type = 'button';
+                viewBtn.className = 'text-xs text-amber-600 hover:underline mt-0.5';
+                viewBtn.textContent = 'Lihat resit';
+                viewBtn.addEventListener('click', () => openPreview(row));
+                tdFile.appendChild(viewBtn);
                 if (row.status === 'loading') {
                     const loading = document.createElement('p');
                     loading.className = 'text-xs text-amber-600';
@@ -189,7 +250,7 @@
                 // Pembekal
                 const tdSupplier = document.createElement('td');
                 tdSupplier.className = 'px-3 py-2 align-top';
-                tdSupplier.appendChild(fieldInput('text', row.supplier_name, (v) => { row.supplier_name = v; }, 'min-w-[8rem]'));
+                tdSupplier.appendChild(fieldInput('text', row.supplier_name, (v) => { row.supplier_name = v; }, 'min-w-[8rem]', 'bulk-supplier-list'));
                 tr.appendChild(tdSupplier);
 
                 // Jumlah

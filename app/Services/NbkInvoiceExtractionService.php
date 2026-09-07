@@ -48,9 +48,17 @@ class NbkInvoiceExtractionService
         return an empty items array.
 
         Also find the invoice's own date field (printed as "Tarikh" on these invoices,
-        usually DD-MM-YYYY). Return it as invoice_date in ISO format (YYYY-MM-DD). If no
-        date is printed or readable, return null for invoice_date - do not guess it.
+        usually DD-MM-YYYY - day first, never the US month-first format). Return it as
+        invoice_date in ISO format (YYYY-MM-DD). If no date is printed or readable, return
+        null for invoice_date - do not guess it. Today's date is {today} (Malaysia time) -
+        if the printed date is genuinely ambiguous, prefer whichever reading is closer to
+        today rather than one many months away.
         TEXT;
+
+    private function prompt(): string
+    {
+        return str_replace('{today}', now()->translatedFormat('d F Y'), self::PROMPT);
+    }
 
     /** @return array{items: array, invoice_date: ?string} */
     public function extract(UploadedFile $file): array
@@ -85,7 +93,7 @@ class NbkInvoiceExtractionService
             maxTokens: 1024,
             messages: [[
                 'role' => 'user',
-                'content' => [$contentBlock, ['type' => 'text', 'text' => self::PROMPT]],
+                'content' => [$contentBlock, ['type' => 'text', 'text' => $this->prompt()]],
             ]],
             outputConfig: [
                 'format' => [
