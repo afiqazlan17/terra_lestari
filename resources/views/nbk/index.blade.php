@@ -23,12 +23,12 @@
                 </a>
             </div>
 
-            @if ($baki)
-                <div class="mt-4 bg-white shadow-sm rounded-xl border border-gray-100 p-4">
-                    <div class="flex items-baseline justify-between mb-3">
-                        <h3 class="text-sm font-semibold text-gray-800">Baki NBK Hari Ini</h3>
-                        <span class="text-xs text-gray-500">{{ now()->translatedFormat('d F Y') }}</span>
-                    </div>
+            <div class="mt-4 bg-white shadow-sm rounded-xl border border-gray-100 p-4">
+                <div class="flex items-baseline justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800">Baki NBK Hari Ini</h3>
+                    <span class="text-xs text-gray-500">{{ now()->translatedFormat('d F Y') }}</span>
+                </div>
+                @if ($baki)
                     <div class="grid grid-cols-2 gap-3 text-sm">
                         @foreach (['nasi' => 'Nasi', 'kuih' => 'Kuih Muih'] as $key => $label)
                             <div class="border border-gray-100 rounded-lg p-3">
@@ -48,8 +48,10 @@
                             </div>
                         @endforeach
                     </div>
-                </div>
-            @endif
+                @else
+                    <p class="text-sm text-gray-400">Tiada order NBK ditempah untuk hari ini.</p>
+                @endif
+            </div>
         </div>
     </div>
 </x-app-layout>

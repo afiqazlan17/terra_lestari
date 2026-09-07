@@ -4,6 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <script>
+            // iOS Safari ignores user-scalable=no in the viewport meta tag -
+            // this Safari-only gesture API is the only way left to block
+            // pinch-zoom there. Standards-based browsers already respect the
+            // meta tag above, so this is a no-op elsewhere.
+            document.addEventListener('gesturestart', (e) => e.preventDefault());
+            document.addEventListener('gesturechange', (e) => e.preventDefault());
+        </script>
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
