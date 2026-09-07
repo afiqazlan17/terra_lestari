@@ -8,10 +8,12 @@ use App\Models\NbkProduct;
 use App\Models\Project;
 use App\Models\Purchase;
 use App\Rules\ValidReceiptFile;
+use App\Services\NbkBakiService;
 use App\Services\NbkInvoiceExtractionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -20,9 +22,13 @@ class NbkOrderController extends Controller
 {
     use StoresReceipts;
 
-    public function landing(): View
+    public function landing(Request $request, NbkBakiService $bakiService): View
     {
-        return view('nbk.index');
+        $project = $request->user()->currentProject();
+
+        return view('nbk.index', [
+            'baki' => $project ? $bakiService->compute($project, Carbon::today()) : null,
+        ]);
     }
 
     public function index(Request $request): View

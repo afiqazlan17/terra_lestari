@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Project;
 use App\Services\DailySalesReportService;
+use App\Services\NbkBakiService;
 use App\Services\SalesSummaryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -71,7 +72,7 @@ class DailySessionController extends Controller
             ->with('closed_session_id', $dailySession->id);
     }
 
-    public function report(Request $request, DailySession $dailySession, SalesSummaryService $summaryService): View
+    public function report(Request $request, DailySession $dailySession, SalesSummaryService $summaryService, NbkBakiService $bakiService): View
     {
         abort_unless($dailySession->project_id === $request->user()->currentProject()?->id, 403);
 
@@ -86,6 +87,7 @@ class DailySessionController extends Controller
             'summary' => $summary,
             'cashTally' => $cashTally,
             'qrTally' => $qrTally,
+            'bakiNbk' => $bakiService->compute($dailySession->project, $date),
             'weekTrend' => $this->weekTrendEnding($dailySession->project, $date),
             'categoryBreakdown' => $this->categoryBreakdownFor($dailySession->project, $date),
         ]);

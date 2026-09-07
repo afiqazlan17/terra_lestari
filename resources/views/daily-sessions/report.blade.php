@@ -119,6 +119,31 @@
         footer.doc { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 11px; color: var(--ink-faint); display: flex; justify-content: space-between; }
         p.empty { font-size: 13px; color: var(--ink-faint); }
 
+        /* donut charts (Jualan ikut Kaedah Bayaran / Sumber) */
+        .donut-row { display: flex; align-items: center; gap: 10px; }
+        .donut-mini { position: relative; width: 52px; height: 52px; flex: none; }
+        .donut-mini svg { transform: rotate(-90deg); }
+        .donut-legend { display: flex; flex-direction: column; gap: 4px; font-size: 12px; min-width: 0; flex: 1; }
+        .donut-legend .row { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .donut-legend .swatch { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+        .donut-legend .amt { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; padding-left: 6px; white-space: nowrap; }
+        .donut-legend .pct { color: var(--ink-faint); font-weight: 500; margin-left: 3px; }
+        .donut-total-line {
+            display: flex; justify-content: space-between; align-items: center; margin-top: 6px;
+            padding: 4px 10px; border: 1.5px solid var(--accent); border-radius: 6px;
+        }
+        .donut-total-line .lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
+        .donut-total-line .val { font-size: 13px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+        /* horizontal bar rows (Jualan ikut Kategori / Item Terlaris) */
+        .bar-rows { display: flex; flex-direction: column; gap: 4px; }
+        .bar-row { display: grid; grid-template-columns: 140px 1fr 68px; align-items: center; gap: 8px; font-size: 12.5px; }
+        .bar-row .lbl { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bar-track { height: 9px; border-radius: 3px; background: var(--accent-soft); overflow: hidden; }
+        .bar-track .fill { height: 100%; background: var(--accent); border-radius: 3px; }
+        .bar-row .val { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-muted); white-space: nowrap; }
+        .bar-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; padding-top: 6px; margin-top: 4px; border-top: 2px solid var(--ink); }
+
         @media print {
             body { background: #fff; padding: 0; font-size: 12px; }
             .toolbar, .toolbar-note { display: none; }
@@ -140,6 +165,12 @@
             .pill-row { padding: 3px 10px; }
             .void-note { padding: 5px 12px; font-size: 11px; margin-bottom: 3px; }
             footer.doc { margin-top: 5px; padding-top: 4px; }
+            .donut-row { gap: 8px; }
+            .donut-legend { gap: 3px; font-size: 11px; }
+            .donut-total-line { padding: 3px 8px; margin-top: 4px; }
+            .bar-rows { gap: 3px; }
+            .bar-row { font-size: 11.5px; }
+            .bar-total { padding-top: 4px; margin-top: 2px; }
         }
 
         /* Applied via JS right before html2pdf renders the page, so the
@@ -172,6 +203,12 @@
         body.pdf-mode .void-note { padding: 4px 12px; font-size: 10.5px; margin-bottom: 2px; }
         body.pdf-mode footer.doc { margin-top: 4px; padding-top: 3px; }
         body.pdf-mode svg { max-height: 72px !important; }
+        body.pdf-mode .donut-row { gap: 6px; }
+        body.pdf-mode .donut-legend { gap: 2px; font-size: 10.5px; }
+        body.pdf-mode .donut-total-line { padding: 3px 8px; margin-top: 3px; }
+        body.pdf-mode .bar-rows { gap: 2px; }
+        body.pdf-mode .bar-row { font-size: 11px; }
+        body.pdf-mode .bar-total { padding-top: 3px; margin-top: 2px; }
     </style>
 </head>
 <body>
@@ -299,97 +336,193 @@
             </div>
         </div>
 
-        <section>
-            <h2>Jualan ikut Kaedah Bayaran</h2>
-            <table class="report">
-                <thead><tr><th>Kaedah</th><th class="num">Jumlah</th></tr></thead>
-                <tbody>
-                    <tr><td>Cash</td><td class="num">RM {{ number_format($summary['cashSales'], 2) }}</td></tr>
-                    <tr><td>QR / DuitNow</td><td class="num">RM {{ number_format($summary['qrSales'], 2) }}</td></tr>
-                    @if ($summary['cardSales'] > 0)
-                        <tr><td>Kad</td><td class="num">RM {{ number_format($summary['cardSales'], 2) }}</td></tr>
-                    @endif
-                </tbody>
-                <tfoot><tr><td>Jumlah</td><td class="num">RM {{ number_format($summary['totalSales'], 2) }}</td></tr></tfoot>
-            </table>
-        </section>
+        @php
+            $donutRadius = 21;
+            $donutStrokeWidth = 7;
+            $donutCircumference = 2 * M_PI * $donutRadius;
 
-        <section>
-            <h2>Jualan ikut Sumber</h2>
-            <table class="report">
-                <thead><tr><th>Sumber</th><th class="num">Jumlah</th></tr></thead>
-                <tbody>
-                    <tr><td>Sajian Baginda (SB)</td><td class="num">RM {{ number_format($summary['sbSales'], 2) }}</td></tr>
-                    <tr><td>Fresh From Kelantan (NBK)</td><td class="num">RM {{ number_format($summary['nbkSales'], 2) }}</td></tr>
-                </tbody>
-                <tfoot><tr><td>Jumlah</td><td class="num">RM {{ number_format($summary['totalSales'], 2) }}</td></tr></tfoot>
-            </table>
-        </section>
+            $paymentSlices = [
+                ['label' => 'QR / DuitNow', 'value' => $summary['qrSales'], 'fill' => 'var(--accent)', 'outline' => null],
+                ['label' => 'Cash', 'value' => $summary['cashSales'], 'fill' => 'var(--accent-soft)', 'outline' => 'var(--accent)'],
+            ];
+            if ($summary['cardSales'] > 0) {
+                $paymentSlices[] = ['label' => 'Kad', 'value' => $summary['cardSales'], 'fill' => 'var(--ink-muted)', 'outline' => null];
+            }
+            $cumulative = 0;
+            foreach ($paymentSlices as &$slice) {
+                $pct = $summary['totalSales'] > 0 ? $slice['value'] / $summary['totalSales'] : 0;
+                $slice['dash'] = $pct * $donutCircumference;
+                $slice['offset'] = -$cumulative;
+                $slice['pct'] = round($pct * 100);
+                $cumulative += $slice['dash'];
+            }
+            unset($slice);
+
+            $sourceSlices = [
+                ['label' => 'Sajian Baginda (SB)', 'value' => $summary['sbSales'], 'fill' => 'var(--accent)', 'outline' => null],
+                ['label' => 'Nasi Berlauk Kelantan (NBK)', 'value' => $summary['nbkSales'], 'fill' => 'var(--accent-soft)', 'outline' => 'var(--accent)'],
+            ];
+            $cumulative = 0;
+            foreach ($sourceSlices as &$slice) {
+                $pct = $summary['totalSales'] > 0 ? $slice['value'] / $summary['totalSales'] : 0;
+                $slice['dash'] = $pct * $donutCircumference;
+                $slice['offset'] = -$cumulative;
+                $slice['pct'] = round($pct * 100);
+                $cumulative += $slice['dash'];
+            }
+            unset($slice);
+        @endphp
+
+        <div class="split-cols">
+            <section>
+                <h2>Jualan ikut Kaedah Bayaran</h2>
+                <div class="donut-row">
+                    <div class="donut-mini">
+                        <svg width="52" height="52" viewBox="0 0 52 52">
+                            @foreach ($paymentSlices as $slice)
+                                @if ($slice['value'] > 0)
+                                    @if ($slice['outline'])
+                                        <circle cx="26" cy="26" r="{{ $donutRadius }}" fill="none" stroke="{{ $slice['outline'] }}" stroke-width="{{ $donutStrokeWidth + 1.5 }}"
+                                            stroke-dasharray="{{ $slice['dash'] }} {{ $donutCircumference - $slice['dash'] }}" stroke-dashoffset="{{ $slice['offset'] }}" />
+                                    @endif
+                                    <circle cx="26" cy="26" r="{{ $donutRadius }}" fill="none" stroke="{{ $slice['fill'] }}" stroke-width="{{ $donutStrokeWidth }}"
+                                        stroke-dasharray="{{ $slice['dash'] }} {{ $donutCircumference - $slice['dash'] }}" stroke-dashoffset="{{ $slice['offset'] }}" />
+                                @endif
+                            @endforeach
+                        </svg>
+                    </div>
+                    <div class="donut-legend">
+                        @foreach ($paymentSlices as $slice)
+                            <span class="row">
+                                <span class="swatch" style="background:{{ $slice['fill'] }};{{ $slice['outline'] ? 'border:1px solid '.$slice['outline'] : '' }}"></span>{{ $slice['label'] }}
+                                <span class="amt">RM {{ number_format($slice['value'], 2) }}<span class="pct">({{ $slice['pct'] }}%)</span></span>
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="donut-total-line"><span class="lbl">Jumlah</span><span class="val">RM {{ number_format($summary['totalSales'], 2) }}</span></div>
+            </section>
+
+            <section>
+                <h2>Jualan ikut Sumber</h2>
+                <div class="donut-row">
+                    <div class="donut-mini">
+                        <svg width="52" height="52" viewBox="0 0 52 52">
+                            @foreach ($sourceSlices as $slice)
+                                @if ($slice['value'] > 0)
+                                    @if ($slice['outline'])
+                                        <circle cx="26" cy="26" r="{{ $donutRadius }}" fill="none" stroke="{{ $slice['outline'] }}" stroke-width="{{ $donutStrokeWidth + 1.5 }}"
+                                            stroke-dasharray="{{ $slice['dash'] }} {{ $donutCircumference - $slice['dash'] }}" stroke-dashoffset="{{ $slice['offset'] }}" />
+                                    @endif
+                                    <circle cx="26" cy="26" r="{{ $donutRadius }}" fill="none" stroke="{{ $slice['fill'] }}" stroke-width="{{ $donutStrokeWidth }}"
+                                        stroke-dasharray="{{ $slice['dash'] }} {{ $donutCircumference - $slice['dash'] }}" stroke-dashoffset="{{ $slice['offset'] }}" />
+                                @endif
+                            @endforeach
+                        </svg>
+                    </div>
+                    <div class="donut-legend">
+                        @foreach ($sourceSlices as $slice)
+                            <span class="row">
+                                <span class="swatch" style="background:{{ $slice['fill'] }};{{ $slice['outline'] ? 'border:1px solid '.$slice['outline'] : '' }}"></span>{{ $slice['label'] }}
+                                <span class="amt">RM {{ number_format($slice['value'], 2) }}<span class="pct">({{ $slice['pct'] }}%)</span></span>
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="donut-total-line"><span class="lbl">Jumlah</span><span class="val">RM {{ number_format($summary['totalSales'], 2) }}</span></div>
+            </section>
+        </div>
 
         <section>
             <h2>Jualan ikut Kategori</h2>
             @if ($categoryBreakdown->isEmpty())
                 <p class="empty">Tiada jualan hari ini.</p>
             @else
-                <table class="report">
-                    <thead><tr><th>Kategori</th><th class="num">Jumlah</th></tr></thead>
-                    <tbody>
-                        @foreach ($categoryBreakdown as $row)
-                            <tr><td>{{ $row->category }}</td><td class="num">RM {{ number_format($row->total, 2) }}</td></tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot><tr><td>Jumlah</td><td class="num">RM {{ number_format($categoryBreakdown->sum('total'), 2) }}</td></tr></tfoot>
-                </table>
+                @php $categoryMax = $categoryBreakdown->max('total') ?: 1; @endphp
+                <div class="bar-rows">
+                    @foreach ($categoryBreakdown as $row)
+                        <div class="bar-row">
+                            <span class="lbl">{{ str_replace('(Fresh From Kelantan)', '(NBK)', $row->category) }}</span>
+                            <div class="bar-track"><div class="fill" style="width: {{ round(($row->total / $categoryMax) * 100, 1) }}%"></div></div>
+                            <span class="val">RM {{ number_format($row->total, 2) }}</span>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="bar-total"><span>Jumlah</span><span>RM {{ number_format($categoryBreakdown->sum('total'), 2) }}</span></div>
             @endif
         </section>
 
-        <section>
-            <h2>Tunai</h2>
-            @if ($cashTally)
-                <div class="cash-box">
-                    <div class="cash-row"><span>Tunai Pembukaan</span><span class="amt">RM {{ number_format($cashTally['openingCash'], 2) }}</span></div>
-                    <div class="cash-row"><span>+ Jualan Cash</span><span class="amt">RM {{ number_format($summary['cashSales'], 2) }}</span></div>
-                    <div class="cash-row total"><span>Jangkaan Tunai</span><span class="amt">RM {{ number_format($cashTally['jangkaan'], 2) }}</span></div>
-                    @if ($cashTally['sebenar'] !== null)
-                        <div class="cash-row"><span>Tunai Sebenar</span><span class="amt">RM {{ number_format($cashTally['sebenar'], 2) }}</span></div>
-                        <div class="cash-row variance {{ $cashTally['beza'] == 0 ? 'good' : 'bad' }}">
-                            <span>Beza</span><span class="amt">RM {{ number_format($cashTally['beza'], 2) }}</span>
-                        </div>
-                    @endif
-                </div>
-            @else
-                <p class="empty">Tiada sesi dibuka pada tarikh ini.</p>
-            @endif
-        </section>
+        <div class="split-cols">
+            <section>
+                <h2>Tunai</h2>
+                @if ($cashTally)
+                    <div class="cash-box">
+                        <div class="cash-row"><span>Tunai Pembukaan</span><span class="amt">RM {{ number_format($cashTally['openingCash'], 2) }}</span></div>
+                        <div class="cash-row"><span>+ Jualan Cash</span><span class="amt">RM {{ number_format($summary['cashSales'], 2) }}</span></div>
+                        <div class="cash-row total"><span>Jangkaan Tunai</span><span class="amt">RM {{ number_format($cashTally['jangkaan'], 2) }}</span></div>
+                        @if ($cashTally['sebenar'] !== null)
+                            <div class="cash-row"><span>Tunai Sebenar</span><span class="amt">RM {{ number_format($cashTally['sebenar'], 2) }}</span></div>
+                            <div class="cash-row variance {{ $cashTally['beza'] == 0 ? 'good' : 'bad' }}">
+                                <span>Beza</span><span class="amt">RM {{ number_format($cashTally['beza'], 2) }}</span>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <p class="empty">Tiada sesi dibuka pada tarikh ini.</p>
+                @endif
+            </section>
 
-        <section>
-            <h2>QR / DuitNow</h2>
-            @if ($qrTally)
-                <div class="cash-box">
-                    <div class="cash-row total"><span>Jangkaan (Jualan QR)</span><span class="amt">RM {{ number_format($qrTally['jangkaan'], 2) }}</span></div>
-                    @if ($qrTally['sebenar'] !== null)
-                        <div class="cash-row"><span>QR/DuitNow Sebenar</span><span class="amt">RM {{ number_format($qrTally['sebenar'], 2) }}</span></div>
-                        <div class="cash-row variance {{ $qrTally['beza'] == 0 ? 'good' : 'bad' }}">
-                            <span>Beza</span><span class="amt">RM {{ number_format($qrTally['beza'], 2) }}</span>
-                        </div>
-                    @endif
-                </div>
-            @else
-                <p class="empty">Tiada sesi dibuka pada tarikh ini.</p>
-            @endif
-        </section>
+            <section>
+                <h2>QR / DuitNow</h2>
+                @if ($qrTally)
+                    <div class="cash-box">
+                        <div class="cash-row total"><span>Jangkaan (Jualan QR)</span><span class="amt">RM {{ number_format($qrTally['jangkaan'], 2) }}</span></div>
+                        @if ($qrTally['sebenar'] !== null)
+                            <div class="cash-row"><span>QR/DuitNow Sebenar</span><span class="amt">RM {{ number_format($qrTally['sebenar'], 2) }}</span></div>
+                            <div class="cash-row variance {{ $qrTally['beza'] == 0 ? 'good' : 'bad' }}">
+                                <span>Beza</span><span class="amt">RM {{ number_format($qrTally['beza'], 2) }}</span>
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <p class="empty">Tiada sesi dibuka pada tarikh ini.</p>
+                @endif
+            </section>
+        </div>
+
+        @if ($bakiNbk)
+            <div class="split-cols">
+                <section>
+                    <h2>Baki NBK - Nasi</h2>
+                    <div class="cash-box">
+                        <div class="cash-row"><span>Jumlah Order</span><span class="amt">{{ $bakiNbk['nasi']['ordered'] }} unit</span></div>
+                        <div class="cash-row"><span>Jumlah Terjual</span><span class="amt">{{ $bakiNbk['nasi']['sold'] }} unit</span></div>
+                        <div class="cash-row total"><span>Baki</span><span class="amt">{{ $bakiNbk['nasi']['baki'] }} unit</span></div>
+                    </div>
+                </section>
+                <section>
+                    <h2>Baki NBK - Kuih Muih</h2>
+                    <div class="cash-box">
+                        <div class="cash-row"><span>Jumlah Order</span><span class="amt">{{ $bakiNbk['kuih']['ordered'] }} unit</span></div>
+                        <div class="cash-row"><span>Jumlah Terjual</span><span class="amt">{{ $bakiNbk['kuih']['sold'] }} unit</span></div>
+                        <div class="cash-row total"><span>Baki</span><span class="amt">{{ $bakiNbk['kuih']['baki'] }} unit</span></div>
+                    </div>
+                </section>
+            </div>
+        @endif
 
         <section>
             <h2>Item Terlaris</h2>
             @if ($summary['topItems']->isEmpty())
                 <p class="empty">Tiada jualan hari ini.</p>
             @else
-                <div class="pill-list">
-                    @foreach ($summary['topItems'] as $i => $item)
-                        <div class="pill-row">
-                            <span class="rank">{{ $i + 1 }}</span>
-                            <span class="name">{{ $item->product_name }}</span>
-                            <span class="qty">{{ $item->qty_sold }} unit</span>
+                @php $topItemsMax = $summary['topItems']->max('qty_sold') ?: 1; @endphp
+                <div class="bar-rows">
+                    @foreach ($summary['topItems'] as $item)
+                        <div class="bar-row">
+                            <span class="lbl">{{ $item->product_name }}</span>
+                            <div class="bar-track"><div class="fill" style="width: {{ round(($item->qty_sold / $topItemsMax) * 100, 1) }}%"></div></div>
+                            <span class="val">{{ $item->qty_sold }} unit</span>
                         </div>
                     @endforeach
                 </div>
@@ -440,7 +573,7 @@
                     <polyline points="{{ $trendLine }}" fill="none" stroke="#8a2e28" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
                     @foreach ($trendPoints as $p)
                         <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="2.5" fill="#fffdfa" stroke="#8a2e28" stroke-width="2" />
-                        <text x="{{ $p['x'] }}" y="{{ $svgHeight - 3 }}" text-anchor="middle" fill="#a3958a" style="font-size: 9px;">{{ mb_substr($p['day'], 0, 3) }}</text>
+                        <text x="{{ $p['x'] }}" y="{{ $svgHeight - 3 }}" text-anchor="middle" fill="#a3958a" style="font-size: 9px;">{{ $p['day'] }}</text>
                     @endforeach
                 </svg>
             @endif
