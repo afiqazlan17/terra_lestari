@@ -74,8 +74,8 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
         Route::patch('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
         Route::patch('/expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
-        Route::get('/expenses/pak-nasir', [ExpenseController::class, 'pakNasir'])->name('expenses.pak-nasir');
-        Route::post('/expenses/pak-nasir', [ExpenseController::class, 'storePakNasir'])->name('expenses.pak-nasir.store');
+        Route::get('/expenses/gaji', [ExpenseController::class, 'gaji'])->name('expenses.gaji');
+        Route::post('/expenses/gaji', [ExpenseController::class, 'storeGaji'])->name('expenses.gaji.store');
 
         // Finance
         Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');

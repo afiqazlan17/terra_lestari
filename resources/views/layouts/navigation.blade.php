@@ -33,7 +33,7 @@
                             {{ __('Perbelanjaan') }}
                             <x-slot name="content">
                                 <x-dropdown-link :href="route('expenses.index')">{{ __('Senarai Perbelanjaan') }}</x-dropdown-link>
-                                <x-dropdown-link :href="route('expenses.pak-nasir')">{{ __('Pak Nasir') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('expenses.gaji')">{{ __('Gaji') }}</x-dropdown-link>
                             </x-slot>
                         </x-nav-dropdown>
                         <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
@@ -122,8 +122,8 @@
                 <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
                     {{ __('Perbelanjaan') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('expenses.pak-nasir')" :active="request()->routeIs('expenses.pak-nasir')" class="!ps-8 text-sm">
-                    {{ __('↳ Pak Nasir') }}
+                <x-responsive-nav-link :href="route('expenses.gaji')" :active="request()->routeIs('expenses.gaji')" class="!ps-8 text-sm">
+                    {{ __('↳ Gaji') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                     {{ __('Menu') }}

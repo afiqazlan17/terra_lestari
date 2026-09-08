@@ -19,9 +19,9 @@ class ExpenseController extends Controller
 
     /**
      * Pak Nasir (Sajian Baginda's previous owner, now paid a monthly
-     * retainer plus a daily rate when he comes in to help) is tracked as
-     * regular gaji Perbelanjaan rows - this just filters/labels them for a
-     * dedicated page instead of a separate table.
+     * retainer plus a daily rate when he comes in to help) was the original
+     * reason for this page, kept here as quick-add shortcuts - the page
+     * itself now covers gaji for any staff, not just him.
      */
     public const PAK_NASIR_SUPPLIER = 'Pak Nasir';
 
@@ -29,7 +29,7 @@ class ExpenseController extends Controller
 
     public const PAK_NASIR_DAILY = 50.0;
 
-    public function pakNasir(Request $request): View
+    public function gaji(Request $request): View
     {
         $project = $request->user()->currentProject();
 
@@ -38,7 +38,7 @@ class ExpenseController extends Controller
             : now()->startOfMonth();
 
         $entries = $project->purchases()
-            ->where('supplier_name', self::PAK_NASIR_SUPPLIER)
+            ->where('category', Purchase::CATEGORY_GAJI)
             ->with(['recordedBy', 'voidedBy', 'edits.editedBy'])
             ->orderByDesc('purchase_date')
             ->orderByDesc('id')
@@ -51,17 +51,19 @@ class ExpenseController extends Controller
         $summary = [
             'month' => $month,
             'total' => $monthEntries->sum('amount'),
-            'monthlyPaid' => $monthEntries->contains(fn ($e) => (float) $e->amount === self::PAK_NASIR_MONTHLY),
-            'dailyCount' => $monthEntries->filter(fn ($e) => (float) $e->amount === self::PAK_NASIR_DAILY)->count(),
+            'byStaff' => $monthEntries->groupBy(fn ($e) => $e->supplier_name ?: '(Tiada nama)')
+                ->map(fn ($group) => $group->sum('amount'))
+                ->sortDesc(),
         ];
 
-        return view('expenses.pak-nasir', [
+        return view('expenses.gaji', [
             'entries' => $entries,
             'summary' => $summary,
+            'supplierNames' => Supplier::namesFor($project),
         ]);
     }
 
-    public function storePakNasir(Request $request): RedirectResponse
+    public function storeGaji(Request $request): RedirectResponse
     {
         $project = $request->user()->currentProject();
 
@@ -69,20 +71,21 @@ class ExpenseController extends Controller
             'purchase_date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0'],
             'description' => ['required', 'string', 'max:255'],
+            'supplier_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         $project->purchases()->create([
             'recorded_by' => $request->user()->id,
             'category' => Purchase::CATEGORY_GAJI,
             'purchase_date' => $validated['purchase_date'],
-            'supplier_name' => self::PAK_NASIR_SUPPLIER,
+            'supplier_name' => $validated['supplier_name'] ?? null,
             'description' => $validated['description'],
             'amount' => $validated['amount'],
         ]);
 
-        Supplier::remember($project, self::PAK_NASIR_SUPPLIER);
+        Supplier::remember($project, $validated['supplier_name'] ?? null);
 
-        return redirect()->route('expenses.pak-nasir')->with('success', 'Bayaran Pak Nasir direkodkan.');
+        return redirect()->route('expenses.gaji')->with('success', 'Bayaran gaji direkodkan.');
     }
 
     public function index(Request $request): View
