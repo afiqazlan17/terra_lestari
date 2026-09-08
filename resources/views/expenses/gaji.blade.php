@@ -40,13 +40,13 @@
                 <form method="POST" action="{{ route('expenses.gaji.store') }}" class="space-y-3">
                     @csrf
                     <div class="flex gap-2">
-                        <button type="button" onclick="gajiPreset({{ \App\Http\Controllers\ExpenseController::PAK_NASIR_MONTHLY }}, 'Bayaran Bulanan Pak Nasir', '{{ \App\Http\Controllers\ExpenseController::PAK_NASIR_SUPPLIER }}')"
+                        <button type="button" onclick="gajiPreset({{ \App\Http\Controllers\ExpenseController::PAK_NASIR_MONTHLY }}, 'Bayaran Bulanan')"
                             class="text-xs border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold px-3 py-1.5 rounded-lg">
-                            Pak Nasir - RM{{ number_format(\App\Http\Controllers\ExpenseController::PAK_NASIR_MONTHLY, 0) }} (Bulanan)
+                            RM{{ number_format(\App\Http\Controllers\ExpenseController::PAK_NASIR_MONTHLY, 0) }} (Bulanan)
                         </button>
-                        <button type="button" onclick="gajiPreset({{ \App\Http\Controllers\ExpenseController::PAK_NASIR_DAILY }}, 'Bayaran Harian Pak Nasir', '{{ \App\Http\Controllers\ExpenseController::PAK_NASIR_SUPPLIER }}')"
+                        <button type="button" onclick="gajiPreset({{ \App\Http\Controllers\ExpenseController::PAK_NASIR_DAILY }}, 'Bayaran Harian')"
                             class="text-xs border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold px-3 py-1.5 rounded-lg">
-                            Pak Nasir - RM{{ number_format(\App\Http\Controllers\ExpenseController::PAK_NASIR_DAILY, 0) }} (Harian)
+                            RM{{ number_format(\App\Http\Controllers\ExpenseController::PAK_NASIR_DAILY, 0) }} (Harian)
                         </button>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -56,8 +56,8 @@
                         </div>
                         <div>
                             <x-input-label for="gaji-staff" value="Nama Staff" />
-                            <x-supplier-input id="gaji-staff" name="supplier_name" class="mt-1"
-                                :value="old('supplier_name')" :suppliers="$supplierNames" />
+                            <input id="gaji-staff" name="supplier_name" type="text" list="gaji-staff-list" autocomplete="off"
+                                value="{{ old('supplier_name') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                         </div>
                         <div>
                             <x-input-label for="gaji-amount" value="Jumlah (RM)" />
@@ -72,6 +72,12 @@
                     <x-primary-button type="submit">Rekod Bayaran</x-primary-button>
                 </form>
             </div>
+
+            <datalist id="gaji-staff-list">
+                @foreach ($staffNames as $name)
+                    <option value="{{ $name }}">
+                @endforeach
+            </datalist>
 
             <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                 @if ($entries->isEmpty())
@@ -135,8 +141,8 @@
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Nama Staff</label>
-                                                        <x-supplier-input id="gaji-staff-{{ $entry->id }}" name="supplier_name"
-                                                            :value="$entry->supplier_name" :suppliers="$supplierNames" class="text-sm" />
+                                                        <input type="text" name="supplier_name" list="gaji-staff-list" autocomplete="off"
+                                                            value="{{ $entry->supplier_name }}" class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                     </div>
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Keterangan</label>
@@ -163,14 +169,11 @@
     </div>
 
     <script>
-        function gajiPreset(amount, description, staffName) {
+        function gajiPreset(amount, description) {
             const amountInput = document.getElementById('gaji-amount');
             amountInput.value = amount.toFixed(2);
             amountInput.dispatchEvent(new Event('input', { bubbles: true }));
             document.getElementById('gaji-description').value = description;
-            const staffInput = document.getElementById('gaji-staff');
-            staffInput.value = staffName;
-            staffInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
         function submitVoidForm(form) {

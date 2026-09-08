@@ -29,6 +29,13 @@ class ExpenseController extends Controller
 
     public const PAK_NASIR_DAILY = 50.0;
 
+    /**
+     * Seed names for the staff picker, so a new hire shows up as an option
+     * even before their first payment - anyone who's actually been paid
+     * gaji before is added to this list dynamically in gaji() below.
+     */
+    public const KNOWN_STAFF = ['Pak Nasir', 'Neng'];
+
     public function gaji(Request $request): View
     {
         $project = $request->user()->currentProject();
@@ -37,8 +44,12 @@ class ExpenseController extends Controller
             ? Carbon::parse($request->query('month').'-01')
             : now()->startOfMonth();
 
+        // Pak Nasir has older entries filed under other categories (e.g.
+        // sewa) from before this page existed - surface those here too,
+        // on top of every gaji-category entry for any staff.
         $entries = $project->purchases()
-            ->where('category', Purchase::CATEGORY_GAJI)
+            ->where(fn ($q) => $q->where('category', Purchase::CATEGORY_GAJI)
+                ->orWhere('supplier_name', self::PAK_NASIR_SUPPLIER))
             ->with(['recordedBy', 'voidedBy', 'edits.editedBy'])
             ->orderByDesc('purchase_date')
             ->orderByDesc('id')
@@ -56,10 +67,17 @@ class ExpenseController extends Controller
                 ->sortDesc(),
         ];
 
+        $staffNames = collect(self::KNOWN_STAFF)
+            ->merge($entries->pluck('supplier_name'))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
         return view('expenses.gaji', [
             'entries' => $entries,
             'summary' => $summary,
-            'supplierNames' => Supplier::namesFor($project),
+            'staffNames' => $staffNames,
         ]);
     }
 
@@ -82,8 +100,6 @@ class ExpenseController extends Controller
             'description' => $validated['description'],
             'amount' => $validated['amount'],
         ]);
-
-        Supplier::remember($project, $validated['supplier_name'] ?? null);
 
         return redirect()->route('expenses.gaji')->with('success', 'Bayaran gaji direkodkan.');
     }
