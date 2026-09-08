@@ -35,6 +35,10 @@ class SalesAdjustmentService
             throw new RuntimeException("Tiada sesi harian dijumpai untuk {$date->toDateString()}.");
         }
 
+        if ($session->status !== 'closed') {
+            throw new RuntimeException("Sesi untuk {$date->toDateString()} masih belum ditutup - key-in jualan biasa terus dalam POS, bukan guna pelarasan.");
+        }
+
         $adjustmentLabel = "Pelarasan Jualan ({$reason})";
         $cashierId = $recordedByUserId
             ?? $session->closed_by

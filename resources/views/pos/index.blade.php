@@ -317,6 +317,37 @@
                             {{-- Step 3: payment complete --}}
                             <template x-if="checkoutStep === 'done'">
                                 <div class="font-sans">
+                                    <div class="font-mono" x-show="lastReceiptData">
+                                        <p class="text-center text-sm text-gray-400" x-text="'Order #' + (lastReceiptData?.orderNumber || '')"></p>
+                                        <div class="flex items-center justify-center gap-2 mt-1 mb-3">
+                                            <span class="w-2 h-2 rounded-full bg-green-600"></span>
+                                            <span class="font-sans text-green-700 font-bold text-base">BAYARAN SELESAI</span>
+                                        </div>
+                                        <div class="border-t border-dashed border-gray-300 my-3"></div>
+                                        <div class="flex justify-between items-center text-base text-gray-600">
+                                            <span>Kaedah Bayaran</span>
+                                            <span class="font-sans text-xs font-bold uppercase bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full" x-text="lastReceiptData?.paymentLabel"></span>
+                                        </div>
+                                        <div class="flex justify-between text-xl font-extrabold text-gray-900 mt-1.5">
+                                            <span>Jumlah</span>
+                                            <span>RM <span x-text="lastReceiptData?.total"></span></span>
+                                        </div>
+                                        <template x-if="lastReceiptData?.cashReceived != null">
+                                            <div>
+                                                <div class="flex justify-between text-base text-gray-600 mt-3">
+                                                    <span>Tunai Diterima</span>
+                                                    <span class="font-medium text-gray-800">RM <span x-text="lastReceiptData.cashReceived.toFixed(2)"></span></span>
+                                                </div>
+                                                <div class="border-t border-dashed border-gray-300 my-2"></div>
+                                                <div class="flex justify-between text-2xl font-extrabold text-green-700">
+                                                    <span>Baki</span>
+                                                    <span>RM <span x-text="lastReceiptData.cashChange.toFixed(2)"></span></span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <div class="border-t border-dashed border-gray-300 my-3"></div>
+                                    </div>
+
                                     <div class="grid grid-cols-2 gap-3">
                                         <button type="button" @click="printReceipt()" :disabled="printing"
                                             class="border border-amber-300 text-amber-700 font-semibold py-3 rounded-lg hover:bg-amber-50 disabled:opacity-50">
