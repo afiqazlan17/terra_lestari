@@ -205,7 +205,7 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="bg-white shadow-sm sm:rounded-lg p-6">
+                <div class="bg-white shadow-sm sm:rounded-lg p-6" x-data="{ showAllItems: false }">
                     <p class="text-sm font-medium text-gray-700 mb-3">Item Terlaris</p>
                     @if ($rangeSummary['topItems']->isEmpty())
                         <p class="text-sm text-gray-400">Tiada jualan lagi.</p>
@@ -217,6 +217,31 @@
                                     <span class="text-gray-500">{{ $item->qty_sold }} unit</span>
                                 </div>
                             @endforeach
+                        </div>
+                        @if ($rangeSummary['allItems']->count() > $rangeSummary['topItems']->count())
+                            <div class="text-right mt-2">
+                                <button type="button" @click="showAllItems = true" class="text-sm text-amber-600 hover:underline">
+                                    Lihat Semua
+                                </button>
+                            </div>
+                        @endif
+
+                        <div x-show="showAllItems" x-cloak @keydown.escape.window="showAllItems = false"
+                            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="showAllItems = false">
+                            <div class="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col" @click.stop>
+                                <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+                                    <p class="font-semibold text-gray-800">Semua Item Terlaris</p>
+                                    <button type="button" @click="showAllItems = false" class="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">&times;</button>
+                                </div>
+                                <div class="overflow-y-auto p-5 space-y-1.5">
+                                    @foreach ($rangeSummary['allItems'] as $item)
+                                        <div class="flex items-center justify-between text-sm bg-amber-50 rounded-md px-3 py-1.5">
+                                            <span class="text-gray-800">{{ $item->product_name }}</span>
+                                            <span class="text-gray-500">{{ $item->qty_sold }} unit</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>

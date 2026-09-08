@@ -41,12 +41,13 @@ class SalesSummaryService
             ->whereIn('product_id', $nbkProductIds)
             ->sum('subtotal');
 
-        $topItems = OrderItem::whereIn('order_id', $orderIds)
+        $allItems = OrderItem::whereIn('order_id', $orderIds)
             ->selectRaw('product_name, SUM(qty) as qty_sold')
             ->groupBy('product_name')
             ->orderByDesc('qty_sold')
-            ->limit(5)
             ->get();
+
+        $topItems = $allItems->take(5);
 
         $voidOrders = Order::where('project_id', $project->id)
             ->where('status', Order::STATUS_VOIDED)
@@ -82,6 +83,7 @@ class SalesSummaryService
             'sbSales' => $totalSales - $nbkSales,
             'nbkSales' => $nbkSales,
             'topItems' => $topItems,
+            'allItems' => $allItems,
             'voidOrders' => $voidOrders,
             'estimatedMargin' => $estimatedMargin,
         ];
