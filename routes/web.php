@@ -15,6 +15,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReceiptExtractionController;
+use App\Http\Controllers\SalesAdjustmentController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +74,8 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
         Route::patch('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
         Route::patch('/expenses/{expense}/void', [ExpenseController::class, 'void'])->name('expenses.void');
+        Route::get('/expenses/pak-nasir', [ExpenseController::class, 'pakNasir'])->name('expenses.pak-nasir');
+        Route::post('/expenses/pak-nasir', [ExpenseController::class, 'storePakNasir'])->name('expenses.pak-nasir.store');
 
         // Finance
         Route::get('/finance', [FinanceController::class, 'index'])->name('finance.index');
@@ -80,6 +83,9 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::get('/finance/sales/export', [FinanceController::class, 'exportSales'])->name('finance.sales.export');
         Route::get('/finance/cashbook', [FinanceController::class, 'cashbook'])->name('finance.cashbook');
         Route::get('/finance/cashbook/export', [FinanceController::class, 'exportCashbook'])->name('finance.cashbook.export');
+
+        Route::get('/jualan/pelarasan', [SalesAdjustmentController::class, 'create'])->name('sales-adjustments.create');
+        Route::post('/jualan/pelarasan', [SalesAdjustmentController::class, 'store'])->name('sales-adjustments.store');
 
         // Menu / products
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');

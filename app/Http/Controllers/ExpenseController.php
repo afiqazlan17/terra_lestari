@@ -17,6 +17,74 @@ class ExpenseController extends Controller
 {
     use StoresReceipts, SyncsDriveBackupFolder;
 
+    /**
+     * Pak Nasir (Sajian Baginda's previous owner, now paid a monthly
+     * retainer plus a daily rate when he comes in to help) is tracked as
+     * regular gaji Perbelanjaan rows - this just filters/labels them for a
+     * dedicated page instead of a separate table.
+     */
+    public const PAK_NASIR_SUPPLIER = 'Pak Nasir';
+
+    public const PAK_NASIR_MONTHLY = 1000.0;
+
+    public const PAK_NASIR_DAILY = 50.0;
+
+    public function pakNasir(Request $request): View
+    {
+        $project = $request->user()->currentProject();
+
+        $month = $request->query('month')
+            ? Carbon::parse($request->query('month').'-01')
+            : now()->startOfMonth();
+
+        $entries = $project->purchases()
+            ->where('supplier_name', self::PAK_NASIR_SUPPLIER)
+            ->with(['recordedBy', 'voidedBy', 'edits.editedBy'])
+            ->orderByDesc('purchase_date')
+            ->orderByDesc('id')
+            ->get();
+
+        $monthEntries = $entries->filter(
+            fn ($e) => $e->purchase_date->isSameMonth($month) && ! $e->isVoided()
+        );
+
+        $summary = [
+            'month' => $month,
+            'total' => $monthEntries->sum('amount'),
+            'monthlyPaid' => $monthEntries->contains(fn ($e) => (float) $e->amount === self::PAK_NASIR_MONTHLY),
+            'dailyCount' => $monthEntries->filter(fn ($e) => (float) $e->amount === self::PAK_NASIR_DAILY)->count(),
+        ];
+
+        return view('expenses.pak-nasir', [
+            'entries' => $entries,
+            'summary' => $summary,
+        ]);
+    }
+
+    public function storePakNasir(Request $request): RedirectResponse
+    {
+        $project = $request->user()->currentProject();
+
+        $validated = $request->validate([
+            'purchase_date' => ['required', 'date'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'description' => ['required', 'string', 'max:255'],
+        ]);
+
+        $project->purchases()->create([
+            'recorded_by' => $request->user()->id,
+            'category' => Purchase::CATEGORY_GAJI,
+            'purchase_date' => $validated['purchase_date'],
+            'supplier_name' => self::PAK_NASIR_SUPPLIER,
+            'description' => $validated['description'],
+            'amount' => $validated['amount'],
+        ]);
+
+        Supplier::remember($project, self::PAK_NASIR_SUPPLIER);
+
+        return redirect()->route('expenses.pak-nasir')->with('success', 'Bayaran Pak Nasir direkodkan.');
+    }
+
     public function index(Request $request): View
     {
         $project = $request->user()->currentProject();

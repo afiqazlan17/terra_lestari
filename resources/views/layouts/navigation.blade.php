@@ -22,15 +22,20 @@
                         <x-nav-link :href="route('finance.sales')" :active="request()->routeIs('finance.sales')">
                             {{ __('Jualan') }}
                         </x-nav-link>
-                        <x-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
+                        <x-nav-dropdown :active="request()->routeIs('purchases.*') || request()->routeIs('nbk.*')">
                             {{ __('Belian') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('nbk.index')" :active="request()->routeIs('nbk.*')">
-                            {{ __('NBK') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
+                            <x-slot name="content">
+                                <x-dropdown-link :href="route('purchases.index')">{{ __('Senarai Belian') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('nbk.index')">{{ __('NBK') }}</x-dropdown-link>
+                            </x-slot>
+                        </x-nav-dropdown>
+                        <x-nav-dropdown :active="request()->routeIs('expenses.*')">
                             {{ __('Perbelanjaan') }}
-                        </x-nav-link>
+                            <x-slot name="content">
+                                <x-dropdown-link :href="route('expenses.index')">{{ __('Senarai Perbelanjaan') }}</x-dropdown-link>
+                                <x-dropdown-link :href="route('expenses.pak-nasir')">{{ __('Pak Nasir') }}</x-dropdown-link>
+                            </x-slot>
+                        </x-nav-dropdown>
                         <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                             {{ __('Menu') }}
                         </x-nav-link>
@@ -111,11 +116,14 @@
                 <x-responsive-nav-link :href="route('purchases.index')" :active="request()->routeIs('purchases.*')">
                     {{ __('Belian') }}
                 </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('nbk.index')" :active="request()->routeIs('nbk.*')">
-                    {{ __('NBK') }}
+                <x-responsive-nav-link :href="route('nbk.index')" :active="request()->routeIs('nbk.*')" class="!ps-8 text-sm">
+                    {{ __('↳ NBK') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
                     {{ __('Perbelanjaan') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('expenses.pak-nasir')" :active="request()->routeIs('expenses.pak-nasir')" class="!ps-8 text-sm">
+                    {{ __('↳ Pak Nasir') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                     {{ __('Menu') }}

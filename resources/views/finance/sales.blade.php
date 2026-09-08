@@ -1,6 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Jualan') }}</h2>
+        <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Jualan') }}</h2>
+            @if (auth()->user()->isSuperuser())
+                <a href="{{ route('sales-adjustments.create') }}" class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
+                    Pelarasan Jualan
+                </a>
+            @endif
+        </div>
     </x-slot>
 
     <style>
