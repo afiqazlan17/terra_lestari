@@ -142,22 +142,36 @@
                         $peakHour = $peakHours->sortByDesc('total')->first();
                         $fmtHour = fn ($h) => str_pad($h, 2, '0', STR_PAD_LEFT).':00';
                     @endphp
-                    <p class="text-xs text-gray-400 mb-3">
-                        Puncak: <span class="font-medium text-gray-600">{{ $fmtHour($peakHour['hour']) }}&ndash;{{ $fmtHour(($peakHour['hour'] + 1) % 24) }}</span>
-                        &middot; RM {{ number_format($peakHour['total'], 2) }}
-                    </p>
-                    <div class="flex gap-1">
-                        @foreach ($peakHours as $h)
-                            @php
-                                $intensity = $maxHourTotal > 0 ? $h['total'] / $maxHourTotal : 0;
-                                $stepIndex = $intensity > 0 ? min(5, (int) ceil($intensity * 6) - 1) : null;
-                            @endphp
-                            <div class="flex-1 flex flex-col items-center gap-1 min-w-0">
-                                <div class="w-full h-10 rounded {{ $stepIndex !== null ? $amberSteps[$stepIndex] : 'bg-gray-100' }}"
-                                    title="{{ $fmtHour($h['hour']) }} - RM {{ number_format($h['total'], 2) }} ({{ $h['count'] }} order)"></div>
-                                <span class="text-[10px] text-gray-400">{{ $h['hour'] }}</span>
-                            </div>
-                        @endforeach
+                    <div x-data="{
+                        selectedHour: null,
+                        hours: @js($peakHours->map(fn ($h) => ['hour' => $h['hour'], 'total' => $h['total'], 'count' => $h['count']])->values()),
+                        label() {
+                            const h = this.hours.find(x => x.hour === (this.selectedHour ?? {{ $peakHour['hour'] }}));
+                            if (! h) return '';
+                            const from = String(h.hour).padStart(2, '0') + ':00';
+                            const to = String((h.hour + 1) % 24).padStart(2, '0') + ':00';
+                            const prefix = this.selectedHour === null ? 'Puncak: ' : '';
+                            return prefix + from + '–' + to + ' · RM ' + h.total.toFixed(2) + ' · ' + h.count + ' order';
+                        },
+                    }">
+                        <p class="text-xs text-gray-400 mb-3">
+                            <span class="font-medium text-gray-600" x-text="label()"></span>
+                        </p>
+                        <div class="flex gap-1">
+                            @foreach ($peakHours as $h)
+                                @php
+                                    $intensity = $maxHourTotal > 0 ? $h['total'] / $maxHourTotal : 0;
+                                    $stepIndex = $intensity > 0 ? min(5, (int) ceil($intensity * 6) - 1) : null;
+                                @endphp
+                                <button type="button" @click="selectedHour = selectedHour === {{ $h['hour'] }} ? null : {{ $h['hour'] }}"
+                                    class="flex-1 flex flex-col items-center gap-1 min-w-0">
+                                    <div class="w-full h-10 rounded cursor-pointer transition {{ $stepIndex !== null ? $amberSteps[$stepIndex] : 'bg-gray-100' }}"
+                                        :class="selectedHour === {{ $h['hour'] }} ? 'ring-2 ring-offset-1 ring-amber-600' : ''"
+                                        title="{{ $fmtHour($h['hour']) }} - RM {{ number_format($h['total'], 2) }} ({{ $h['count'] }} order)"></div>
+                                    <span class="text-[10px] text-gray-400">{{ $h['hour'] }}</span>
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
                     <div class="flex items-center gap-2 mt-3 text-xs text-gray-400">
                         <span>Kurang</span>
