@@ -6,8 +6,10 @@ use App\Models\DailySession;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Services\SalesSummaryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -40,6 +42,42 @@ class PosController extends Controller
             'session' => $session,
             'categories' => $categories,
             'todaysOrders' => $todaysOrders,
+        ]);
+    }
+
+    /**
+     * Live snapshot of cash/QR expected in the till right now, for staff to
+     * spot-check mid-day without waiting for Tutup Hari - "sebenar"/"beza"
+     * stay null here since the session isn't closed yet.
+     */
+    public function tallyCheck(Request $request, SalesSummaryService $summaryService): JsonResponse
+    {
+        $project = $request->user()->currentProject();
+
+        abort_if(! $project, 404, 'Tiada projek/outlet dijumpai.');
+
+        $today = Carbon::today();
+
+        $session = DailySession::where('project_id', $project->id)
+            ->where('status', 'open')
+            ->latest('opened_at')
+            ->first();
+
+        if (! $session) {
+            return response()->json(['error' => 'Tiada sesi dibuka hari ini.'], 422);
+        }
+
+        $summary = $summaryService->summaryFor($project, $today, $today);
+        $cashTally = $summaryService->cashTallyFor($project, $today, $summary['cashSales']);
+        $qrTally = $summaryService->qrTallyFor($project, $today, $summary['qrSales']);
+
+        return response()->json([
+            'checkedAt' => now()->format('H:i'),
+            'openingCash' => $cashTally['openingCash'] ?? 0,
+            'cashSales' => $summary['cashSales'],
+            'jangkaanTunai' => $cashTally['jangkaan'] ?? 0,
+            'qrSales' => $summary['qrSales'],
+            'jangkaanQr' => $qrTally['jangkaan'] ?? 0,
         ]);
     }
 

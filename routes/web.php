@@ -49,6 +49,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos', [PosController::class, 'store'])->name('pos.store');
     Route::get('/pos/ping', [PosController::class, 'ping'])->name('pos.ping');
+    Route::get('/pos/tally-check', [PosController::class, 'tallyCheck'])->name('pos.tally-check');
     Route::get('/orders/{order}/receipt', [OrderReceiptController::class, 'show'])->name('orders.receipt');
     Route::post('/orders/{order}/void', [PosController::class, 'void'])->name('orders.void');
 

@@ -4,10 +4,46 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 POS
             </h2>
-            <div x-data class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
-                :class="$store.connectivity.online ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                <span class="w-2 h-2 rounded-full" :class="$store.connectivity.online ? 'bg-green-500' : 'bg-red-500'"></span>
-                <span x-text="$store.connectivity.online ? 'Online' : 'Offline'"></span>
+            <div class="flex items-center gap-2">
+                @if ($session)
+                    <div x-data="tallyCheck()">
+                        <button type="button" @click="check()" class="text-xs font-medium px-3 py-1.5 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50">
+                            <span x-text="loading ? 'Menyemak...' : 'Semak Tunai/QR'"></span>
+                        </button>
+
+                        <div x-show="open" x-cloak class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="open = false">
+                            <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-5 font-sans" @click.stop>
+                                <div class="flex items-center justify-between mb-3">
+                                    <p class="font-semibold text-gray-800">Tunai &amp; QR Sekarang</p>
+                                    <button type="button" @click="open = false" class="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">&times;</button>
+                                </div>
+                                <template x-if="error">
+                                    <p class="text-sm text-red-600" x-text="error"></p>
+                                </template>
+                                <template x-if="data">
+                                    <div class="space-y-3 text-sm">
+                                        <div>
+                                            <p class="text-xs text-gray-400 uppercase mb-1">Tunai</p>
+                                            <div class="flex justify-between text-gray-600"><span>Tunai Pembukaan</span><span x-text="'RM ' + data.openingCash.toFixed(2)"></span></div>
+                                            <div class="flex justify-between text-gray-600"><span>+ Jualan Cash</span><span x-text="'RM ' + data.cashSales.toFixed(2)"></span></div>
+                                            <div class="flex justify-between font-semibold text-gray-900 border-t border-gray-100 pt-1 mt-1"><span>Jangkaan Tunai</span><span x-text="'RM ' + data.jangkaanTunai.toFixed(2)"></span></div>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-400 uppercase mb-1">QR / DuitNow</p>
+                                            <div class="flex justify-between font-semibold text-gray-900"><span>Jangkaan QR</span><span x-text="'RM ' + data.jangkaanQr.toFixed(2)"></span></div>
+                                        </div>
+                                        <p class="text-xs text-gray-400 pt-1" x-text="'Dikemaskini: ' + data.checkedAt"></p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+                <div x-data class="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+                    :class="$store.connectivity.online ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                    <span class="w-2 h-2 rounded-full" :class="$store.connectivity.online ? 'bg-green-500' : 'bg-red-500'"></span>
+                    <span x-text="$store.connectivity.online ? 'Online' : 'Offline'"></span>
+                </div>
             </div>
         </div>
     </x-slot>
@@ -451,6 +487,34 @@
         const PAPER_58MM = {{ $project->receipt_paper_width === '58mm' ? 'true' : 'false' }};
         const ORDERS_BASE_URL = '{{ url('/orders') }}';
         const LOGO_URL = '{{ asset('images/logo.png') }}';
+
+        function tallyCheck() {
+            return {
+                open: false,
+                loading: false,
+                data: null,
+                error: null,
+                async check() {
+                    this.open = true;
+                    this.loading = true;
+                    this.error = null;
+                    try {
+                        const res = await fetch('{{ route('pos.tally-check') }}', { headers: { 'Accept': 'application/json' } });
+                        const json = await res.json();
+                        if (! res.ok) {
+                            this.error = json.error || 'Gagal semak.';
+                            this.data = null;
+                        } else {
+                            this.data = json;
+                        }
+                    } catch (e) {
+                        this.error = 'Gagal semak. Cuba lagi.';
+                        this.data = null;
+                    }
+                    this.loading = false;
+                },
+            };
+        }
 
         // navigator.bluetooth.requestDevice() (inside SBPrinter.connect()) only
         // resolves when the OS device picker is dismissed - if that picker
