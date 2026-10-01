@@ -7,4 +7,8 @@
         class="pb-3 border-b-2 {{ request()->routeIs('finance.cashbook') ? 'border-amber-500 text-amber-600 font-medium' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
         Cash Book
     </a>
+    <a href="{{ route('reports.performance', request()->only('from', 'to')) }}" target="_blank"
+        class="pb-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+        Laporan Prestasi &#8599;
+    </a>
 </div>
