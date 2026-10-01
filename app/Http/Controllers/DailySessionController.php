@@ -13,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DailySessionController extends Controller
 {
@@ -161,26 +162,28 @@ class DailySessionController extends Controller
     }
 
     /**
-     * Form to retroactively fill in closing cash/QR for each day that got
-     * swallowed by a forgotten Tutup Hari - one row per missing calendar
-     * date, from the stale session's open date through yesterday.
+     * Form to retroactively fill in Tutup Hari figures for any past date
+     * that has no closed session - whether Buka Hari was never pressed that
+     * day, or it was opened and never closed. Every row is optional, since
+     * some of those dates are days the shop was genuinely shut.
      */
-    public function backfillForm(Request $request): View|RedirectResponse
+    public function backfillForm(Request $request, SalesSummaryService $summaryService): View
     {
         $project = $request->user()->currentProject();
 
         abort_if(! $project, 404, 'Tiada projek/outlet dijumpai.');
 
-        $staleSession = $this->staleOpenSessionFor($project);
+        $rows = collect($this->backfillCandidatesFor($project))->map(function ($item) use ($project, $summaryService) {
+            $summary = $summaryService->summaryFor($project, $item['date'], $item['date']);
 
-        if (! $staleSession) {
-            return redirect()->route('dashboard')->with('error', 'Tiada sesi lama yang tertunggak untuk diisi.');
-        }
+            return $item + [
+                'cashSales' => $summary['cashSales'],
+                'qrSales' => $summary['qrSales'],
+                'priorClosingCash' => $this->closingCashBefore($project, $item['date']),
+            ];
+        });
 
-        return view('daily-sessions.backfill', [
-            'staleSession' => $staleSession,
-            'missingDates' => $this->missingDatesFor($staleSession),
-        ]);
+        return view('daily-sessions.backfill', ['rows' => $rows]);
     }
 
     public function backfillStore(Request $request): RedirectResponse
@@ -189,62 +192,64 @@ class DailySessionController extends Controller
 
         abort_if(! $project, 404, 'Tiada projek/outlet dijumpai.');
 
-        $staleSession = $this->staleOpenSessionFor($project);
-
-        abort_if(! $staleSession, 404, 'Tiada sesi lama yang tertunggak untuk diisi.');
-
-        // Re-derive the missing dates from the stale session itself rather
-        // than trusting whatever date keys the client submitted, so a
-        // tampered request can't create backdated sessions for arbitrary
-        // dates.
-        $missingDates = $this->missingDatesFor($staleSession);
-
         $validated = $request->validate([
             'entries' => ['required', 'array'],
-            'entries.*.closing_cash' => ['required', 'numeric', 'min:0'],
-            'entries.*.closing_qr' => ['required', 'numeric', 'min:0'],
+            'entries.*.opening_cash' => ['nullable', 'numeric', 'min:0'],
+            'entries.*.closing_cash' => ['nullable', 'numeric', 'min:0', 'required_with:entries.*.closing_qr'],
+            'entries.*.closing_qr' => ['nullable', 'numeric', 'min:0', 'required_with:entries.*.closing_cash'],
+        ], [
+            'entries.*.closing_cash.required_with' => 'Isi Tunai Akhir sekali untuk hari yang ada QR diisi.',
+            'entries.*.closing_qr.required_with' => 'Isi QR sekali untuk hari yang ada Tunai Akhir diisi.',
         ]);
 
-        foreach ($missingDates as $date) {
-            abort_unless(isset($validated['entries'][$date->toDateString()]), 422, 'Sila isi semua hari yang tertunggak.');
-        }
-
         $note = '[Diisi retroaktif oleh '.$request->user()->name.' pada '.now()->translatedFormat('d F Y, H:i').']';
-        $openingCash = (float) $staleSession->opening_cash;
+        $saved = 0;
 
-        foreach ($missingDates as $index => $date) {
-            $entry = $validated['entries'][$date->toDateString()];
+        DB::transaction(function () use ($project, $validated, $request, $note, &$saved) {
+            // Re-derived server-side (not from the submitted keys) so a
+            // tampered request can't create sessions for arbitrary dates.
+            foreach ($this->backfillCandidatesFor($project) as $item) {
+                $entry = $validated['entries'][$item['date']->toDateString()] ?? null;
 
-            if ($index === 0) {
-                $staleSession->update([
+                if (! $entry || ! isset($entry['closing_cash'], $entry['closing_qr'])) {
+                    continue;
+                }
+
+                $closing = [
                     'closed_by' => $request->user()->id,
-                    'closed_at' => $date->copy()->endOfDay(),
+                    'closed_at' => $item['date']->copy()->endOfDay(),
                     'closing_cash' => $entry['closing_cash'],
                     'closing_qr' => $entry['closing_qr'],
-                    'notes' => trim(($staleSession->notes ? $staleSession->notes.' ' : '').$note),
                     'status' => 'closed',
-                ]);
-            } else {
-                DailySession::create([
-                    'project_id' => $project->id,
-                    'opened_by' => $request->user()->id,
-                    'opened_at' => $date->copy()->startOfDay(),
-                    'opening_cash' => $openingCash,
-                    'closed_by' => $request->user()->id,
-                    'closed_at' => $date->copy()->endOfDay(),
-                    'closing_cash' => $entry['closing_cash'],
-                    'closing_qr' => $entry['closing_qr'],
-                    'notes' => $note,
-                    'status' => 'closed',
-                ]);
+                ];
+
+                if ($item['openSession']) {
+                    $item['openSession']->update($closing + [
+                        'notes' => trim(($item['openSession']->notes ? $item['openSession']->notes.' ' : '').$note),
+                    ]);
+                } else {
+                    // Blank opening cash carries over the cash the previous
+                    // closed day ended with - which includes rows saved
+                    // earlier in this same loop, since they're in the DB now.
+                    DailySession::create($closing + [
+                        'project_id' => $project->id,
+                        'opened_by' => $request->user()->id,
+                        'opened_at' => $item['date']->copy()->startOfDay(),
+                        'opening_cash' => $entry['opening_cash'] ?? $this->closingCashBefore($project, $item['date']) ?? 0,
+                        'notes' => $note,
+                    ]);
+                }
+
+                $saved++;
             }
+        });
 
-            // Next day's float opens with whatever cash this day closed with.
-            $openingCash = (float) $entry['closing_cash'];
+        if ($saved === 0) {
+            return back()->withInput()->with('error', 'Tiada hari diisi. Isi Tunai Akhir dan QR untuk sekurang-kurangnya satu hari.');
         }
 
         return redirect()->route('daily-session.reports.index')
-            ->with('success', 'Semua hari tertunggak telah diisi. Hari ini kini boleh dibuka seperti biasa.');
+            ->with('success', "{$saved} hari berjaya diisi.");
     }
 
     private function staleOpenSessionFor(Project $project): ?DailySession
@@ -256,17 +261,51 @@ class DailySessionController extends Controller
             ->first();
     }
 
-    /** @return array<int, Carbon> Chronological list of calendar dates from the stale session's open date through yesterday. */
-    private function missingDatesFor(DailySession $staleSession): array
+    /**
+     * Past dates (within the last 60 days, never before the first-ever
+     * session) with no closed session, oldest first. 'openSession' is set
+     * when Buka Hari was pressed that day but Tutup Hari never was.
+     *
+     * @return array<int, array{date: Carbon, openSession: ?DailySession}>
+     */
+    private function backfillCandidatesFor(Project $project): array
     {
-        $start = $staleSession->opened_at->copy()->startOfDay();
-        $end = now()->subDay()->startOfDay();
+        $sessions = DailySession::where('project_id', $project->id)->get();
 
-        $dates = [];
-        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-            $dates[] = $date->copy();
+        if ($sessions->isEmpty()) {
+            return [];
         }
 
-        return $dates;
+        $closedDates = $sessions->where('status', 'closed')
+            ->map(fn ($s) => $s->opened_at->toDateString())
+            ->flip();
+        $openByDate = $sessions->where('status', 'open')
+            ->keyBy(fn ($s) => $s->opened_at->toDateString());
+
+        $start = $sessions->pluck('opened_at')->min()->copy()->startOfDay()
+            ->max(now()->subDays(60)->startOfDay());
+        $end = now()->subDay()->startOfDay();
+
+        $candidates = [];
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $key = $date->toDateString();
+
+            if (! $closedDates->has($key)) {
+                $candidates[] = ['date' => $date->copy(), 'openSession' => $openByDate->get($key)];
+            }
+        }
+
+        return $candidates;
+    }
+
+    private function closingCashBefore(Project $project, Carbon $date): ?float
+    {
+        $prior = DailySession::where('project_id', $project->id)
+            ->where('status', 'closed')
+            ->whereDate('opened_at', '<', $date->toDateString())
+            ->latest('opened_at')
+            ->first();
+
+        return $prior ? (float) $prior->closing_cash : null;
     }
 }
