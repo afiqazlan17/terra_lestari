@@ -37,28 +37,35 @@
                             @if ($sessionIsStale)
                                 <p class="mt-1 text-sm text-red-700 font-medium">
                                     &#9888; Sesi ni dah terbuka {{ (int) $currentSession->opened_at->diffInDays(now()) }} hari - sistem tak boleh buka sesi baru sehingga ni ditutup.
-                                    Jualan sepanjang tempoh ni selamat (tetap dikira ikut tarikh sebenar dalam Jualan/Dashboard), tapi Laporan Tutup Hari untuk hari-hari dalam tempoh ni akan kosong.
-                                    Isi tunai/QR sebenar yang ada sekarang untuk tutup sesi ni.
+                                    Jualan sepanjang tempoh ni selamat (tetap dikira ikut tarikh sebenar dalam Jualan/Dashboard), tapi Laporan Tutup Hari untuk hari-hari dalam tempoh ni akan kosong
+                                    sehingga diisi secara berasingan untuk setiap hari.
                                 </p>
                             @endif
                         </div>
-                        <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-col items-start gap-2" onsubmit="return sbConfirmCloseWithPendingCheck()">
-                            @csrf
-                            <p class="text-xs text-amber-700">Sebelum Tutup Hari: kira tunai di tangan dan semak baki QR/DuitNow, isi kedua-dua ruang di bawah.</p>
-                            <div class="flex flex-wrap items-end gap-2">
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1">Tunai Akhir (RM)</label>
-                                    <input type="text" inputmode="decimal" data-money-input name="closing_cash" required
-                                        class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                        @if ($sessionIsStale)
+                            <a href="{{ route('daily-session.backfill') }}"
+                                class="shrink-0 bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-lg text-center">
+                                Isi Tutup Hari Setiap Hari Tertunggak
+                            </a>
+                        @else
+                            <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-col items-start gap-2" onsubmit="return sbConfirmCloseWithPendingCheck()">
+                                @csrf
+                                <p class="text-xs text-amber-700">Sebelum Tutup Hari: kira tunai di tangan dan semak baki QR/DuitNow, isi kedua-dua ruang di bawah.</p>
+                                <div class="flex flex-wrap items-end gap-2">
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">Tunai Akhir (RM)</label>
+                                        <input type="text" inputmode="decimal" data-money-input name="closing_cash" required
+                                            class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">QR/DuitNow Diterima (RM)</label>
+                                        <input type="text" inputmode="decimal" data-money-input name="closing_qr" required
+                                            class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                    </div>
+                                    <x-danger-button type="submit">Tutup Hari</x-danger-button>
                                 </div>
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1">QR/DuitNow Diterima (RM)</label>
-                                    <input type="text" inputmode="decimal" data-money-input name="closing_qr" required
-                                        class="rounded-md border-gray-300 shadow-sm text-sm w-32">
-                                </div>
-                                <x-danger-button type="submit">Tutup Hari</x-danger-button>
-                            </div>
-                        </form>
+                            </form>
+                        @endif
                     </div>
                 @else
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -152,15 +152,121 @@ class DailySessionController extends Controller
         // land on when they notice a date missing from the report list - the
         // real cause is almost always a forgotten Tutup Hari blocking every
         // day after it from getting its own session.
-        $staleOpenSession = DailySession::where('project_id', $project->id)
-            ->where('status', 'open')
-            ->whereDate('opened_at', '<', now()->toDateString())
-            ->latest('opened_at')
-            ->first();
+        $staleOpenSession = $this->staleOpenSessionFor($project);
 
         return view('daily-sessions.reports-index', [
             'sessions' => $sessions,
             'staleOpenSession' => $staleOpenSession,
         ]);
+    }
+
+    /**
+     * Form to retroactively fill in closing cash/QR for each day that got
+     * swallowed by a forgotten Tutup Hari - one row per missing calendar
+     * date, from the stale session's open date through yesterday.
+     */
+    public function backfillForm(Request $request): View|RedirectResponse
+    {
+        $project = $request->user()->currentProject();
+
+        abort_if(! $project, 404, 'Tiada projek/outlet dijumpai.');
+
+        $staleSession = $this->staleOpenSessionFor($project);
+
+        if (! $staleSession) {
+            return redirect()->route('dashboard')->with('error', 'Tiada sesi lama yang tertunggak untuk diisi.');
+        }
+
+        return view('daily-sessions.backfill', [
+            'staleSession' => $staleSession,
+            'missingDates' => $this->missingDatesFor($staleSession),
+        ]);
+    }
+
+    public function backfillStore(Request $request): RedirectResponse
+    {
+        $project = $request->user()->currentProject();
+
+        abort_if(! $project, 404, 'Tiada projek/outlet dijumpai.');
+
+        $staleSession = $this->staleOpenSessionFor($project);
+
+        abort_if(! $staleSession, 404, 'Tiada sesi lama yang tertunggak untuk diisi.');
+
+        // Re-derive the missing dates from the stale session itself rather
+        // than trusting whatever date keys the client submitted, so a
+        // tampered request can't create backdated sessions for arbitrary
+        // dates.
+        $missingDates = $this->missingDatesFor($staleSession);
+
+        $validated = $request->validate([
+            'entries' => ['required', 'array'],
+            'entries.*.closing_cash' => ['required', 'numeric', 'min:0'],
+            'entries.*.closing_qr' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        foreach ($missingDates as $date) {
+            abort_unless(isset($validated['entries'][$date->toDateString()]), 422, 'Sila isi semua hari yang tertunggak.');
+        }
+
+        $note = '[Diisi retroaktif oleh '.$request->user()->name.' pada '.now()->translatedFormat('d F Y, H:i').']';
+        $openingCash = (float) $staleSession->opening_cash;
+
+        foreach ($missingDates as $index => $date) {
+            $entry = $validated['entries'][$date->toDateString()];
+
+            if ($index === 0) {
+                $staleSession->update([
+                    'closed_by' => $request->user()->id,
+                    'closed_at' => $date->copy()->endOfDay(),
+                    'closing_cash' => $entry['closing_cash'],
+                    'closing_qr' => $entry['closing_qr'],
+                    'notes' => trim(($staleSession->notes ? $staleSession->notes.' ' : '').$note),
+                    'status' => 'closed',
+                ]);
+            } else {
+                DailySession::create([
+                    'project_id' => $project->id,
+                    'opened_by' => $request->user()->id,
+                    'opened_at' => $date->copy()->startOfDay(),
+                    'opening_cash' => $openingCash,
+                    'closed_by' => $request->user()->id,
+                    'closed_at' => $date->copy()->endOfDay(),
+                    'closing_cash' => $entry['closing_cash'],
+                    'closing_qr' => $entry['closing_qr'],
+                    'notes' => $note,
+                    'status' => 'closed',
+                ]);
+            }
+
+            // Next day's float opens with whatever cash this day closed with.
+            $openingCash = (float) $entry['closing_cash'];
+        }
+
+        return redirect()->route('daily-session.reports.index')
+            ->with('success', 'Semua hari tertunggak telah diisi. Hari ini kini boleh dibuka seperti biasa.');
+    }
+
+    private function staleOpenSessionFor(Project $project): ?DailySession
+    {
+        return DailySession::where('project_id', $project->id)
+            ->where('status', 'open')
+            ->whereDate('opened_at', '<', now()->toDateString())
+            ->latest('opened_at')
+            ->first();
+    }
+
+    /** @return array<int, Carbon> Chronological list of calendar dates from the stale session's open date through yesterday. */
+    private function missingDatesFor(DailySession $staleSession): array
+    {
+        $start = $staleSession->opened_at->copy()->startOfDay();
+        $end = now()->subDay()->startOfDay();
+
+        $dates = [];
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $dates[] = $date->copy();
+        }
+
+        return $dates;
     }
 }

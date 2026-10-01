@@ -18,7 +18,7 @@
                         sistem tak boleh buka sesi baru sehingga sesi ni ditutup. Jualan tetap selamat dan dikira ikut tarikh sebenar,
                         cuma rekod Tutup Hari untuk tempoh ni akan kosong.
                     </p>
-                    <a href="{{ route('dashboard') }}" class="inline-block mt-2 font-medium underline">Tutup sesi ini di Dashboard &rarr;</a>
+                    <a href="{{ route('daily-session.backfill') }}" class="inline-block mt-2 font-medium underline">Isi tutup hari setiap hari tertunggak &rarr;</a>
                 </div>
             @endif
 
