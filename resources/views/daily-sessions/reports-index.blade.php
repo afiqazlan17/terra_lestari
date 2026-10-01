@@ -48,6 +48,9 @@
                                     <td class="px-6 py-3 text-gray-600 whitespace-nowrap">{{ $session->closed_at->format('H:i') }} &middot; {{ $session->closedBy->name }}</td>
                                     <td class="px-6 py-3 text-right whitespace-nowrap">
                                         <a href="{{ route('daily-session.report', $session) }}" target="_blank" class="text-amber-600 hover:underline">Lihat Laporan</a>
+                                        @if (auth()->user()->isSuperuser())
+                                            <a href="{{ route('daily-session.edit', $session) }}" class="ms-3 text-gray-500 hover:underline">Edit</a>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

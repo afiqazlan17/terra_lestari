@@ -73,6 +73,59 @@ class DailySessionController extends Controller
             ->with('closed_session_id', $dailySession->id);
     }
 
+    public function edit(Request $request, DailySession $dailySession): View
+    {
+        $this->authorizeTutupHariEdit($request, $dailySession);
+
+        return view('daily-sessions.edit', ['session' => $dailySession]);
+    }
+
+    /**
+     * Correct the figures on an already-closed day (e.g. a typo in the
+     * counted QR). Every change is appended to the session's notes so the
+     * original figure and who changed it stay on record.
+     */
+    public function update(Request $request, DailySession $dailySession): RedirectResponse
+    {
+        $this->authorizeTutupHariEdit($request, $dailySession);
+
+        $validated = $request->validate([
+            'opening_cash' => ['required', 'numeric', 'min:0'],
+            'closing_cash' => ['required', 'numeric', 'min:0'],
+            'closing_qr' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $labels = [
+            'opening_cash' => 'Tunai Pembukaan',
+            'closing_cash' => 'Tunai Sebenar',
+            'closing_qr' => 'QR Sebenar',
+        ];
+
+        $changes = collect($labels)
+            ->filter(fn ($label, $field) => round((float) $dailySession->$field, 2) !== round((float) $validated[$field], 2))
+            ->map(fn ($label, $field) => sprintf('%s RM %s → RM %s', $label, number_format((float) $dailySession->$field, 2), number_format((float) $validated[$field], 2)));
+
+        if ($changes->isEmpty()) {
+            return redirect()->route('daily-session.reports.index')->with('success', 'Tiada perubahan.');
+        }
+
+        $log = '[Diedit oleh '.$request->user()->name.' pada '.now()->translatedFormat('d F Y, H:i').': '.$changes->implode(', ').']';
+
+        $dailySession->update($validated + [
+            'notes' => trim(($dailySession->notes ? $dailySession->notes.' ' : '').$log),
+        ]);
+
+        return redirect()->route('daily-session.reports.index')
+            ->with('success', 'Tutup Hari '.$dailySession->opened_at->translatedFormat('d F Y').' dikemaskini: '.$changes->implode(', '));
+    }
+
+    private function authorizeTutupHariEdit(Request $request, DailySession $dailySession): void
+    {
+        abort_unless($dailySession->project_id === $request->user()->currentProject()?->id, 403);
+        abort_unless($request->user()->isSuperuser(), 403, 'Hanya Afiq/Amirul boleh edit Tutup Hari.');
+        abort_unless($dailySession->status === 'closed', 422, 'Hanya hari yang dah ditutup boleh diedit.');
+    }
+
     public function report(Request $request, DailySession $dailySession, SalesSummaryService $summaryService, NbkBakiService $bakiService): View
     {
         abort_unless($dailySession->project_id === $request->user()->currentProject()?->id, 403);
