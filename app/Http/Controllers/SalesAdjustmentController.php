@@ -53,6 +53,20 @@ class SalesAdjustmentController extends Controller
         $project = $request->user()->currentProject();
         $done = 0;
 
+        // Days whose sales were already keyed into the POS only lacked the
+        // Tutup Hari record - adding the suggested figures would double up.
+        if ($request->input('mode') === 'dismiss') {
+            foreach ($this->unconfirmedBackfilledDays($project, $summaryService) as $day) {
+                $day['session']->update([
+                    'notes' => trim($day['session']->notes.' '.DailySession::SALES_CONFIRMED_NOTE),
+                ]);
+                $done++;
+            }
+
+            return redirect()->route('sales-adjustments.create')
+                ->with('success', "{$done} hari ditanda selesai - tiada jualan ditambah.");
+        }
+
         // Iterate the server-side list, not the submitted keys, so only
         // genuinely backfilled sessions can be touched.
         foreach ($this->unconfirmedBackfilledDays($project, $summaryService) as $day) {

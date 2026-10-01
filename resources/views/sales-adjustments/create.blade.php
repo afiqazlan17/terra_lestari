@@ -14,7 +14,12 @@
             @if ($backfilled->isNotEmpty())
                 <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                     <div class="px-4 py-3 bg-red-50 border-b border-red-200 text-sm text-red-800">
-                        <p class="font-semibold">{{ $backfilled->count() }} hari Tutup Hari diisi semula - jualan belum masuk sistem</p>
+                        <p class="font-semibold">{{ $backfilled->count() }} hari Tutup Hari diisi semula - semak jualan</p>
+                        <p class="text-xs mt-1">
+                            Kalau jualan hari-hari ni <strong>dah di-key-in dalam POS</strong> (nampak "dalam POS" ada angka), jualan dah masuk sistem -
+                            tekan <strong>"Jualan dah lengkap dalam POS"</strong> di bawah, jangan tambah apa-apa. Angka di bawah hanya untuk hari yang
+                            jualan memang tak di-key-in langsung.
+                        </p>
                         <p class="text-xs mt-1">
                             <strong>Jualan Tunai</strong> = Tunai Akhir &minus; Duit Buka &minus; jualan tunai yang dah ada dalam POS.
                             <strong>Jualan QR</strong> = QR Akhir &minus; jualan QR yang dah ada dalam POS.
@@ -70,7 +75,12 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div class="p-4 border-t border-gray-100 flex justify-end">
+                        <div class="p-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <button type="submit" name="mode" value="dismiss"
+                                onclick="return confirm('Tutup senarai ni tanpa tambah apa-apa jualan? Pilih ni kalau semua jualan hari-hari tu memang dah di-key-in dalam POS.')"
+                                class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
+                                Jualan dah lengkap dalam POS - tutup senarai
+                            </button>
                             <x-primary-button type="submit">Sahkan Jualan</x-primary-button>
                         </div>
                     </form>
