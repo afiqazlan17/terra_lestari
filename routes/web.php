@@ -89,6 +89,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
 
         Route::get('/jualan/pelarasan', [SalesAdjustmentController::class, 'create'])->name('sales-adjustments.create');
         Route::post('/jualan/pelarasan', [SalesAdjustmentController::class, 'store'])->name('sales-adjustments.store');
+        Route::post('/jualan/pelarasan/retroaktif', [SalesAdjustmentController::class, 'storeBackfilled'])->name('sales-adjustments.store-backfilled');
 
         // Menu / products
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');

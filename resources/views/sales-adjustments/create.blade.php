@@ -9,7 +9,50 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
+
+            @if ($backfilled->isNotEmpty())
+                <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 bg-red-50 border-b border-red-200 text-sm text-red-800">
+                        <p class="font-semibold">{{ $backfilled->count() }} hari Tutup Hari diisi semula - jualan belum masuk sistem</p>
+                        <p class="text-xs mt-1">
+                            Cadangan dikira dari angka Tutup Hari: <strong>Tunai</strong> = Tunai Akhir &minus; Tunai Pembukaan &minus; jualan tunai yang dah ada,
+                            <strong>QR</strong> = QR Akhir &minus; jualan QR yang dah ada. Semak &amp; betulkan kalau perlu, contohnya kalau ada duit laci dipakai bayar barang.
+                            Isi 0 kalau hari tu tiada jualan nak ditambah. Biar kosong untuk sahkan kemudian.
+                        </p>
+                    </div>
+                    <form method="POST" action="{{ route('sales-adjustments.store-backfilled') }}">
+                        @csrf
+                        <div class="divide-y divide-gray-100">
+                            @foreach ($backfilled as $day)
+                                @php $s = $day['session']; @endphp
+                                <div class="p-4 flex flex-col sm:flex-row sm:items-end gap-3">
+                                    <div class="flex-1 text-xs text-gray-500">
+                                        <p class="text-sm font-medium text-gray-800">{{ $day['date']->translatedFormat('l, d F Y') }}</p>
+                                        <p>Tunai: buka RM {{ number_format($s->opening_cash, 2) }} &rarr; tutup RM {{ number_format($s->closing_cash, 2) }} &middot; dalam sistem RM {{ number_format($day['cashSales'], 2) }}</p>
+                                        <p>QR: tutup RM {{ number_format($s->closing_qr, 2) }} &middot; dalam sistem RM {{ number_format($day['qrSales'], 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">Jualan Tunai (RM)</label>
+                                        <input type="text" inputmode="decimal" data-money-input name="entries[{{ $s->id }}][cash]"
+                                            value="{{ number_format($day['suggestedCash'], 2, '.', '') }}"
+                                            class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">Jualan QR (RM)</label>
+                                        <input type="text" inputmode="decimal" data-money-input name="entries[{{ $s->id }}][qr]"
+                                            value="{{ number_format($day['suggestedQr'], 2, '.', '') }}"
+                                            class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="p-4 border-t border-gray-100 flex justify-end">
+                            <x-primary-button type="submit">Sahkan Jualan</x-primary-button>
+                        </div>
+                    </form>
+                </div>
+            @endif
 
             <div class="rounded-md bg-amber-50 border border-amber-200 px-4 py-3 text-xs text-amber-800">
                 Guna ni HANYA bila jualan sebenar sudah dikira dalam duit tunai/QR sebenar semasa Tutup Hari, tapi

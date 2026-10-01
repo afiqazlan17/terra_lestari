@@ -202,7 +202,7 @@ class DailySessionController extends Controller
             'entries.*.closing_qr.required_with' => 'Isi QR sekali untuk hari yang ada Tunai Akhir diisi.',
         ]);
 
-        $note = '[Diisi retroaktif oleh '.$request->user()->name.' pada '.now()->translatedFormat('d F Y, H:i').']';
+        $note = DailySession::BACKFILL_NOTE.' oleh '.$request->user()->name.' pada '.now()->translatedFormat('d F Y, H:i').']';
         $saved = 0;
 
         DB::transaction(function () use ($project, $validated, $request, $note, &$saved) {
@@ -248,8 +248,15 @@ class DailySessionController extends Controller
             return back()->withInput()->with('error', 'Tiada hari diisi. Isi Tunai Akhir dan QR untuk sekurang-kurangnya satu hari.');
         }
 
+        // Tutup Hari figures alone don't add to Jualan/Cash Book - those
+        // count orders - so the days' sales still need recording.
+        if ($request->user()->isSuperuser()) {
+            return redirect()->route('sales-adjustments.create')
+                ->with('success', "{$saved} hari berjaya diisi. Sahkan jualan hari-hari tu di bawah supaya masuk dalam Jualan & Cash Book.");
+        }
+
         return redirect()->route('daily-session.reports.index')
-            ->with('success', "{$saved} hari berjaya diisi.");
+            ->with('success', "{$saved} hari berjaya diisi. Minta Afiq/Amirul sahkan jualan hari-hari tu di Pelarasan Jualan supaya masuk dalam Jualan & Cash Book.");
     }
 
     private function staleOpenSessionFor(Project $project): ?DailySession
