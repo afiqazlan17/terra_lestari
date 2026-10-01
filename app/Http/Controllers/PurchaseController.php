@@ -10,6 +10,7 @@ use App\Rules\ValidReceiptFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PurchaseController extends Controller
@@ -85,8 +86,14 @@ class PurchaseController extends Controller
         abort_unless($request->user()->hasFullAccess(), 403, 'Hanya owner/superuser boleh edit rekod belian.');
         abort_if($purchase->isVoided(), 422, 'Rekod yang telah di-void tidak boleh diedit.');
 
+        // Full category list (not just Bahan Mentah) so a Belian entry
+        // that's actually a general expense - e.g. rent or utilities
+        // mistakenly logged here - can be recategorised and move itself
+        // over to the Perbelanjaan list, instead of needing to be voided
+        // and re-entered from scratch.
         $validated = $request->validate([
             'purchase_date' => ['required', 'date'],
+            'category' => ['required', Rule::in(array_keys(Purchase::CATEGORIES))],
             'supplier_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],
@@ -100,6 +107,10 @@ class PurchaseController extends Controller
         if ($request->hasFile('receipt') && ! $purchase->receipt_path) {
             $receiptPath = $this->storeReceipt($request->file('receipt'), 'receipts/'.$purchase->project_id);
             $changes[] = 'Resit: ditambah';
+        }
+
+        if ($purchase->category !== $validated['category']) {
+            $changes[] = sprintf('Kategori: %s → %s', $purchase->categoryLabel(), Purchase::CATEGORIES[$validated['category']] ?? $validated['category']);
         }
 
         if ((float) $purchase->amount !== (float) $validated['amount']) {
@@ -134,6 +145,7 @@ class PurchaseController extends Controller
 
             $purchase->update([
                 'purchase_date' => $validated['purchase_date'],
+                'category' => $validated['category'],
                 'supplier_name' => $validated['supplier_name'] ?? null,
                 'description' => $validated['description'],
                 'amount' => $validated['amount'],

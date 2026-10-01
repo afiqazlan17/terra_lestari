@@ -99,7 +99,18 @@
                                                         <label class="block text-xs text-gray-500 mb-1">Tarikh</label>
                                                         <input type="date" name="purchase_date" value="{{ $purchase->purchase_date->toDateString() }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                     </div>
-                                                    <div class="sm:col-span-2">
+                                                    <div>
+                                                        <label class="block text-xs text-gray-500 mb-1">Kategori</label>
+                                                        <select name="category" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
+                                                            @foreach (\App\Models\Purchase::CATEGORIES as $value => $label)
+                                                                <option value="{{ $value }}" @selected($purchase->category === $value)>{{ $label }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                        @if ($purchase->category === \App\Models\Purchase::CATEGORY_BAHAN_MENTAH)
+                                                            <p class="text-xs text-gray-400 mt-1">Tukar kategori untuk pindahkan rekod ni ke Perbelanjaan.</p>
+                                                        @endif
+                                                    </div>
+                                                    <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Keterangan</label>
                                                         <input type="text" name="description" value="{{ $purchase->description }}" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
                                                     </div>

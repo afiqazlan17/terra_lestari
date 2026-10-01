@@ -174,9 +174,14 @@ class ExpenseController extends Controller
         abort_unless($request->user()->hasFullAccess(), 403, 'Hanya owner/superuser boleh edit rekod perbelanjaan.');
         abort_if($expense->isVoided(), 422, 'Rekod yang telah di-void tidak boleh diedit.');
 
+        // Full category list (not just EXPENSE_CATEGORIES) so a misfiled
+        // entry - e.g. a Kuih purchase recorded here as "Lain-lain" instead
+        // of as a Belian - can be recategorised into Bahan Mentah and move
+        // itself over to the Belian list, instead of needing to be voided
+        // and re-entered from scratch.
         $validated = $request->validate([
             'purchase_date' => ['required', 'date'],
-            'category' => ['required', Rule::in(array_keys(Purchase::EXPENSE_CATEGORIES))],
+            'category' => ['required', Rule::in(array_keys(Purchase::CATEGORIES))],
             'supplier_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0'],

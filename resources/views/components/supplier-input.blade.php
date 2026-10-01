@@ -40,10 +40,16 @@
 </script>
 @endonce
 
-<div x-data="sbSupplierInput(@js($suppliers), @js($value))" class="relative">
-    <input type="text" id="{{ $id ?? $name }}" name="{{ $name }}" autocomplete="off"
-        x-model="query" @focus="open = true" @input="open = true" @click.outside="open = false"
-        {{ $attributes->merge(['class' => 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full']) }}>
+<div x-data="sbSupplierInput(@js($suppliers), @js($value))" class="relative" @click.outside="open = false">
+    <input type="text" x-ref="input" id="{{ $id ?? $name }}" name="{{ $name }}" autocomplete="off"
+        x-model="query" @focus="open = true" @input="open = true"
+        {{ $attributes->merge(['class' => 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-full pr-7']) }}>
+    <button type="button" tabindex="-1" @click="open = ! open; $refs.input.focus()"
+        class="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400">
+        <svg class="h-4 w-4" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5.5 7.5l4.5 4.5 4.5-4.5" />
+        </svg>
+    </button>
 
     <template x-if="open && filtered().length > 0">
         <ul class="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto text-sm">

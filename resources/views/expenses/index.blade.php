@@ -108,10 +108,13 @@
                                                     <div>
                                                         <label class="block text-xs text-gray-500 mb-1">Kategori</label>
                                                         <select name="category" required class="rounded-md border-gray-300 shadow-sm text-sm w-full">
-                                                            @foreach (\App\Models\Purchase::EXPENSE_CATEGORIES as $value => $label)
+                                                            @foreach (\App\Models\Purchase::CATEGORIES as $value => $label)
                                                                 <option value="{{ $value }}" @selected($expense->category === $value)>{{ $label }}</option>
                                                             @endforeach
                                                         </select>
+                                                        @if ($expense->category !== \App\Models\Purchase::CATEGORY_BAHAN_MENTAH)
+                                                            <p class="text-xs text-gray-400 mt-1">Pilih "Bahan Mentah" untuk pindahkan rekod ni ke Belian.</p>
+                                                        @endif
                                                     </div>
                                                     <div class="sm:col-span-2">
                                                         <label class="block text-xs text-gray-500 mb-1">Keterangan</label>
