@@ -155,9 +155,26 @@ class DailySessionController extends Controller
         // day after it from getting its own session.
         $staleOpenSession = $this->staleOpenSessionFor($project);
 
+        // POS sales per date + payment method for this page, so the list can
+        // show each day's counted-vs-recorded figures without opening every
+        // report. Grouped in PHP since DATE() differs between MySQL/SQLite.
+        $posSales = collect();
+        if ($sessions->isNotEmpty()) {
+            $dates = $sessions->getCollection()->map(fn ($s) => $s->opened_at->toDateString());
+
+            $posSales = Order::where('project_id', $project->id)
+                ->where('status', Order::STATUS_COMPLETED)
+                ->whereDate('created_at', '>=', $dates->min())
+                ->whereDate('created_at', '<=', $dates->max())
+                ->get(['created_at', 'payment_method', 'total'])
+                ->groupBy(fn ($o) => $o->created_at->toDateString().'|'.$o->payment_method)
+                ->map(fn ($group) => (float) $group->sum('total'));
+        }
+
         return view('daily-sessions.reports-index', [
             'sessions' => $sessions,
             'staleOpenSession' => $staleOpenSession,
+            'posSales' => $posSales,
         ]);
     }
 
