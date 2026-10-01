@@ -314,7 +314,7 @@
             <span>Dibuka: <strong>{{ $session->opened_at->format('H:i A') }}</strong> oleh <strong>{{ $session->openedBy->name }}</strong></span>
             <span>
                 @if ($session->closed_at)
-                    Ditutup: <strong>{{ $session->closed_at->isSameDay($session->opened_at) ? $session->closed_at->format('H:i A') : $session->closed_at->translatedFormat('d M Y, H:i A') }}</strong> oleh <strong>{{ $session->closedBy->name }}</strong>
+                    Ditutup: <strong>{{ $session->closed_at->format('H:i A') }}</strong> oleh <strong>{{ $session->closedBy->name }}</strong>
                 @else
                     <span style="color: var(--bad);">Sesi masih dibuka</span>
                 @endif

@@ -8,9 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DailySession extends Model
 {
-    /** Note marker on sessions created/closed via the Tutup Hari backfill form. */
-    public const BACKFILL_NOTE = '[Diisi retroaktif';
-
     protected $fillable = [
         'project_id', 'opened_by', 'opened_at', 'opening_cash',
         'closed_by', 'closed_at', 'closing_cash', 'closing_qr', 'status', 'notes',

@@ -16,7 +16,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ReceiptExtractionController;
 use App\Http\Controllers\SalesAdjustmentController;
-use App\Http\Controllers\SalesTallyController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
@@ -90,9 +89,6 @@ Route::middleware(['auth', 'password.change'])->group(function () {
 
         Route::get('/jualan/pelarasan', [SalesAdjustmentController::class, 'create'])->name('sales-adjustments.create');
         Route::post('/jualan/pelarasan', [SalesAdjustmentController::class, 'store'])->name('sales-adjustments.store');
-        Route::get('/jualan/tally', [SalesTallyController::class, 'index'])->name('sales-tally.index');
-        Route::post('/jualan/tally/duit-buka', [SalesTallyController::class, 'setBackfilledOpening'])->name('sales-tally.backfilled-opening');
-        Route::post('/jualan/tally/{dailySession}', [SalesTallyController::class, 'tally'])->name('sales-tally.tally');
 
         // Menu / products
         Route::get('/products', [ProductController::class, 'index'])->name('products.index');

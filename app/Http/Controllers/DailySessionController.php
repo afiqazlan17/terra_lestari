@@ -155,26 +155,9 @@ class DailySessionController extends Controller
         // day after it from getting its own session.
         $staleOpenSession = $this->staleOpenSessionFor($project);
 
-        // POS sales per date + payment method for this page, so the list can
-        // show each day's counted-vs-recorded figures without opening every
-        // report. Grouped in PHP since DATE() differs between MySQL/SQLite.
-        $posSales = collect();
-        if ($sessions->isNotEmpty()) {
-            $dates = $sessions->getCollection()->map(fn ($s) => $s->opened_at->toDateString());
-
-            $posSales = Order::where('project_id', $project->id)
-                ->where('status', Order::STATUS_COMPLETED)
-                ->whereDate('created_at', '>=', $dates->min())
-                ->whereDate('created_at', '<=', $dates->max())
-                ->get(['created_at', 'payment_method', 'total'])
-                ->groupBy(fn ($o) => $o->created_at->toDateString().'|'.$o->payment_method)
-                ->map(fn ($group) => (float) $group->sum('total'));
-        }
-
         return view('daily-sessions.reports-index', [
             'sessions' => $sessions,
             'staleOpenSession' => $staleOpenSession,
-            'posSales' => $posSales,
         ]);
     }
 
@@ -219,7 +202,7 @@ class DailySessionController extends Controller
             'entries.*.closing_qr.required_with' => 'Isi QR sekali untuk hari yang ada Tunai Akhir diisi.',
         ]);
 
-        $note = DailySession::BACKFILL_NOTE.' oleh '.$request->user()->name.' pada '.now()->translatedFormat('d F Y, H:i').']';
+        $note = '[Diisi retroaktif oleh '.$request->user()->name.' pada '.now()->translatedFormat('d F Y, H:i').']';
         $saved = 0;
 
         DB::transaction(function () use ($project, $validated, $request, $note, &$saved) {
@@ -265,15 +248,8 @@ class DailySessionController extends Controller
             return back()->withInput()->with('error', 'Tiada hari diisi. Isi Tunai Akhir dan QR untuk sekurang-kurangnya satu hari.');
         }
 
-        // Tutup Hari figures alone don't add to Jualan/Cash Book - those
-        // count orders - so the days' sales still need recording.
-        if ($request->user()->isSuperuser()) {
-            return redirect()->route('sales-tally.index')
-                ->with('success', "{$saved} hari berjaya diisi. Semak jualan hari-hari tu di bawah - Tallykan kalau ada jualan tak di-key-in.");
-        }
-
         return redirect()->route('daily-session.reports.index')
-            ->with('success', "{$saved} hari berjaya diisi. Minta Afiq/Amirul semak di Jualan → Tally Jualan.");
+            ->with('success', "{$saved} hari berjaya diisi.");
     }
 
     private function staleOpenSessionFor(Project $project): ?DailySession
