@@ -61,6 +61,9 @@
                                         <p class="text-gray-800 font-medium">{{ $session->opened_at->translatedFormat('D, d M Y') }}</p>
                                         <p class="text-xs text-gray-400">
                                             {{ $session->closedBy->name }}
+                                            @unless ($session->closed_at->isSameDay($session->opened_at) || ($session->closed_at->isSameDay($session->opened_at->copy()->addDay()) && $session->closed_at->hour < 6))
+                                                &middot; <span class="text-red-600 font-medium">ditutup {{ $session->closed_at->translatedFormat('d M, H:i') }}</span>
+                                            @endunless
                                             @if ($isBackfilled)
                                                 &middot; <span class="text-amber-600">diisi semula</span>
                                             @endif
