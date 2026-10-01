@@ -57,8 +57,11 @@ class SalesAdjustmentController extends Controller
         // Tutup Hari record - adding the suggested figures would double up.
         if ($request->input('mode') === 'dismiss') {
             foreach ($this->unconfirmedBackfilledDays($project, $summaryService) as $day) {
+                $opening = $validated['entries'][$day['session']->id]['opening'] ?? null;
+
                 $day['session']->update([
                     'notes' => trim($day['session']->notes.' '.DailySession::SALES_CONFIRMED_NOTE),
+                    ...($opening !== null ? ['opening_cash' => $opening] : []),
                 ]);
                 $done++;
             }

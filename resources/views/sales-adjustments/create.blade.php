@@ -51,8 +51,8 @@
                                     @set-all-opening.window="opening = $event.detail; recalc()">
                                     <div class="flex-1 text-xs text-gray-500">
                                         <p class="text-sm font-medium text-gray-800">{{ $day['date']->translatedFormat('l, d F Y') }}</p>
-                                        <p>Tunai Akhir RM {{ number_format($s->closing_cash, 2) }} &middot; tunai dalam POS RM {{ number_format($day['cashSales'], 2) }}</p>
-                                        <p>QR Akhir RM {{ number_format($s->closing_qr, 2) }} &middot; QR dalam POS RM {{ number_format($day['qrSales'], 2) }}</p>
+                                        <p>Tunai Akhir RM {{ number_format($s->closing_cash, 2) }} &middot; <strong>jualan tunai POS</strong> RM {{ number_format($day['cashSales'], 2) }}</p>
+                                        <p>QR Akhir RM {{ number_format($s->closing_qr, 2) }} &middot; <strong>jualan QR POS</strong> RM {{ number_format($day['qrSales'], 2) }}</p>
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-500 mb-1">Duit Buka (RM)</label>
@@ -61,13 +61,13 @@
                                             class="rounded-md border-gray-300 shadow-sm text-sm w-28">
                                     </div>
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">Jualan Tunai (RM)</label>
+                                        <label class="block text-xs text-gray-500 mb-1">Tambah Jualan Tunai (RM)</label>
                                         <input type="number" step="0.01" min="0" name="entries[{{ $s->id }}][cash]"
                                             x-model.number="cash"
                                             class="rounded-md border-gray-300 shadow-sm text-sm w-28">
                                     </div>
                                     <div>
-                                        <label class="block text-xs text-gray-500 mb-1">Jualan QR (RM)</label>
+                                        <label class="block text-xs text-gray-500 mb-1">Tambah Jualan QR (RM)</label>
                                         <input type="number" step="0.01" min="0" name="entries[{{ $s->id }}][qr]"
                                             value="{{ number_format($day['suggestedQr'], 2, '.', '') }}"
                                             class="rounded-md border-gray-300 shadow-sm text-sm w-28">
@@ -77,7 +77,7 @@
                         </div>
                         <div class="p-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
                             <button type="submit" name="mode" value="dismiss"
-                                onclick="return confirm('Tutup senarai ni tanpa tambah apa-apa jualan? Pilih ni kalau semua jualan hari-hari tu memang dah di-key-in dalam POS.')"
+                                onclick="return confirm('Tutup senarai ni tanpa tambah apa-apa jualan? Duit Buka yang diisi akan disimpan. Pilih ni kalau semua jualan hari-hari tu memang dah di-key-in dalam POS.')"
                                 class="border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold px-4 py-2 rounded-lg">
                                 Jualan dah lengkap dalam POS - tutup senarai
                             </button>
