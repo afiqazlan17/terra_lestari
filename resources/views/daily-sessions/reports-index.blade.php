@@ -7,6 +7,21 @@
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
             <a href="{{ route('dashboard') }}" class="text-sm text-amber-600 hover:underline">&larr; Kembali ke Dashboard</a>
 
+            @if ($staleOpenSession)
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
+                    <p class="font-medium">
+                        &#9888; Sesi dibuka {{ $staleOpenSession->opened_at->translatedFormat('d F Y, H:i') }} masih belum ditutup
+                        ({{ (int) $staleOpenSession->opened_at->diffInDays(now()) }} hari lalu).
+                    </p>
+                    <p class="mt-1">
+                        Ini sebab hari-hari selepas {{ $staleOpenSession->opened_at->translatedFormat('d F Y') }} tiada dalam senarai di bawah -
+                        sistem tak boleh buka sesi baru sehingga sesi ni ditutup. Jualan tetap selamat dan dikira ikut tarikh sebenar,
+                        cuma rekod Tutup Hari untuk tempoh ni akan kosong.
+                    </p>
+                    <a href="{{ route('dashboard') }}" class="inline-block mt-2 font-medium underline">Tutup sesi ini di Dashboard &rarr;</a>
+                </div>
+            @endif
+
             <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
                 @if ($sessions->isEmpty())
                     <p class="p-6 text-sm text-gray-400">Tiada laporan lagi. Laporan akan keluar di sini selepas hari pertama ditutup.</p>

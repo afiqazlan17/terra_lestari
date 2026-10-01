@@ -24,15 +24,23 @@
             {{-- Daily session panel --}}
             <div class="bg-white shadow-sm sm:rounded-lg p-6">
                 @if ($currentSession)
+                    @php $sessionIsStale = ! $currentSession->opened_at->isToday(); @endphp
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                            <span class="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-800 px-3 py-1 text-xs font-medium">
-                                &#9679; Hari ini dibuka
+                            <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium {{ $sessionIsStale ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                &#9679; {{ $sessionIsStale ? 'Sesi belum ditutup' : 'Hari ini dibuka' }}
                             </span>
                             <p class="mt-2 text-sm text-gray-600">
-                                Dibuka jam {{ $currentSession->opened_at->format('H:i') }} oleh {{ $currentSession->openedBy->name }}
+                                Dibuka {{ $currentSession->opened_at->translatedFormat('d F Y, H:i') }} oleh {{ $currentSession->openedBy->name }}
                                 &middot; Tunai pembukaan RM {{ number_format($currentSession->opening_cash, 2) }}
                             </p>
+                            @if ($sessionIsStale)
+                                <p class="mt-1 text-sm text-red-700 font-medium">
+                                    &#9888; Sesi ni dah terbuka {{ (int) $currentSession->opened_at->diffInDays(now()) }} hari - sistem tak boleh buka sesi baru sehingga ni ditutup.
+                                    Jualan sepanjang tempoh ni selamat (tetap dikira ikut tarikh sebenar dalam Jualan/Dashboard), tapi Laporan Tutup Hari untuk hari-hari dalam tempoh ni akan kosong.
+                                    Isi tunai/QR sebenar yang ada sekarang untuk tutup sesi ni.
+                                </p>
+                            @endif
                         </div>
                         <form method="POST" action="{{ route('daily-session.close', $currentSession) }}" class="flex flex-col items-start gap-2" onsubmit="return sbConfirmCloseWithPendingCheck()">
                             @csrf

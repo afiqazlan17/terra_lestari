@@ -148,8 +148,19 @@ class DailySessionController extends Controller
             ->latest('opened_at')
             ->paginate(30);
 
+        // Surfaced here too (not just Dashboard) since this is the page staff
+        // land on when they notice a date missing from the report list - the
+        // real cause is almost always a forgotten Tutup Hari blocking every
+        // day after it from getting its own session.
+        $staleOpenSession = DailySession::where('project_id', $project->id)
+            ->where('status', 'open')
+            ->whereDate('opened_at', '<', now()->toDateString())
+            ->latest('opened_at')
+            ->first();
+
         return view('daily-sessions.reports-index', [
             'sessions' => $sessions,
+            'staleOpenSession' => $staleOpenSession,
         ]);
     }
 }
