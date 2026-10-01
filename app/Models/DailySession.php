@@ -11,9 +11,6 @@ class DailySession extends Model
     /** Note marker on sessions created/closed via the Tutup Hari backfill form. */
     public const BACKFILL_NOTE = '[Diisi retroaktif';
 
-    /** Note marker once a backfilled day's sales have been confirmed via Pelarasan Jualan. */
-    public const SALES_CONFIRMED_NOTE = '[Jualan disahkan]';
-
     protected $fillable = [
         'project_id', 'opened_by', 'opened_at', 'opening_cash',
         'closed_by', 'closed_at', 'closing_cash', 'closing_qr', 'status', 'notes',

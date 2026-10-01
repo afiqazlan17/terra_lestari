@@ -268,12 +268,12 @@ class DailySessionController extends Controller
         // Tutup Hari figures alone don't add to Jualan/Cash Book - those
         // count orders - so the days' sales still need recording.
         if ($request->user()->isSuperuser()) {
-            return redirect()->route('sales-adjustments.create')
-                ->with('success', "{$saved} hari berjaya diisi. Sahkan jualan hari-hari tu di bawah supaya masuk dalam Jualan & Cash Book.");
+            return redirect()->route('sales-tally.index')
+                ->with('success', "{$saved} hari berjaya diisi. Semak jualan hari-hari tu di bawah - Tallykan kalau ada jualan tak di-key-in.");
         }
 
         return redirect()->route('daily-session.reports.index')
-            ->with('success', "{$saved} hari berjaya diisi. Minta Afiq/Amirul sahkan jualan hari-hari tu di Pelarasan Jualan supaya masuk dalam Jualan & Cash Book.");
+            ->with('success', "{$saved} hari berjaya diisi. Minta Afiq/Amirul semak di Jualan → Tally Jualan.");
     }
 
     private function staleOpenSessionFor(Project $project): ?DailySession
