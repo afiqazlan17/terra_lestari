@@ -45,6 +45,7 @@ class SalesAdjustmentController extends Controller
 
         $validated = $request->validate([
             'entries' => ['required', 'array'],
+            'entries.*.opening' => ['nullable', 'numeric', 'min:0'],
             'entries.*.cash' => ['nullable', 'numeric', 'min:0'],
             'entries.*.qr' => ['nullable', 'numeric', 'min:0'],
         ]);
@@ -70,8 +71,13 @@ class SalesAdjustmentController extends Controller
                 $service->apply($project, $day['date'], $amounts, 'Tutup Hari diisi semula', $request->user()->id);
             }
 
+            // The backfill form auto-filled opening cash from the previous
+            // day's closing, which is wrong when the till is emptied daily -
+            // keep the corrected figure so the day's Tutup Hari report
+            // (Jangkaan/Beza) matches the sales just recorded.
             $day['session']->update([
                 'notes' => trim($day['session']->notes.' '.DailySession::SALES_CONFIRMED_NOTE),
+                ...(isset($entry['opening']) ? ['opening_cash' => $entry['opening']] : []),
             ]);
 
             $done++;

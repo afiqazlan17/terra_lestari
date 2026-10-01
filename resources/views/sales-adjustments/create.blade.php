@@ -16,33 +16,56 @@
                     <div class="px-4 py-3 bg-red-50 border-b border-red-200 text-sm text-red-800">
                         <p class="font-semibold">{{ $backfilled->count() }} hari Tutup Hari diisi semula - jualan belum masuk sistem</p>
                         <p class="text-xs mt-1">
-                            Cadangan dikira dari angka Tutup Hari: <strong>Tunai</strong> = Tunai Akhir &minus; Tunai Pembukaan &minus; jualan tunai yang dah ada,
-                            <strong>QR</strong> = QR Akhir &minus; jualan QR yang dah ada. Semak &amp; betulkan kalau perlu, contohnya kalau ada duit laci dipakai bayar barang.
+                            <strong>Jualan Tunai</strong> = Tunai Akhir &minus; Duit Buka &minus; jualan tunai yang dah ada dalam POS.
+                            <strong>Jualan QR</strong> = QR Akhir &minus; jualan QR yang dah ada dalam POS.
+                            Pastikan <strong>Duit Buka</strong> betul untuk setiap hari - tukar dan Jualan Tunai akan dikira semula.
                             Isi 0 kalau hari tu tiada jualan nak ditambah. Biar kosong untuk sahkan kemudian.
                         </p>
                     </div>
                     <form method="POST" action="{{ route('sales-adjustments.store-backfilled') }}">
                         @csrf
+                        <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-2 text-xs text-gray-600" x-data="{ amount: 0 }">
+                            <span>Semua hari buka dengan duit laci sama?</span>
+                            <span>RM</span>
+                            <input type="number" step="0.01" min="0" x-model.number="amount" class="rounded-md border-gray-300 shadow-sm text-sm w-24">
+                            <button type="button" @click="$dispatch('set-all-opening', amount)" class="border border-gray-300 hover:bg-gray-50 rounded-md px-3 py-1.5 font-medium">
+                                Guna untuk semua hari
+                            </button>
+                        </div>
                         <div class="divide-y divide-gray-100">
                             @foreach ($backfilled as $day)
                                 @php $s = $day['session']; @endphp
-                                <div class="p-4 flex flex-col sm:flex-row sm:items-end gap-3">
+                                <div class="p-4 flex flex-col sm:flex-row sm:items-end gap-3"
+                                    x-data="{
+                                        closing: {{ (float) $s->closing_cash }},
+                                        posCash: {{ (float) $day['cashSales'] }},
+                                        opening: {{ (float) $s->opening_cash }},
+                                        cash: {{ $day['suggestedCash'] }},
+                                        recalc() { this.cash = Math.max(0, Math.round((this.closing - (this.opening || 0) - this.posCash) * 100) / 100); },
+                                    }"
+                                    @set-all-opening.window="opening = $event.detail; recalc()">
                                     <div class="flex-1 text-xs text-gray-500">
                                         <p class="text-sm font-medium text-gray-800">{{ $day['date']->translatedFormat('l, d F Y') }}</p>
-                                        <p>Tunai: buka RM {{ number_format($s->opening_cash, 2) }} &rarr; tutup RM {{ number_format($s->closing_cash, 2) }} &middot; dalam sistem RM {{ number_format($day['cashSales'], 2) }}</p>
-                                        <p>QR: tutup RM {{ number_format($s->closing_qr, 2) }} &middot; dalam sistem RM {{ number_format($day['qrSales'], 2) }}</p>
+                                        <p>Tunai Akhir RM {{ number_format($s->closing_cash, 2) }} &middot; tunai dalam POS RM {{ number_format($day['cashSales'], 2) }}</p>
+                                        <p>QR Akhir RM {{ number_format($s->closing_qr, 2) }} &middot; QR dalam POS RM {{ number_format($day['qrSales'], 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">Duit Buka (RM)</label>
+                                        <input type="number" step="0.01" min="0" name="entries[{{ $s->id }}][opening]"
+                                            x-model.number="opening" @input="recalc()"
+                                            class="rounded-md border-gray-300 shadow-sm text-sm w-28">
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-500 mb-1">Jualan Tunai (RM)</label>
-                                        <input type="text" inputmode="decimal" data-money-input name="entries[{{ $s->id }}][cash]"
-                                            value="{{ number_format($day['suggestedCash'], 2, '.', '') }}"
-                                            class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                        <input type="number" step="0.01" min="0" name="entries[{{ $s->id }}][cash]"
+                                            x-model.number="cash"
+                                            class="rounded-md border-gray-300 shadow-sm text-sm w-28">
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-500 mb-1">Jualan QR (RM)</label>
-                                        <input type="text" inputmode="decimal" data-money-input name="entries[{{ $s->id }}][qr]"
+                                        <input type="number" step="0.01" min="0" name="entries[{{ $s->id }}][qr]"
                                             value="{{ number_format($day['suggestedQr'], 2, '.', '') }}"
-                                            class="rounded-md border-gray-300 shadow-sm text-sm w-32">
+                                            class="rounded-md border-gray-300 shadow-sm text-sm w-28">
                                     </div>
                                 </div>
                             @endforeach
